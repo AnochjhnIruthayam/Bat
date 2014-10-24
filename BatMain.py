@@ -1,7 +1,5 @@
-__author__ = 'anoch'
+__author__ = 'Anochjhn Iruthayam'
 
-
-__author__ = 'anoch'
 
 
 import numpy as np
