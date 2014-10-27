@@ -5,7 +5,11 @@ __author__ = 'Anochjhn Iruthayam'
 import numpy as np
 import cv2
 import os
+from matplotlib import pyplot as plt
 
+# Set up global frequency band. Set to the range of Bat Calls aka. 13 Khz to 75 KHz into Pixel values
+getHeightMin = 500
+getHeightMax = 980
 
 def getSampleList(path):
     sampleList = []
@@ -21,44 +25,94 @@ def getSampleList(path):
 
 def findEvent(soundFilePath):
     threshold = 5
+    bottomY = []
     img = cv2.imread(soundFilePath,0)
     imgColor = cv2.cvtColor(img,cv2.COLOR_GRAY2RGB)
     #cv2.circle(imgColor, (50,10), 10, (0,0,255), -1)
     #cv2.imshow('image', img)
     print img.shape
     ColumnCount = 0
+    RowCount = 0
     reset = 1
-    start = 0
+    resetRow = 1
+    startY = 0
+    startX = 0
+    bX = 0
+    bY = 0
     end = 0
     getHeight, getWidth  = img.shape
-    getHeight -= 3 #to remove noise
-    for x in range(0,getWidth):
-        whiteFlag = 0
-        if ColumnCount > 20:
-            cv2.line(imgColor,(start,500), (end,500), (0,0,255),5)
-            #cv2.circle(imgColor, (start,500), 10, (0,0,255), -1)
-            #cv2.circle(imgColor, (end,500), 10, (0,0,255), -1)
-            #print str(img.item(y,x)) + " at position: " + str(y) + " " + str(x)
 
-        for y in range(0, getHeight):
-            if img.item(y,x) > threshold and whiteFlag == 0:
-                whiteFlag = 1
+    topX, topY, endX = verticalScan(img)
+    for i in range (0,len(topX)):
+        bottomY.append(horizontelScan(img, topX[i], topY[i], endX[i]))
+
+
+    #bottomY = horizontelScan(img,topX,topY,endX)
+    print len(topX)
+    print len(topY)
+    print len(endX)
+    print len(bottomY)
+
+    for i in range(0,len(bottomY)):
+        if topY[i] > getHeightMin and bottomY[i] < getHeightMax:
+            cv2.rectangle(imgColor, (topX[i],topY[i]), (endX[i],bottomY[i]), (0,0,255),3)
+            #/home/anoch/Documents/BatSamples/SpectrogramMarked
+            imgEvent = img[topY[i]:bottomY[i], topX[i]:endX[i]]
+            cv2.imwrite("/home/anoch/Documents/BatSamples/SpectrogramMarked/Event" + str(i) + ".png", imgEvent)
+    plt.imshow(imgColor)
+    plt.xticks([]), plt.yticks([])
+    plt.show()
+    #cv2.imshow('image',imgColor)
+    #cv2.waitKey(0)
+    #cv2.destroyAllWindows()
+
+def verticalScan(img):
+    topX = []
+    topY = []
+    endX = []
+    threshold = 10
+    ColumnCount = 0
+    reset = 1
+    getHeight, getWidth  = img.shape
+    for x in range(0,getWidth):
+        if ColumnCount > 60 and reset == 1:
+            #cv2.line(imgColor,(startX,startY), (x,startY), (0,0,255),3)
+            topX.append(startX)
+            topY.append(startY)
+            endX.append(x)
+            ColumnCount = 0
+        for y in range(getHeightMin, getHeightMax):
+            if img.item(y,x) > threshold:
                 ColumnCount += 1
                 if reset == 1:
-                    start = x
+                    startX = x
+                    startY = y
                     reset = 0
-
                 break
-            elif y == getHeight-1 and whiteFlag == 0:
+            elif y == getHeightMax-1:# if we reach end of the vertical line, then there is no white pixel
                 reset = 1
-                ColumnCount = 0
-                end = x-1
+    return topX, topY, endX
 
-    cv2.imshow('image',imgColor)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-
+def horizontelScan(img, StartX, StartY, EndX):
+    indexDeletion = []
+    threshold = 5
+    getHeight, getWidth  = img.shape
+    rowCount = 0
+    bottomY = getHeightMax
+    rowReset = 1
+    for eventY in range(StartY, getHeightMax):
+        #if rowCount > 10:
+        #    bottomY = (bY)
+        #    rowCount = 0
+        for eventX in range(StartX, EndX):
+            if img.item(eventY,eventX) > threshold:
+                rowCount += 1
+                if rowCount > 10:
+                    bottomY = (bY)
+                    rowCount = 0
+                bY = eventY
+                break
+    return bottomY
 
 def createSpectrogram(path):
     sampleList = getSampleList(path)
@@ -71,7 +125,7 @@ def createSpectrogram(path):
 
 def main():
     #createSpectrogram("/home/anoch/Documents/BatSamples/")
-    findEvent("/home/anoch/Documents/BatSamples/Spectrogram/srCh1.png")
+    findEvent("/home/anoch/Documents/BatSamples/Spectrogram/srTest.png")
 
 
 
