@@ -80,12 +80,23 @@ def verticalScan(img):
             ColumnCount = 0
         for y in range(getHeightMin, getHeightMax):
             if img.item(y,x) > threshold:
+
                 ColumnCount += 1
                 #if we find a white pixel for the first time, then save the point
                 if reset == 1:
                     startX = x
                     startY = y
                     reset = 0
+                ########################### Procentage pixel decision maker
+                if y < startY:
+                    count = 0
+                    length = startY-y
+                    for i in range(y, startY):
+                        if img.item(i,x) > threshold:
+                            count += 1
+                    if ((float(count)/length)*100) > 80.0:
+                        startY = y
+                ############################
                 break
             elif y == getHeightMax-1:# if we reach end of the vertical line, then there is no white pixel
                 reset = 1
