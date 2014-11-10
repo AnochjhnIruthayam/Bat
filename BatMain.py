@@ -31,17 +31,26 @@ def getFileList(path, extension):
 
 def findEvent(SearchPath, eventFile, SavePath):
     threshold = 5
-    soundFilePath = SearchPath + eventFile;
-    bottomY = []
+    soundFilePath = SearchPath + eventFile
     img = cv2.imread(soundFilePath,0)
     imgColor = cv2.cvtColor(img,cv2.COLOR_GRAY2RGB)
     #cv2.circle(imgColor, (50,10), 10, (0,0,255), -1)
     #cv2.imshow('image', img)
     imgHeight,imgLength = img.shape
-
-    topX, topY, endX = verticalScan(img)
-    for i in range (0,len(topX)):
-        bottomY.append(horizontelScan(img, topX[i], topY[i], endX[i]))
+    topX = []
+    topY = []
+    endX = []
+    bottomY = []
+    StartX, StartY, end = verticalScan(img)
+    for i in range (0,len(StartX)):
+        #flag is added to filter out the non bat events by looking at the horizontal axis
+        tempSX, tempSY, tempEnd, tempBottom, flag = horizontelScan(img, StartX[i], StartY[i], end[i])
+        if flag == 1:
+            topX.append(tempSX)
+            topY.append(tempSY)
+            endX.append(tempEnd)
+            bottomY.append(tempBottom)
+        #bottomY.append()
 
     eventNum = []
     for i in range(0,len(bottomY)):
@@ -103,19 +112,44 @@ def verticalScan(img):
     return topX, topY, endX
 
 def horizontelScan(img, StartX, StartY, EndX):
-    threshold = 5
-    rowCount = 0
+    topX = StartX
+    topY = StartY
+    end = EndX
     bottomY = getHeightMax
+    count_threshold = 10
+    procent_threshold = 80.0
+    EventFlag = 0
+    threshold = 10
+    rowCount = 0
+    tempY = 0
+    allowed_black_count = 0
+    ALLOWED_BLACK = 8
+    thisistheend = 0
+    first_new_encounter = 1
     for eventY in range(StartY, getHeightMax):
+        #this IS recognized as a bat event, set flag to TRUE and save the values
+        if rowCount > count_threshold and allowed_black_count < ALLOWED_BLACK:
+            EventFlag = 1
+            bottomY = tempY
+            if allowed_black_count == ALLOWED_BLACK-1:
+                return topX, topY, end, bottomY, EventFlag
+        elif rowCount < count_threshold or allowed_black_count > ALLOWED_BLACK:
+            #this IS NOT recognized as a bat event, set flag to FALSE
+            EventFlag = 0
+            #if thisistheend == 1:
+            #    return topX, topY, end, bottomY, EventFlag
         for eventX in range(StartX, EndX):
+            #whenever it finds a white pixel, then count one up
             if img.item(eventY,eventX) > threshold:
                 rowCount += 1
-                if rowCount > 10:
-                    bottomY = (bY)
-                    rowCount = 0
-                bY = eventY
+                tempY = eventY
+                allowed_black_count = 0
                 break
-    return bottomY
+            elif EndX - 1 == eventX:
+                allowed_black_count += 1
+
+
+    return topX, topY, end, bottomY, EventFlag
 
 def bestFit(imgEventPath):
     imgEvent = cv2.imread(imgEventPath,0)
