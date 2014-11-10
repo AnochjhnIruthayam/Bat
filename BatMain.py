@@ -139,7 +139,7 @@ def horizontelScan(img, StartX, StartY, EndX):
             #if thisistheend == 1:
             #    return topX, topY, end, bottomY, EventFlag
         for eventX in range(StartX, EndX):
-            #whenever it finds a white pixel, then count one up, yes yes yess
+            #whenever it finds a white pixel, then count one up
             if img.item(eventY,eventX) > threshold:
                 rowCount += 1
                 tempY = eventY
