@@ -12,6 +12,9 @@ import xml.etree.ElementTree as ET #phone  home
 from xml.etree import ElementTree
 from xml.dom import minidom
 from xml.etree.ElementTree import Element, SubElement, Comment, tostring
+import Tkinter as tk
+import Image, ImageTk
+import re
 
 # Set up global frequency band. Set to the range of Bat Calls aka. 13 Khz to 75 KHz into Pixel values
 getHeightMin = 500
@@ -51,17 +54,19 @@ def findEvent(SearchPath, eventFile, SavePath):
             endX.append(tempEnd)
             bottomY.append(tempBottom)
         #bottomY.append()
-
+    crop_offset = 5
     eventNum = []
     for i in range(0,len(bottomY)):
         if topY[i] > getHeightMin and bottomY[i] < getHeightMax: # ensure that the call is in range
-            eventNum.append(i)
+
             cv2.rectangle(imgColor, (topX[i],topY[i]), (endX[i],bottomY[i]), (0,0,255),3)
-            imgEvent = img[topY[i]:bottomY[i], topX[i]:endX[i]]
-            checkFolder = SavePath + os.path.splitext((eventFile))[0]
-            if not os.path.exists(checkFolder):
-                os.makedirs(checkFolder)
-            cv2.imwrite(SavePath + os.path.splitext((eventFile))[0] + "/Event" + str(i) + ".png", imgEvent)
+            if topX[i]>crop_offset and topY[i]>crop_offset and endX[i]< imgLength-crop_offset and bottomY[i] < imgHeight- crop_offset:
+                imgEvent = img[topY[i]-crop_offset:bottomY[i]+crop_offset, topX[i]-crop_offset:endX[i]+crop_offset]
+                eventNum.append(i)
+                checkFolder = SavePath + os.path.splitext((eventFile))[0]
+                if not os.path.exists(checkFolder):
+                    os.makedirs(checkFolder)
+                cv2.imwrite(SavePath + os.path.splitext((eventFile))[0] + "/Event" + str(i) + ".png", imgEvent)
     cv2.imwrite(SavePath + os.path.splitext((eventFile))[0] + "SpectrogramAllMarked.png", imgColor)
     #If there are event, then label them
     if len(eventNum)> 0:
@@ -164,17 +169,28 @@ def bestFit(imgEventPath):
                 X.append(mEventX)
                 Y.append(mEventY)
                 break
-    print len(X)
-    print len(Y)
-    print X
-    print Y
+
+    print np.polyfit(X,Y,6)
+    print "\n"
+
+def pixelCount(eventimg_path):
+    whiteCount = 0
+    imgEvent = cv2.imread(eventimg_path,0)
+    threshold = 5
+    getHeight, getWidth  = imgEvent.shape
+    for mEventY in range(0,getHeight):
+        for mEventX in range (0, getWidth):
+            if imgEvent.item(mEventY,mEventX) > threshold:
+                whiteCount += 1
+
+    return whiteCount
 
 def createSpectrogram(path):
     sampleList = getFileList(path,".s16")
     os.chdir(path)
     for soundFile in sampleList:
         print "Processing " + soundFile + " at channel 1"
-        soxCommand = "sox -c 4 -r 500e3 " + soundFile + " -n remix 1 trim 0s 500000s spectrogram -r -m -x 5000 -y 1025 -z 88 -o Spectrogram/" + os.path.splitext((soundFile))[0] + "Ch1.png"
+        soxCommand = "sox -c 4 -r 500e3 " + soundFile + " -n remix 1 trim 0s 500000s spectrogram -r -m -x 5000 -y 1025 -z 88 -o Spectrogram/" + os.path.splitext((soundFile))[0] + ".png"
         os.system(soxCommand)
     print "Conversion process done!"
 
@@ -197,7 +213,6 @@ def prettify(elem):
 
 def eventLabel(eventName, topX, topY, endX, bottomY, event_img_path, savePath,imgHeight,imgLength, eventNum):
     top = Element('top')
-    list = [1,2,3,4]
     comment = Comment("Event information for: " + eventName)
     top.append(comment)
 
@@ -215,33 +230,135 @@ def eventLabel(eventName, topX, topY, endX, bottomY, event_img_path, savePath,im
         maxFreq = SubElement(subEvent,"maxFreq")
         maxFreq.text = str(topFreq)
 
-        startSec = (1000.0/imgLength)*topX[i]
-        minSec = SubElement(subEvent,"minSec")
-        minSec.text = str(startSec)
+        startMiliSec = (1000.0/imgLength)*topX[i]
+        minMiliSec = SubElement(subEvent,"minMiliSec")
+        minMiliSec.text = str(startMiliSec)
 
-        endSec = (1000.0/imgLength)*endX[i]
-        maxSec = SubElement(subEvent,"maxSec")
-        maxSec.text = str(endSec)
+        endMiliSec = (1000.0/imgLength)*endX[i]
+        maxMiliSec = SubElement(subEvent,"maxMiliSec")
+        maxMiliSec.text = str(endMiliSec)
 
         polyfitCof = SubElement(subEvent,"polyfitCof")
-        polyfitCof.text = "insert min polyfit Coefficient"
+        polyfitCof.text = str(pixelCount(savePath + eventName + "/Event" + str(i) + ".png"))#"insert min polyfit Coefficient"
 
-        eventImgPath = SubElement(subEvent,"eventImgPath")
-        eventImgPath.text = event_img_path
+        batID = SubElement(subEvent, "batID")
+        batID.text = "NOT CLASSIFIED"
+
+        MainEventSoundFile = SubElement(subEvent,"MainEventSoundFile")
+        MainEventSoundFile.text = eventName
+
+        MainEventFile = SubElement(subEvent,"MainEventFile")
+        MainEventFile.text = event_img_path
 
     #print prettify(top)
     tree = ET.ElementTree(top)
-    tree.write(savePath +eventName + "/label.xml")
+    tree.write(savePath + eventName + "/label.xml")
+
+def eventLabelChange(event_label_path, eventNo, batLabel):
+    tree = ET.parse(event_label_path)
+    root = tree.getroot()
+
+#############################################GUI SETTINGS###############################################################
+
+def event_non_bat(image, event_dir, eventNo):
+    print "NON BAT CALL Registered and written to XML file: " + image
+    print image
+    print event_dir
+    print eventNo
+
+def event_bat(image, event_dir, eventNo):
+    print "BAT CALL Registered and written to XML file: " + image
+    print image
+    print event_dir
+    print eventNo
+
+def keyLeft(event):
+    print "ARROW BAT CALL Registered and written to XML file: " + event
+
+def keyRight(event):
+    print "ARROW NON BAT CALL Registered and written to XML file: " + event
+
+def get_all_bat_event(rootpath):
+    path = rootpath + "SpectrogramMarked/"
+    listdirectoryTEMP =  os.listdir(path)
+    #eventlist = getFileList(path, ".png")
+    listdirectory = []
+    list_event = []
+    list_event_dir = []
+    temppath = ""
+    for dir in listdirectoryTEMP:
+        if not ".png" in dir:
+            if not "~" in dir:
+                listdirectory.append(dir)
+                print dir
+
+    for dir in listdirectory:
+        eventlist = getFileList(path+dir, ".png")
+        for current_event in eventlist:
+            list_event.append(current_event)
+            list_event_dir.append(dir)
+    print list_event
+    print list_event_dir
+    return list_event, list_event_dir
+
+
+def GUIClassifier(rootpath, image, event_dir, eventNo):
+
+    top = tk.Tk()
+    top.minsize(width=300, height=300)
+    image = rootpath + "/SpectrogramMarked/" + event_dir +"/"+  image
+    print image
+    #IMAGE
+    im = Image.open(image)
+    tkimage = ImageTk.PhotoImage(im)
+    tk.Label(top, image=tkimage).pack()
+    i = 0
+    #BUTTONS
+    btn_bat = tk.Button(top, text ="BAT", command = lambda: event_bat(image, event_dir, eventNo))
+    btn_bat.pack(side=tk.TOP)
+
+    nonbat_btn = tk.Button(top, text ="NONBAT", command = lambda: event_non_bat(image, event_dir, eventNo))
+    nonbat_btn.pack(side=tk.TOP)
+    #top.bind('<Left>',keyLeft(eventtest))
+    #top.bind('<Right>', keyRight(eventtest))
+    #top.focus_set()
+    top.mainloop()
+    # top = Tkinter.Tk()
+    #
+    # w = Tkinter.Label(top, text="Bat Event Classifier")
+    # w.pack()
+    # im = Image.open("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000055183473000/Event6.png")
+    # tkimage = ImageTk.PhotoImage(im)
+    # Tkinter.Label(top, image=tkimage).pack()
+    # btn_bat = Tkinter.Button(top, text ="BAT")
+    # btn_bat.pack(side=Tkinter.LEFT)
+    # #btn_bat.pack(side=Tkinter.CENTER)
+    # nonbat_btn = Tkinter.Button(top, text ="NONBAT")
+    # nonbat_btn.pack(side=Tkinter.RIGHT)
+
+    # Code to add widgets will go here...
+    #top.mainloop()
+
+def GUI(rootpath):
+    all_events, event_dir = get_all_bat_event(rootpath)
+
+    for i in range(0, len(all_events)):
+        eventNo= ''.join(x for x in all_events[i] if x.isdigit())
+        GUIClassifier(rootpath, all_events[i],event_dir[i], eventNo)
 
 #####################################################MAIN###############################################################
 
 def main():
     rootpath = "/home/anoch/Documents/BatSamples/"
-    #eventLabel()
+
     #createSpectrogram(rootpath)
     getAllEvents(rootpath)
-    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/Event8.png")
 
+    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000055183473000/Event4.png")
+    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000055183473000/Event7.png")
+    get_all_bat_event(rootpath)
+    GUI(rootpath)
+    #GUIClassifier(rootpath)
 
 #run main
 main()
