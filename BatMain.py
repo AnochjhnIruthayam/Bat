@@ -15,6 +15,7 @@ from xml.etree.ElementTree import Element, SubElement, Comment, tostring
 import Tkinter as tk
 import Image, ImageTk
 import re
+import MultiNEAT as NEAT
 
 # Set up global frequency band. Set to the range of Bat Calls aka. 13 Khz to 75 KHz into Pixel values
 getHeightMin = 500
@@ -260,17 +261,49 @@ def eventLabelChange(event_label_path, eventNo, batLabel):
 
 #############################################GUI SETTINGS###############################################################
 
-def event_non_bat(image, event_dir, eventNo):
-    print "NON BAT CALL Registered and written to XML file: " + image
-    print image
-    print event_dir
-    print eventNo
+def event_non_bat(image, event_dir, eventNo, top):
+    rootpath = "/home/anoch/Documents/BatSamples/"
+    labelPath =  rootpath + "SpectrogramMarked/" + event_dir + "/label.xml"
 
-def event_bat(image, event_dir, eventNo):
-    print "BAT CALL Registered and written to XML file: " + image
-    print image
-    print event_dir
-    print eventNo
+    print "NON BAT CALL Registered and written to XML file: " + labelPath
+    print "Image: " + image
+
+    tree = ET.parse(labelPath)
+    root = tree.getroot()
+    lookup = "Event"+str(eventNo)
+
+    #Look for BatID tag
+    for BatID in tree.iter(lookup+'/batID'):
+        #Mark as NONBAT
+        BatID.text = str(0)
+    for elem in tree.find("Event/"+lookup):
+        if elem.tag == "batID":
+            elem.text = str(0)
+        print "\t"+elem.tag, elem.text
+
+    tree.write(labelPath)
+    top.destroy()
+
+def event_bat(image, event_dir, eventNo, top):
+    rootpath = "/home/anoch/Documents/BatSamples/"
+    labelPath =  rootpath + "SpectrogramMarked/" + event_dir + "/label.xml"
+    print "BAT CALL Registered and written to XML file: " + labelPath
+    print "Image: " + image
+
+    #Read XML file
+    tree = ET.parse(labelPath)
+    root = tree.getroot()
+    lookup = "Event"+str(eventNo)
+
+    for elem in tree.find("Event/"+lookup):
+        if elem.tag == "batID":
+            elem.text = str(1)
+        print "\t"+elem.tag, elem.text
+
+    tree.write(labelPath)
+    top.destroy()
+    #root.findall(".")
+    #print tree.findall("./Event/Event"+str(eventNo)).find("minFreq").text
 
 def keyLeft(event):
     print "ARROW BAT CALL Registered and written to XML file: " + event
@@ -279,6 +312,7 @@ def keyRight(event):
     print "ARROW NON BAT CALL Registered and written to XML file: " + event
 
 def get_all_bat_event(rootpath):
+
     path = rootpath + "SpectrogramMarked/"
     listdirectoryTEMP =  os.listdir(path)
     #eventlist = getFileList(path, ".png")
@@ -306,7 +340,7 @@ def GUIClassifier(rootpath, image, event_dir, eventNo):
 
     top = tk.Tk()
     top.minsize(width=300, height=300)
-    image = rootpath + "/SpectrogramMarked/" + event_dir +"/"+  image
+    image = rootpath + "SpectrogramMarked/" + event_dir +"/"+  image
     print image
     #IMAGE
     im = Image.open(image)
@@ -314,30 +348,16 @@ def GUIClassifier(rootpath, image, event_dir, eventNo):
     tk.Label(top, image=tkimage).pack()
     i = 0
     #BUTTONS
-    btn_bat = tk.Button(top, text ="BAT", command = lambda: event_bat(image, event_dir, eventNo))
+    btn_bat = tk.Button(top, text ="BAT", command = lambda: event_bat(image, event_dir, eventNo, top))
     btn_bat.pack(side=tk.TOP)
 
-    nonbat_btn = tk.Button(top, text ="NONBAT", command = lambda: event_non_bat(image, event_dir, eventNo))
+    nonbat_btn = tk.Button(top, text ="NONBAT", command = lambda: event_non_bat(image, event_dir, eventNo, top))
     nonbat_btn.pack(side=tk.TOP)
     #top.bind('<Left>',keyLeft(eventtest))
     #top.bind('<Right>', keyRight(eventtest))
     #top.focus_set()
     top.mainloop()
-    # top = Tkinter.Tk()
-    #
-    # w = Tkinter.Label(top, text="Bat Event Classifier")
-    # w.pack()
-    # im = Image.open("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000055183473000/Event6.png")
-    # tkimage = ImageTk.PhotoImage(im)
-    # Tkinter.Label(top, image=tkimage).pack()
-    # btn_bat = Tkinter.Button(top, text ="BAT")
-    # btn_bat.pack(side=Tkinter.LEFT)
-    # #btn_bat.pack(side=Tkinter.CENTER)
-    # nonbat_btn = Tkinter.Button(top, text ="NONBAT")
-    # nonbat_btn.pack(side=Tkinter.RIGHT)
 
-    # Code to add widgets will go here...
-    #top.mainloop()
 
 def GUI(rootpath):
     all_events, event_dir = get_all_bat_event(rootpath)
@@ -346,19 +366,107 @@ def GUI(rootpath):
         eventNo= ''.join(x for x in all_events[i] if x.isdigit())
         GUIClassifier(rootpath, all_events[i],event_dir[i], eventNo)
 
+
+################################################MULTINEAT###############################################################
+
+def ANN_input(event_dir,eventNo):
+    rootpath = "/home/anoch/Documents/BatSamples/"
+    labelPath =  rootpath + "SpectrogramMarked/" + event_dir + "/label.xml"
+    lookup = "Event"+str(eventNo)
+
+    tree = ET.parse(labelPath)
+    root = tree.getroot()
+
+    for elem in tree.find("Event/"+lookup):
+        if elem.tag == "minFreq":
+            minFreq = elem.text
+        if elem.tag == "maxFreq":
+            maxFreq = elem.text
+        if elem.tag == "minMiliSec":
+            minMiliSec = elem.text
+        if elem.tag == "maxMiliSec":
+            maxMiliSec = elem.text
+        if elem.tag == "polyfitCof":
+            polyfitCof = elem.text
+    MiliSec = maxMiliSec-minMiliSec
+
+
+    return minFreq, maxFreq, MiliSec, polyfitCof
+
+def ANN_outout(event_dir,eventNo):
+    rootpath = "/home/anoch/Documents/BatSamples/"
+    labelPath =  rootpath + "SpectrogramMarked/" + event_dir + "/label.xml"
+    lookup = "Event"+str(eventNo)
+
+    tree = ET.parse(labelPath)
+    root = tree.getroot()
+    for elem in tree.find("Event/"+lookup):
+        if elem.tag == "batID":
+            batID = elem.text
+    return batID
+
+def NN_init():
+    params = NEAT.Parameters()
+
+    params.PopulationSize = 100
+    genome = NEAT.Genome(0,3,0,1,False,NEAT.ActivationFunction.UNSIGNED_SIGMOID,NEAT.ActivationFunction.UNSIGNED_SIGMOID,0,params)
+
+    pop = NEAT.Population(genome,params,True,1.0)
+
+    return genome, pop
+
+def evaluate(genome):
+    net = NEAT.NeuralNetwork()
+    genome.BuildPhenotype(net)
+
+    net.Input([1.0,0.0,1.0])
+    net.Activate()
+
+    output = net.Output()
+    fitness = 1.0 - output[0]
+    return fitness
+
+def evolution(pop):
+    for generations in range(100):
+        genome_list = NEAT.GetGenomeList(pop)
+        for genome in genome_list:
+            fitness = evaluate(genome)
+            print fitness
+            genome.SetFitness(fitness)
+
+        pop.Epoch()
+
+
+
+def NN():
+    genome, pop = NN_init()
+    evolution(pop)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #####################################################MAIN###############################################################
 
 def main():
     rootpath = "/home/anoch/Documents/BatSamples/"
 
     #createSpectrogram(rootpath)
-    getAllEvents(rootpath)
+    #getAllEvents(rootpath)
 
     #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000055183473000/Event4.png")
     #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000055183473000/Event7.png")
-    get_all_bat_event(rootpath)
     GUI(rootpath)
-    #GUIClassifier(rootpath)
+    #NN()
 
 #run main
 main()
