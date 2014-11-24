@@ -14,8 +14,16 @@ from xml.dom import minidom
 from xml.etree.ElementTree import Element, SubElement, Comment, tostring
 import Tkinter as tk
 import Image, ImageTk
+from pybrain.tools.shortcuts import buildNetwork
+from pybrain.datasets import SupervisedDataSet
+from pybrain.datasets import ClassificationDataSet
+from pybrain.supervised.trainers import BackpropTrainer
+from pybrain.structure import SigmoidLayer
+from pybrain.structure import SoftmaxLayer
+from pybrain.utilities import percentError
 import re
-import MultiNEAT as NEAT
+#import MultiNEAT as NEAT #not as neat I thought it would be! BASTARD!! Still remember ET to phone home
+#from pybrain.tools.shortcuts import buildNetwork
 
 # Set up global frequency band. Set to the range of Bat Calls aka. 13 Khz to 75 KHz into Pixel values
 getHeightMin = 500
@@ -388,10 +396,10 @@ def ANN_input(event_dir,eventNo):
             maxMiliSec = elem.text
         if elem.tag == "polyfitCof":
             polyfitCof = elem.text
-    MiliSec = maxMiliSec-minMiliSec
+    MiliSec = float(maxMiliSec)-float(minMiliSec)
 
 
-    return minFreq, maxFreq, MiliSec, polyfitCof
+    return float(minFreq), float(maxFreq), MiliSec, int(polyfitCof)
 
 def ANN_outout(event_dir,eventNo):
     rootpath = "/home/anoch/Documents/BatSamples/"
@@ -403,49 +411,222 @@ def ANN_outout(event_dir,eventNo):
     for elem in tree.find("Event/"+lookup):
         if elem.tag == "batID":
             batID = elem.text
-    return batID
+    return int(batID)
 
-def NN_init():
-    params = NEAT.Parameters()
+def ANN_SupervisedBackPro():
+    realnonbat = 0
+    realthisisBat = 0
+    ds = SupervisedDataSet(4,1) #4 inputs and one output target
+    rootpath = "/home/anoch/Documents/BatSamples/"
+    event, list_event_dir = get_all_bat_event(rootpath)
+    print "Add training set"
+    for i in range(0, 1000): #Add 500 samples
+        eventNo= ''.join(x for x in event[i] if x.isdigit())
+        minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo)
+        print minFreq, maxFreq, MiliSec, pixels
+        target = ANN_outout(list_event_dir[i],eventNo)
+        if target == 1:
+            realthisisBat = realthisisBat + 1
+        else:
+            realnonbat = realnonbat + 1
+        print target
+        ds.addSample((minFreq,maxFreq,MiliSec,pixels),(target,))
+    print "target result"
+    print "non bat: " + str(realnonbat)
+    print "bat: " + str(realthisisBat)
+    net = buildNetwork(4,6,1, bias=True, hiddenclass=SigmoidLayer)
+    trainer = BackpropTrainer(net, ds)
+    print "Training data"
+    #trainer.trainUntilConvergence()
+    for epoch in range(0, 50000):
+        error = trainer.train()
+        if epoch % 10 == 0:
+            print "Epoch: " + str(epoch)
+            print "Error: " + str(error)
 
-    params.PopulationSize = 100
-    genome = NEAT.Genome(0,3,0,1,False,NEAT.ActivationFunction.UNSIGNED_SIGMOID,NEAT.ActivationFunction.UNSIGNED_SIGMOID,0,params)
+        #print "error: " + str(error)
+        if error < 0.001:
+            break
+    print "Training Done!"
 
-    pop = NEAT.Population(genome,params,True,1.0)
+    nonbat = 0
+    thisisBat = 0
+    realnonbat = 0
+    realthisisBat = 0
+    for i in range(1001, len(list_event_dir)):
+        eventNo= ''.join(x for x in event[i] if x.isdigit())
+        minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo)
+        real_target = ANN_outout(list_event_dir[i],eventNo)
+        print minFreq, maxFreq, MiliSec, pixels
+        print "Sample: " + list_event_dir[i]
+        print "EventNo: " + eventNo
+        print net.activate([minFreq,maxFreq,MiliSec,pixels])
+        if net.activate([minFreq,maxFreq,MiliSec,pixels]) < 0.5:
+            print 0
+            nonbat = nonbat + 1
+        else:
+            print 1
+            thisisBat = thisisBat + 1
+        if real_target == 1:
+            realthisisBat = realthisisBat + 1
+        else:
+            realnonbat = realnonbat + 1
+        print "\n\n"
 
-    return genome, pop
+    print "total result"
+    print "non bat: " + str(nonbat)
+    print "bat: " + str(thisisBat)
+    print "Real result"
+    print "non bat: " + str(realnonbat)
+    print "bat: " + str(realthisisBat)
 
-def evaluate(genome):
-    net = NEAT.NeuralNetwork()
-    genome.BuildPhenotype(net)
+#Get a desired number of a desired output
+def getSample(sampleAmount, desired_target):
+    listEvent_dir = []
+    listEvent_No = []
+    sampleCount = 0
+    rootpath = "/home/anoch/Documents/BatSamples/"
+    event, list_event_dir = get_all_bat_event(rootpath)
+    for i in range(0, len(list_event_dir)):
+        eventNo= ''.join(x for x in event[i] if x.isdigit())
+        #get output data
+        target = ANN_outout(list_event_dir[i], eventNo)
+        if target == desired_target:
+            listEvent_dir.append(list_event_dir[i])
+            listEvent_No.append(eventNo)
+            sampleCount = sampleCount + 1
+        elif target == desired_target:
+            listEvent_dir.append(list_event_dir[i])
+            listEvent_No.append(eventNo)
+            sampleCount = sampleCount + 1
+        if sampleAmount < sampleCount:
+            break
+    return listEvent_dir, listEvent_No
 
-    net.Input([1.0,0.0,1.0])
-    net.Activate()
+def ANN_Classifier():
+    realnonbat = 0
+    realthisisBat = 0
 
-    output = net.Output()
-    fitness = 1.0 - output[0]
-    return fitness
+    #Set up Classicication Data, 4 input, output is a one dim. and 2 possible outcome or two possible classes
+    trndata = ClassificationDataSet(4,target=1, nb_classes=2)
+    tstdata = ClassificationDataSet(4,target=1, nb_classes=2)
 
-def evolution(pop):
-    for generations in range(100):
-        genome_list = NEAT.GetGenomeList(pop)
-        for genome in genome_list:
-            fitness = evaluate(genome)
-            print fitness
-            genome.SetFitness(fitness)
+    rootpath = "/home/anoch/Documents/BatSamples/"
+    #get all events
+    #event, list_event_dir = get_all_bat_event(rootpath)
+    print "Add true event"
+    list_event_dir,eventNo = getSample(160,1)
+    for i in range(0, len(list_event_dir)):
+        minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo[i])
+        print minFreq, maxFreq, MiliSec, pixels
+        target = ANN_outout(list_event_dir[i],eventNo[i])
+        print target
+        trndata.addSample([minFreq, maxFreq, MiliSec, pixels],[target])
+    print "Add nontrue event"
 
-        pop.Epoch()
+    list_event_dir, eventNo  = getSample(160,0)
+    for i in range(0, len(list_event_dir)):
+        minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo[i])
+        print minFreq, maxFreq, MiliSec, pixels
+        target = ANN_outout(list_event_dir[i],eventNo[i])
+        print target
+        trndata.addSample([minFreq, maxFreq, MiliSec, pixels],[target])
 
+    event, list_event_dir = get_all_bat_event(rootpath)
+    for i in range(1000, len(list_event_dir)):
+        eventNo= ''.join(x for x in event[i] if x.isdigit())
+        #Get input data
+        minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo)
+        print minFreq, maxFreq, MiliSec, pixels
+        #get output data
+        target = ANN_outout(list_event_dir[i],eventNo)
+        print target
+        #Add the samples to dataset
+        tstdata.addSample([minFreq, maxFreq, MiliSec, pixels], [target])
+    #print "Add training set"
+    """
+    for i in range(0, len(list_event_dir)):
+        eventNo= ''.join(x for x in event[i] if x.isdigit())
+        #Get input data
+        minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo)
+        print minFreq, maxFreq, MiliSec, pixels
+        #get output data
+        target = ANN_outout(list_event_dir[i],eventNo)
+        print target
+        if target == 1:
+            realthisisBat = realthisisBat + 1
+        else:
+            realnonbat = realnonbat + 1
+        #Add the samples to dataset
+        DS.addSample([minFreq, maxFreq, MiliSec, pixels], [target])
+    """
+    # we want a 75% training data and 25% test data
 
+    trndata._convertToOneOfMany( )
+    tstdata._convertToOneOfMany( )
+    #Print information out
+    print "Number of training patterns: ", len(trndata)
+    print "Input and output dimensions: ", trndata.indim, trndata.outdim
+    print "First sample (input, target, class):"
+    print trndata['input'][0], trndata['target'][0], trndata['class'][0]
+    print "Thrid sample (input, target, class):"
+    print trndata['input'][2], trndata['target'][2], trndata['class'][2]
+    print "Over all true results"
+    print "non bat: " + str(realnonbat)
+    print "bat: " + str(realthisisBat)
 
-def NN():
-    genome, pop = NN_init()
-    evolution(pop)
+    #set up the Feed Forward Network
+    net = buildNetwork(trndata.indim,7,trndata.outdim, bias=True, outclass=SoftmaxLayer)
+    trainer = BackpropTrainer(net, dataset=trndata, momentum=0.1, learningrate=0.01 , verbose=True, weightdecay=0.01)
+    print "Training data"
+    #trainer.trainUntilConvergence()
+    """
+    for epoch in range(0, 1000):
+        error = trainer.train()
+        #if epoch % 10 == 0:
+        print "Epoch: " + str(epoch)
+        print "Error: " + str(error)
+        #print "error: " + str(error)
+        if error < 0.001:
+             break
+    """
+    for i in range(0,100):
+        trainer.trainEpochs(1)
+        trnresult = percentError(trainer.testOnClassData(),
+                                 trndata['class'])
+        tstresult = percentError(trainer.testOnClassData(
+                                 dataset=tstdata), tstdata['class'])
+        print("epoch: %4d" % trainer.totalepochs,
+              "  train error: %5.2f%%" % trnresult,
+              "  test error: %5.2f%%" % tstresult)
 
+    nonbat = 0
+    thisisBat = 0
+    realnonbat = 0
+    realthisisBat = 0
+    event, list_event_dir = get_all_bat_event(rootpath)
+    for i in range(500, 1000):
+        eventNo= ''.join(x for x in event[i] if x.isdigit())
+        minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo)
+        real_target = ANN_outout(list_event_dir[i],eventNo)
+        print minFreq, maxFreq, MiliSec, pixels
+        print "Sample: " + list_event_dir[i]
+        print "EventNo: " + eventNo
+        print "Real Target: " + str(real_target)
+        pred = net.activate([minFreq,maxFreq,MiliSec,pixels])
+        print pred.argmax()
+        if real_target == 1:
+            realthisisBat = realthisisBat + 1
+        else:
+            realnonbat = realnonbat + 1
+        print "\n\n"
 
-
-
-
+    print "total result"
+    print "non bat: " + str(nonbat)
+    print "bat: " + str(thisisBat)
+    print "Real result"
+    print "non bat: " + str(realnonbat)
+    print "bat: " + str(realthisisBat)
 
 
 
@@ -463,10 +644,8 @@ def main():
     #createSpectrogram(rootpath)
     #getAllEvents(rootpath)
 
-    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000055183473000/Event4.png")
-    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000055183473000/Event7.png")
-    GUI(rootpath)
-    #NN()
+    #GUI(rootpath)
+    ANN_Classifier()
 
 #run main
 main()
