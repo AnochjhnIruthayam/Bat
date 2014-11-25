@@ -26,8 +26,8 @@ import re
 #from pybrain.tools.shortcuts import buildNetwork
 
 # Set up global frequency band. Set to the range of Bat Calls aka. 13 Khz to 75 KHz into Pixel values
-getHeightMin = 500
-getHeightMax = 980
+#getHeightMin = 500
+#getHeightMax = 980
 
 def getFileList(path, extension):
     sampleList = []
@@ -66,16 +66,16 @@ def findEvent(SearchPath, eventFile, SavePath):
     crop_offset = 5
     eventNum = []
     for i in range(0,len(bottomY)):
-        if topY[i] > getHeightMin and bottomY[i] < getHeightMax: # ensure that the call is in range
+        #if topY[i] > getHeightMin and bottomY[i] < getHeightMax: # ensure that the call is in range
 
-            cv2.rectangle(imgColor, (topX[i],topY[i]), (endX[i],bottomY[i]), (0,0,255),3)
-            if topX[i]>crop_offset and topY[i]>crop_offset and endX[i]< imgLength-crop_offset and bottomY[i] < imgHeight- crop_offset:
-                imgEvent = img[topY[i]-crop_offset:bottomY[i]+crop_offset, topX[i]-crop_offset:endX[i]+crop_offset]
-                eventNum.append(i)
-                checkFolder = SavePath + os.path.splitext((eventFile))[0]
-                if not os.path.exists(checkFolder):
-                    os.makedirs(checkFolder)
-                cv2.imwrite(SavePath + os.path.splitext((eventFile))[0] + "/Event" + str(i) + ".png", imgEvent)
+        cv2.rectangle(imgColor, (topX[i],topY[i]), (endX[i],bottomY[i]), (0,0,255),3)
+        if topX[i]>crop_offset and topY[i]>crop_offset and endX[i]< imgLength-crop_offset and bottomY[i] < imgHeight- crop_offset:
+            imgEvent = img[topY[i]-crop_offset:bottomY[i]+crop_offset, topX[i]-crop_offset:endX[i]+crop_offset]
+            eventNum.append(i)
+            checkFolder = SavePath + os.path.splitext((eventFile))[0]
+            if not os.path.exists(checkFolder):
+                os.makedirs(checkFolder)
+            cv2.imwrite(SavePath + os.path.splitext((eventFile))[0] + "/Event" + str(i) + ".png", imgEvent)
     cv2.imwrite(SavePath + os.path.splitext((eventFile))[0] + "SpectrogramAllMarked.png", imgColor)
     #If there are event, then label them
     if len(eventNum)> 0:
@@ -87,6 +87,44 @@ def findEvent(SearchPath, eventFile, SavePath):
     #cv2.waitKey(0)
     #cv2.destroyAllWindows()
 
+def verticalScan2(img):
+    getHeight, getWidth  = img.shape
+    imgColor = cv2.cvtColor(img,cv2.COLOR_GRAY2RGB)
+    topX = []
+    topY = []
+    endX = []
+    ColumnCount = 0
+    reset = 1
+    threshold = 10
+    for x in range(0,getWidth):
+        if ColumnCount > 60 and reset == 1:
+            topX.append(startX)
+            topY.append(startY)
+            endX.append(x)
+            ColumnCount = 0
+        for y in range(0,getHeight-4):
+            if img.item(y,x) > threshold:
+                cv2.circle(imgColor,(x,y), 1, (0,0,255), -1)
+
+                #We encounter a white pixel
+                ColumnCount += 1
+                #First time encounter then save and set reset to 0
+                if reset == 1:
+                    startX = x
+                    startY = y
+                    reset = 0
+
+
+                break
+            elif y == getHeight-5:
+                reset = 1
+    for i in range (0,len(topX)):
+        cv2.line(imgColor,(topX[i],500),(endX[i],500),(255,0,0),5)
+
+    plt.imshow(imgColor)
+    plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
+    plt.show()
+
 def verticalScan(img):
     topX = []
     topY = []
@@ -96,12 +134,13 @@ def verticalScan(img):
     reset = 1
     getHeight, getWidth  = img.shape
     for x in range(0,getWidth):
+        #Make sure that the shape has the right size width
         if ColumnCount > 60 and reset == 1:
             topX.append(startX)
             topY.append(startY)
             endX.append(x)
             ColumnCount = 0
-        for y in range(getHeightMin, getHeightMax):
+        for y in range(0, getHeight-4):
             if img.item(y,x) > threshold:
 
                 ColumnCount += 1
@@ -121,15 +160,16 @@ def verticalScan(img):
                         startY = y
                 ############################
                 break
-            elif y == getHeightMax-1:# if we reach end of the vertical line, then there is no white pixel
+            elif y == getHeight-5:# if we reach end of the vertical line, then there is no white pixel
                 reset = 1
     return topX, topY, endX
 
 def horizontelScan(img, StartX, StartY, EndX):
+    getHeight, getWidth  = img.shape
     topX = StartX
     topY = StartY
     end = EndX
-    bottomY = getHeightMax
+    bottomY = getHeight-4
     count_threshold = 10
     procent_threshold = 80.0
     EventFlag = 0
@@ -137,10 +177,10 @@ def horizontelScan(img, StartX, StartY, EndX):
     rowCount = 0
     tempY = 0
     allowed_black_count = 0
-    ALLOWED_BLACK = 8
+    ALLOWED_BLACK = 3
     thisistheend = 0
     first_new_encounter = 1
-    for eventY in range(StartY, getHeightMax):
+    for eventY in range(StartY, getHeight-4):
         #this IS recognized as a bat event, set flag to TRUE and save the values
         if rowCount > count_threshold and allowed_black_count < ALLOWED_BLACK:
             EventFlag = 1
@@ -332,15 +372,15 @@ def get_all_bat_event(rootpath):
         if not ".png" in dir:
             if not "~" in dir:
                 listdirectory.append(dir)
-                print dir
+                #print dir
 
     for dir in listdirectory:
         eventlist = getFileList(path+dir, ".png")
         for current_event in eventlist:
             list_event.append(current_event)
             list_event_dir.append(dir)
-    print list_event
-    print list_event_dir
+    #print list_event
+    #print list_event_dir
     return list_event, list_event_dir
 
 
@@ -361,8 +401,8 @@ def GUIClassifier(rootpath, image, event_dir, eventNo):
 
     nonbat_btn = tk.Button(top, text ="NONBAT", command = lambda: event_non_bat(image, event_dir, eventNo, top))
     nonbat_btn.pack(side=tk.TOP)
-    #top.bind('<Left>',keyLeft(eventtest))
-    #top.bind('<Right>', keyRight(eventtest))
+    #top.bind('<Left>',keyLeft(event_bat(image, event_dir, eventNo, top)))
+    #top.bind('<Right>', keyRight(event_non_bat(image, event_dir, eventNo, top)))
     #top.focus_set()
     top.mainloop()
 
@@ -371,11 +411,12 @@ def GUI(rootpath):
     all_events, event_dir = get_all_bat_event(rootpath)
 
     for i in range(0, len(all_events)):
+        print str(i) +" out of " + str(len(all_events))
         eventNo= ''.join(x for x in all_events[i] if x.isdigit())
         GUIClassifier(rootpath, all_events[i],event_dir[i], eventNo)
 
 
-################################################MULTINEAT###############################################################
+#############################################Classified Neural Network##################################################
 
 def ANN_input(event_dir,eventNo):
     rootpath = "/home/anoch/Documents/BatSamples/"
@@ -522,13 +563,16 @@ def ANN_Classifier():
         target = ANN_outout(list_event_dir[i],eventNo[i])
         print target
         trndata.addSample([minFreq, maxFreq, MiliSec, pixels],[target])
+
     print "Add nontrue event"
 
-    list_event_dir, eventNo  = getSample(160,0)
-    for i in range(0, len(list_event_dir)):
-        minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo[i])
+    #list_event_dir, eventNo  = getSample(160,0)
+    event, list_event_dir = get_all_bat_event(rootpath)
+    for i in range(350, 700):
+        eventNo= ''.join(x for x in event[i] if x.isdigit())
+        minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo)
         print minFreq, maxFreq, MiliSec, pixels
-        target = ANN_outout(list_event_dir[i],eventNo[i])
+        target = ANN_outout(list_event_dir[i],eventNo)
         print target
         trndata.addSample([minFreq, maxFreq, MiliSec, pixels],[target])
 
@@ -576,7 +620,7 @@ def ANN_Classifier():
     print "bat: " + str(realthisisBat)
 
     #set up the Feed Forward Network
-    net = buildNetwork(trndata.indim,7,trndata.outdim, bias=True, outclass=SoftmaxLayer)
+    net = buildNetwork(trndata.indim,5,trndata.outdim, bias=True, outclass=SoftmaxLayer)
     trainer = BackpropTrainer(net, dataset=trndata, momentum=0.1, learningrate=0.01 , verbose=True, weightdecay=0.01)
     print "Training data"
     #trainer.trainUntilConvergence()
@@ -614,7 +658,7 @@ def ANN_Classifier():
         print "EventNo: " + eventNo
         print "Real Target: " + str(real_target)
         pred = net.activate([minFreq,maxFreq,MiliSec,pixels])
-        print pred.argmax()
+        print pred
         if real_target == 1:
             realthisisBat = realthisisBat + 1
         else:
@@ -643,7 +687,8 @@ def main():
 
     #createSpectrogram(rootpath)
     #getAllEvents(rootpath)
-
+    #img = cv2.imread("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000029921020500SpectrogramAllMarked.png",0)
+    #verticalScan2(img)
     #GUI(rootpath)
     ANN_Classifier()
 
