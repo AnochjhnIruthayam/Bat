@@ -4,7 +4,6 @@ __author__ = 'Anochjhn Iruthayam'
 
 
 import numpy as np
-import numpy
 import cv2
 import os
 from matplotlib import pyplot as plt
@@ -21,6 +20,8 @@ from pybrain.supervised.trainers import BackpropTrainer
 from pybrain.structure import SigmoidLayer
 from pybrain.structure import SoftmaxLayer
 from pybrain.utilities import percentError
+
+
 import re
 #import MultiNEAT as NEAT #not as neat I thought it would be! BASTARD!! Still remember ET to phone home
 #from pybrain.tools.shortcuts import buildNetwork
@@ -207,7 +208,7 @@ def horizontelScan(img, StartX, StartY, EndX):
 
 def bestFit(imgEventPath):
     imgEvent = cv2.imread(imgEventPath,0)
-    #imgColor = cv2.cvtColor(imgEvent,cv2.COLOR_GRAY2RGB)
+    imgColor = cv2.cvtColor(imgEvent,cv2.COLOR_GRAY2RGB)
     X = []
     Y = []
     threshold = 5
@@ -215,12 +216,27 @@ def bestFit(imgEventPath):
     for mEventY in range(0,getHeight):
         for mEventX in range (0, getWidth):
             if imgEvent.item(mEventY,mEventX) > threshold:
-                X.append(mEventX)
-                Y.append(mEventY)
+                if len(X) == 0:
+                    tempX = mEventX
+                    tempY = mEventY
+                if abs(mEventX-tempX) < 3 and abs(mEventY-tempY) < 6:
+                    X.append(mEventX)
+                    Y.append(mEventY)
+                    tempX = mEventX
+                    tempY = mEventY
                 break
+    if len(X) > 5:
+        for i in range(0,len(X)):
+            cv2.circle(imgColor,(X[i],Y[i]), 1, (0,0,255), -1)
+        print np.polyfit(X,Y,1)
+        print "\n"
+        plt.imshow(imgColor)
+        plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
+        plt.show()
+        return X, Y
+    else:
+        return 0, 0
 
-    print np.polyfit(X,Y,6)
-    print "\n"
 
 def pixelCount(eventimg_path):
     whiteCount = 0
@@ -457,29 +473,51 @@ def ANN_outout(event_dir,eventNo):
 def ANN_SupervisedBackPro():
     realnonbat = 0
     realthisisBat = 0
-    ds = SupervisedDataSet(4,1) #4 inputs and one output target
+    trndata = SupervisedDataSet(4,1) #4 inputs and one output target
+    tstdata = SupervisedDataSet(4,1)
+
     rootpath = "/home/anoch/Documents/BatSamples/"
     event, list_event_dir = get_all_bat_event(rootpath)
-    print "Add training set"
-    for i in range(0, 1000): #Add 500 samples
-        eventNo= ''.join(x for x in event[i] if x.isdigit())
-        minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo)
+    print "Add true event"
+    list_event_dir,eventNo = getSample(160,1)
+    for i in range(0, len(list_event_dir)):
+        minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo[i])
         print minFreq, maxFreq, MiliSec, pixels
-        target = ANN_outout(list_event_dir[i],eventNo)
-        if target == 1:
-            realthisisBat = realthisisBat + 1
-        else:
-            realnonbat = realnonbat + 1
+        target = ANN_outout(list_event_dir[i],eventNo[i])
         print target
-        ds.addSample((minFreq,maxFreq,MiliSec,pixels),(target,))
+        trndata.addSample([minFreq, maxFreq, MiliSec, pixels],[target])
+
+    print "Add non true event"
+
+    list_event_dir, eventNo  = getSample(160,0)
+    #event, list_event_dir = get_all_bat_event(rootpath)
+    for i in range(0, len(list_event_dir)):
+        #eventNo= ''.join(x for x in event[i] if x.isdigit())
+        minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo[i])
+        print "Input: " + str(minFreq), str(maxFreq), str(MiliSec), str(pixels)
+        target = ANN_outout(list_event_dir[i],eventNo[i])
+        print "Output Target: " + str(target)
+        trndata.addSample([minFreq, maxFreq, MiliSec, pixels],[target])
+
+    event, list_event_dir = get_all_bat_event(rootpath)
+    for i in range(1000, len(list_event_dir)):
+        eventNo= ''.join(x for x in event[i] if x.isdigit())
+        #Get input data
+        print "Input: " + str(minFreq), str(maxFreq), str(MiliSec), str(pixels)
+        print minFreq, maxFreq, MiliSec, pixels
+        #get output data
+        target = ANN_outout(list_event_dir[i],eventNo)
+        print "Output Target: " + str(target)
+        #Add the samples to dataset
+        tstdata.addSample([minFreq, maxFreq, MiliSec, pixels], [target])
     print "target result"
     print "non bat: " + str(realnonbat)
     print "bat: " + str(realthisisBat)
     net = buildNetwork(4,6,1, bias=True, hiddenclass=SigmoidLayer)
-    trainer = BackpropTrainer(net, ds)
+    trainer = BackpropTrainer(net, dataset=trndata, momentum=0.02, learningrate=0.002 , verbose=True, weightdecay=0)
     print "Training data"
     #trainer.trainUntilConvergence()
-    for epoch in range(0, 50000):
+    for epoch in range(0, 1000):
         error = trainer.train()
         if epoch % 10 == 0:
             print "Epoch: " + str(epoch)
@@ -548,6 +586,7 @@ def ANN_Classifier():
     realnonbat = 0
     realthisisBat = 0
 
+
     #Set up Classicication Data, 4 input, output is a one dim. and 2 possible outcome or two possible classes
     trndata = ClassificationDataSet(4,target=1, nb_classes=2)
     tstdata = ClassificationDataSet(4,target=1, nb_classes=2)
@@ -566,14 +605,14 @@ def ANN_Classifier():
 
     print "Add nontrue event"
 
-    #list_event_dir, eventNo  = getSample(160,0)
-    event, list_event_dir = get_all_bat_event(rootpath)
-    for i in range(350, 700):
-        eventNo= ''.join(x for x in event[i] if x.isdigit())
-        minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo)
-        print minFreq, maxFreq, MiliSec, pixels
-        target = ANN_outout(list_event_dir[i],eventNo)
-        print target
+    list_event_dir, eventNo  = getSample(160,0)
+    #event, list_event_dir = get_all_bat_event(rootpath)
+    for i in range(0, len(list_event_dir)):
+        #eventNo= ''.join(x for x in event[i] if x.isdigit())
+        minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo[i])
+        print "Input: " + str(minFreq), str(maxFreq), str(MiliSec), str(pixels)
+        target = ANN_outout(list_event_dir[i],eventNo[i])
+        print "Output Target: " + str(target)
         trndata.addSample([minFreq, maxFreq, MiliSec, pixels],[target])
 
     event, list_event_dir = get_all_bat_event(rootpath)
@@ -581,10 +620,11 @@ def ANN_Classifier():
         eventNo= ''.join(x for x in event[i] if x.isdigit())
         #Get input data
         minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo)
+        print "Input: " + str(minFreq), str(maxFreq), str(MiliSec), str(pixels)
         print minFreq, maxFreq, MiliSec, pixels
         #get output data
         target = ANN_outout(list_event_dir[i],eventNo)
-        print target
+        print "Output Target: " + str(target)
         #Add the samples to dataset
         tstdata.addSample([minFreq, maxFreq, MiliSec, pixels], [target])
     #print "Add training set"
@@ -613,15 +653,15 @@ def ANN_Classifier():
     print "Input and output dimensions: ", trndata.indim, trndata.outdim
     print "First sample (input, target, class):"
     print trndata['input'][0], trndata['target'][0], trndata['class'][0]
-    print "Thrid sample (input, target, class):"
-    print trndata['input'][2], trndata['target'][2], trndata['class'][2]
-    print "Over all true results"
-    print "non bat: " + str(realnonbat)
-    print "bat: " + str(realthisisBat)
+    print "200th sample (input, target, class):"
+    print trndata['input'][200], trndata['target'][200], trndata['class'][200]
+    #print "Over all true results"
+    #print "non bat: " + str(realnonbat)
+    #print "bat: " + str(realthisisBat)
 
     #set up the Feed Forward Network
-    net = buildNetwork(trndata.indim,5,trndata.outdim, bias=True, outclass=SoftmaxLayer)
-    trainer = BackpropTrainer(net, dataset=trndata, momentum=0.1, learningrate=0.01 , verbose=True, weightdecay=0.01)
+    net = buildNetwork(trndata.indim,3,trndata.outdim, bias=True, outclass=SoftmaxLayer)
+    trainer = BackpropTrainer(net, dataset=trndata, momentum=0.1, learningrate=0.01 , verbose=True, weightdecay=0)
     print "Training data"
     #trainer.trainUntilConvergence()
     """
@@ -673,7 +713,19 @@ def ANN_Classifier():
     print "bat: " + str(realthisisBat)
 
 
-
+def saveData():
+    print "Saving to file.."
+    rootpath = "/home/anoch/Documents/BatSamples/"
+    event, list_event_dir = get_all_bat_event(rootpath)
+    text_file = open("/home/anoch/Documents/Output.txt", "w")
+    for i in range(0, len(list_event_dir)):
+        eventNo= ''.join(x for x in event[i] if x.isdigit())
+        minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo)
+        target = ANN_outout(list_event_dir[i],eventNo)
+        data = str(minFreq) +"," + str(maxFreq)+"," + str(MiliSec)+"," + str(pixels)+"," +str(target) + "\n"
+        text_file.write(data)
+    text_file.close()
+    print "Save Done!"
 
 
 
@@ -690,7 +742,12 @@ def main():
     #img = cv2.imread("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000029921020500SpectrogramAllMarked.png",0)
     #verticalScan2(img)
     #GUI(rootpath)
-    ANN_Classifier()
-
+    #ANN_SupervisedBackPro()
+    #ANN_Classifier()
+    #saveData()
+    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000016611196000/Event2.png")
+    bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000016807303500/Event1.png")
+    bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000016807303500/Event0.png")
+    bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000016807303500/Event5.png")
 #run main
 main()
