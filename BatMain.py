@@ -219,7 +219,7 @@ def bestFit(imgEventPath):
                 if len(X) == 0:
                     tempX = mEventX
                     tempY = mEventY
-                if abs(mEventX-tempX) < 3 and abs(mEventY-tempY) < 6:
+                if abs(mEventX-tempX) < 6 and abs(mEventY-tempY) < 6:
                     X.append(mEventX)
                     Y.append(mEventY)
                     tempX = mEventX
@@ -228,13 +228,14 @@ def bestFit(imgEventPath):
     if len(X) > 5:
         for i in range(0,len(X)):
             cv2.circle(imgColor,(X[i],Y[i]), 1, (0,0,255), -1)
-        print np.polyfit(X,Y,1)
+        print np.polyfit(X,Y,7)
         print "\n"
         plt.imshow(imgColor)
         plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
         plt.show()
         return X, Y
     else:
+        print np.polyfit(X,Y,7)
         return 0, 0
 
 
