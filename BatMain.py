@@ -211,6 +211,9 @@ def bestFit(imgEventPath):
     imgColor = cv2.cvtColor(imgEvent,cv2.COLOR_GRAY2RGB)
     X = []
     Y = []
+    tempX = 0
+    tempY = 0
+    firstTime = 1
     threshold = 5
     getHeight, getWidth  = imgEvent.shape
     for mEventY in range(0,getHeight):
@@ -219,23 +222,105 @@ def bestFit(imgEventPath):
                 if len(X) == 0:
                     tempX = mEventX
                     tempY = mEventY
-                if abs(mEventX-tempX) < 6 and abs(mEventY-tempY) < 6:
-                    X.append(mEventX)
-                    Y.append(mEventY)
-                    tempX = mEventX
-                    tempY = mEventY
+                if abs(mEventX-tempX) < 10 and abs(mEventY-tempY) < 10:
+                    #if firstTime == 1:
+                        X.append(mEventX)
+                        Y.append(mEventY)
+                        tempX = mEventX
+                        tempY = mEventY
+                    #    firstTime = 0
+                    #elif mEventX-tempX != 0:
+                    #    X.append(mEventX)
+                     #   Y.append(mEventY)
+                    #    tempX = mEventX
+                     #   tempY = mEventY
                 break
-    if len(X) > 5:
-        for i in range(0,len(X)):
-            cv2.circle(imgColor,(X[i],Y[i]), 1, (0,0,255), -1)
-        print np.polyfit(X,Y,7)
+    reduceX = []
+    reduceY = []
+    index = 0
+    tempValY = 0
+    for n in range(0, len(X)):
+        X_val = X[n]
+        tempValY = 0
+
+        for m in range(0, len(X)):
+            if X_val == X[m]:
+                if tempValY < Y[m]:
+                    tempValY = Y[m]
+                    index = m
+        reduceX.append(X[index])
+        reduceY.append(Y[index])
+
+
+    redX = []
+    redY = []
+    for i in range(0, len(reduceX)-1):
+        if reduceX[i] != reduceX[i+1]:
+            redX.append(reduceX[i])
+            redY.append(reduceY[i])
+       #if i == len(reduceX)-1:
+        #    if reduceX[i-1] != reduceX[i-2]:
+         #       redX.append(reduceX[i-1])
+          #      redY.append(reduceY[i-1])
+
+
+
+
+    #####
+    if len(redX) > 5:
+        for i in range(0,len(redX)):
+            cv2.circle(imgColor,(redX[i],redY[i]), 1, (0,0,255), -1)
+        print "X: " + str(redX)
+        print "Y: " + str(redY)
+
+        from numpy.polynomial import polynomial as P
+        x_new = np.linspace(min(redX), max(redX))
+        residual = 999999
+        residual_index = 0
+        #Find the degree with the lowest residuals. The lowest amount of LS error
+        for i in range(0,9):
+            coef, stats = P.polyfit(redX,redY,i, full=True)
+            print "residuals: " + str(stats[0])
+            if residual > stats[0]:
+                residual = stats[0]
+                residual_index = i
+        coef = P.polyfit(redX,redY,residual_index)
+        ffit = P.polyval(x_new, coef)
+        import matplotlib.pyplot as plt
+        #plt.plot(x_new, ffit)
+        #plt.show()
+        print "plotting.." + str(residual_index)
+        ffit = P.Polynomial(coef)
+        plt.plot(redX, redY, '.', x_new, ffit(x_new), '-')
+        for i in range(0,len(x_new)):
+            cv2.circle(imgColor,(int(x_new[i]),int(ffit(x_new)[i])), 1, (0,255,0), -1)
+        plt.show()
+        #for i in range(2,8):
+        #z = poly.polyfit(x, y, 6)
+        #xp = np.linspace(x[0], x[-1])
+        #z = np.polyfit(x,y,6)
+        #p = np.poly1d(z)
+        #import matplotlib.pyplot as plt
+        #xSize = len(x)
+        #xp = np.linspace(0, x[len(x)-1])
+        #_ = plt.plot(x, y, '.', xp, p(xp), '-')
+        #ffit = np.polyval(z[::-1], xp)
+        #plt.plot(xp,ffit)
+
+        #ffit = poly.Polynomial(z)
+        #plt.plot(xp, ffit(xp))
+
+        #plt.ylim(0,y[len(y)-1])
+        #plt.show()
         print "\n"
         plt.imshow(imgColor)
         plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
         plt.show()
         return X, Y
     else:
-        print np.polyfit(X,Y,7)
+        print "X: " + str(redX)
+        print "Y: " + str(redY)
+        #print np.polyfit(redX,redY,7)
         return 0, 0
 
 
@@ -589,8 +674,8 @@ def ANN_Classifier():
 
 
     #Set up Classicication Data, 4 input, output is a one dim. and 2 possible outcome or two possible classes
-    trndata = ClassificationDataSet(4,target=1, nb_classes=2)
-    tstdata = ClassificationDataSet(4,target=1, nb_classes=2)
+    trndata = ClassificationDataSet(2,target=1, nb_classes=2)
+    tstdata = ClassificationDataSet(2,target=1, nb_classes=2)
 
     rootpath = "/home/anoch/Documents/BatSamples/"
     #get all events
@@ -602,7 +687,7 @@ def ANN_Classifier():
         print minFreq, maxFreq, MiliSec, pixels
         target = ANN_outout(list_event_dir[i],eventNo[i])
         print target
-        trndata.addSample([minFreq, maxFreq, MiliSec, pixels],[target])
+        trndata.addSample([minFreq, maxFreq],[target])
 
     print "Add nontrue event"
 
@@ -614,7 +699,7 @@ def ANN_Classifier():
         print "Input: " + str(minFreq), str(maxFreq), str(MiliSec), str(pixels)
         target = ANN_outout(list_event_dir[i],eventNo[i])
         print "Output Target: " + str(target)
-        trndata.addSample([minFreq, maxFreq, MiliSec, pixels],[target])
+        trndata.addSample([minFreq, maxFreq],[target])
 
     event, list_event_dir = get_all_bat_event(rootpath)
     for i in range(1000, len(list_event_dir)):
@@ -627,7 +712,7 @@ def ANN_Classifier():
         target = ANN_outout(list_event_dir[i],eventNo)
         print "Output Target: " + str(target)
         #Add the samples to dataset
-        tstdata.addSample([minFreq, maxFreq, MiliSec, pixels], [target])
+        tstdata.addSample([minFreq, maxFreq], [target])
     #print "Add training set"
     """
     for i in range(0, len(list_event_dir)):
@@ -661,8 +746,8 @@ def ANN_Classifier():
     #print "bat: " + str(realthisisBat)
 
     #set up the Feed Forward Network
-    net = buildNetwork(trndata.indim,3,trndata.outdim, bias=True, outclass=SoftmaxLayer)
-    trainer = BackpropTrainer(net, dataset=trndata, momentum=0.1, learningrate=0.01 , verbose=True, weightdecay=0)
+    net = buildNetwork(trndata.indim,2,trndata.outdim, bias=True, outclass=SoftmaxLayer)
+    trainer = BackpropTrainer(net, dataset=trndata, momentum=0.1, learningrate=0.001 , verbose=True, weightdecay=0)
     print "Training data"
     #trainer.trainUntilConvergence()
     """
@@ -675,7 +760,7 @@ def ANN_Classifier():
         if error < 0.001:
              break
     """
-    for i in range(0,100):
+    for i in range(0,1000):
         trainer.trainEpochs(1)
         trnresult = percentError(trainer.testOnClassData(),
                                  trndata['class'])
@@ -689,8 +774,14 @@ def ANN_Classifier():
     thisisBat = 0
     realnonbat = 0
     realthisisBat = 0
+    truePositive = 0
+    trueNegative = 0
+    falsePositive = 0
+    falseNegative = 0
+    fp = 0
     event, list_event_dir = get_all_bat_event(rootpath)
-    for i in range(500, 1000):
+    text_file = open("/home/anoch/Documents/Output.txt", "w")
+    for i in range(0, len(list_event_dir)):
         eventNo= ''.join(x for x in event[i] if x.isdigit())
         minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo)
         real_target = ANN_outout(list_event_dir[i],eventNo)
@@ -698,20 +789,46 @@ def ANN_Classifier():
         print "Sample: " + list_event_dir[i]
         print "EventNo: " + eventNo
         print "Real Target: " + str(real_target)
-        pred = net.activate([minFreq,maxFreq,MiliSec,pixels])
+        pred = net.activate([minFreq,maxFreq])
         print pred
+        #if bat
+        if pred[0] < 0.5 and pred[1] > 0.5:
+            thisisBat = thisisBat + 1
+            if real_target == 1:
+                truePositive = truePositive + 1
+            elif real_target == 0:
+                falsePositive = falsePositive + 1
+                fp = 1
+            print 1
+        #if non-bat
+        elif pred[0] > 0.5 and pred[1] < 0.5:
+            if real_target == 0:
+                trueNegative = trueNegative + 1
+            elif real_target == 1:
+                falseNegative = falseNegative + 1
+            nonbat = nonbat + 1
+            print 0
+
+
         if real_target == 1:
             realthisisBat = realthisisBat + 1
         else:
             realnonbat = realnonbat + 1
         print "\n\n"
-
-    print "total result"
+        data = str(minFreq) + "," + str(maxFreq) + "," + str(MiliSec) + "," + str(pixels) + "," + str(real_target) + "," + str(fp) + "\n"
+        text_file.write(data)
+        fp = 0
+    text_file.close()
+    print "Classifier Result"
     print "non bat: " + str(nonbat)
     print "bat: " + str(thisisBat)
     print "Real result"
     print "non bat: " + str(realnonbat)
     print "bat: " + str(realthisisBat)
+    print "True Positive: " + str(truePositive)
+    print "True Negative: " + str(trueNegative)
+    print "False Positive: " + str(falsePositive)
+    print "False Negative: " + str(falseNegative)
 
 
 def saveData():
@@ -744,11 +861,16 @@ def main():
     #verticalScan2(img)
     #GUI(rootpath)
     #ANN_SupervisedBackPro()
-    #ANN_Classifier()
+    ANN_Classifier()
     #saveData()
-    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000016611196000/Event2.png")
-    bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000016807303500/Event1.png")
-    bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000016807303500/Event0.png")
-    bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000016807303500/Event5.png")
+    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000016807303500/Event1.png")
+    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000016807303500/Event0.png")
+    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000018916088000/Event5.png")
+    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000008460585000/Event0.png")
+    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000008460585000/Event3.png")
+    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000008460585000/Event4.png")
+    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000008460585000/Event8.png")
+    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000008460585000/Event9.png")
+
 #run main
 main()
