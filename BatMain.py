@@ -7,7 +7,7 @@ import numpy as np
 import cv2
 import os
 from matplotlib import pyplot as plt
-import xml.etree.ElementTree as ET #phone  home
+import xml.etree.ElementTree as ET # phone  home
 from xml.etree import ElementTree
 from xml.dom import minidom
 from xml.etree.ElementTree import Element, SubElement, Comment, tostring
@@ -20,11 +20,9 @@ from pybrain.supervised.trainers import BackpropTrainer
 from pybrain.structure import SigmoidLayer
 from pybrain.structure import SoftmaxLayer
 from pybrain.utilities import percentError
-
-
-import re
-#import MultiNEAT as NEAT #not as neat I thought it would be! BASTARD!! Still remember ET to phone home
-#from pybrain.tools.shortcuts import buildNetwork
+from numpy.polynomial import polynomial as P
+# import MultiNEAT as NEAT #not as neat I thought it would be! BASTARD!! Still remember ET to phone home
+# from pybrain.tools.shortcuts import buildNetwork
 
 # Set up global frequency band. Set to the range of Bat Calls aka. 13 Khz to 75 KHz into Pixel values
 #getHeightMin = 500
@@ -215,14 +213,33 @@ def bestFit(imgEventPath):
     tempY = 0
     firstTime = 1
     threshold = 5
+    firstX = 0
+    firstY = 0
+    isFirstFound = 0
     getHeight, getWidth  = imgEvent.shape
-    for mEventY in range(0,getHeight):
-        for mEventX in range (0, getWidth):
+
+    # Find the first occurence of the frontline, by looking at the y axis
+
+    for preX in range(0,getWidth):
+        if isFirstFound == 1:
+            break
+        for preY in range (0, getHeight):
+            if imgEvent.item(preY,preX) > threshold:
+                firstX = preX
+                firstY = preY
+                isFirstFound = 1
+                break
+
+
+
+    for mEventY in range(firstY,getHeight):
+        for mEventX in range (firstX, getWidth):
             if imgEvent.item(mEventY,mEventX) > threshold:
-                if len(X) == 0:
+                #mEvent condition check to remove noise by only looking at the first part of the divided image
+                if len(X) == 0 and mEventX < (getWidth/2):
                     tempX = mEventX
                     tempY = mEventY
-                if abs(mEventX-tempX) < 10 and abs(mEventY-tempY) < 10:
+                if abs(mEventX-tempX) < 5 and abs(mEventY-tempY) < 5:
                     #if firstTime == 1:
                         X.append(mEventX)
                         Y.append(mEventY)
@@ -270,58 +287,53 @@ def bestFit(imgEventPath):
     if len(redX) > 5:
         for i in range(0,len(redX)):
             cv2.circle(imgColor,(redX[i],redY[i]), 1, (0,0,255), -1)
-        print "X: " + str(redX)
-        print "Y: " + str(redY)
 
-        from numpy.polynomial import polynomial as P
-        x_new = np.linspace(min(redX), max(redX))
+
+
+        REDX = []
+        REDY =[]
+        # ignores the last entry. To get more stable data
+        for i in range(0,len(redX)-1):
+            REDX.append(redX[i])
+            REDY.append(redY[i])
+            #i = i+1
+        #print "X: " + str(REDX)
+        #print "Y: " + str(REDY)
+        x_new = np.linspace(min(REDX), max(REDX))
         residual = 999999
         residual_index = 0
         #Find the degree with the lowest residuals. The lowest amount of LS error
-        for i in range(0,9):
-            coef, stats = P.polyfit(redX,redY,i, full=True)
-            print "residuals: " + str(stats[0])
+        for i in range(0,8):
+            coef, stats = P.polyfit(REDX,REDY,i, full=True)
+            #print "residuals: " + str(stats[0])
             if residual > stats[0]:
                 residual = stats[0]
                 residual_index = i
-        coef = P.polyfit(redX,redY,residual_index)
-        ffit = P.polyval(x_new, coef)
-        import matplotlib.pyplot as plt
+        coef = P.polyfit(REDX,REDY,residual_index)
+        #ffit = P.polyval(x_new, coef)
+
         #plt.plot(x_new, ffit)
-        #plt.show()
-        print "plotting.." + str(residual_index)
+       # plt.show()
+        #print "plotting.." + str(residual_index)
         ffit = P.Polynomial(coef)
-        plt.plot(redX, redY, '.', x_new, ffit(x_new), '-')
-        for i in range(0,len(x_new)):
-            cv2.circle(imgColor,(int(x_new[i]),int(ffit(x_new)[i])), 1, (0,255,0), -1)
-        plt.show()
-        #for i in range(2,8):
-        #z = poly.polyfit(x, y, 6)
-        #xp = np.linspace(x[0], x[-1])
-        #z = np.polyfit(x,y,6)
-        #p = np.poly1d(z)
-        #import matplotlib.pyplot as plt
-        #xSize = len(x)
-        #xp = np.linspace(0, x[len(x)-1])
-        #_ = plt.plot(x, y, '.', xp, p(xp), '-')
-        #ffit = np.polyval(z[::-1], xp)
-        #plt.plot(xp,ffit)
 
-        #ffit = poly.Polynomial(z)
-        #plt.plot(xp, ffit(xp))
-
-        #plt.ylim(0,y[len(y)-1])
+        #plt.plot(redX, redY, '.', x_new, ffit(x_new), '-')
+        #for i in range(0,len(x_new)):
+        #    cv2.circle(imgColor,(int(x_new[i]),int(ffit(x_new)[i])), 1, (0,255,0), -1)
         #plt.show()
-        print "\n"
-        plt.imshow(imgColor)
-        plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
-        plt.show()
-        return X, Y
+
+
+
+        #print "\n"
+        #plt.imshow(imgColor)
+        #plt.xticks([]), plt.yticks([])  # to hide tick values on X and Y axis
+        #plt.show()
+        return ffit, min(REDX), max(REDX), min(REDY), max(REDY)
     else:
-        print "X: " + str(redX)
-        print "Y: " + str(redY)
+        #print "X: " + str(redX)
+        #print "Y: " + str(redY)
         #print np.polyfit(redX,redY,7)
-        return 0, 0
+        return 0, 0, 0, 0, 0
 
 
 def pixelCount(eventimg_path):
@@ -369,28 +381,59 @@ def eventLabel(eventName, topX, topY, endX, bottomY, event_img_path, savePath,im
 
     event = SubElement(top, 'Event')
     for i in eventNum:
+        currentSubject = savePath + eventName + "/Event" + str(i) + ".png"
+        points = getFrontLineFeature(currentSubject)
+
         subEvent = SubElement(event, "Event" + str(i))
 
+        minFreq = SubElement(subEvent,"minFreq_pixel")
+        minFreq.text = str(bottomY[i])
 
-        bottomFreq = (250.0/imgHeight)*(imgHeight-bottomY[i])
-        minFreq = SubElement(subEvent,"minFreq")
-        minFreq.text = str(bottomFreq)
+        maxFreq = SubElement(subEvent,"maxFreq_pixel")
+        maxFreq.text = str(topY[i])
 
+        minMiliSec = SubElement(subEvent,"minMiliSec_pixel")
+        minMiliSec.text = str(topX[i])
 
-        topFreq = (250.0/imgHeight)*(imgHeight-topY[i])
-        maxFreq = SubElement(subEvent,"maxFreq")
-        maxFreq.text = str(topFreq)
-
-        startMiliSec = (1000.0/imgLength)*topX[i]
-        minMiliSec = SubElement(subEvent,"minMiliSec")
-        minMiliSec.text = str(startMiliSec)
-
-        endMiliSec = (1000.0/imgLength)*endX[i]
-        maxMiliSec = SubElement(subEvent,"maxMiliSec")
-        maxMiliSec.text = str(endMiliSec)
-
-        polyfitCof = SubElement(subEvent,"polyfitCof")
-        polyfitCof.text = str(pixelCount(savePath + eventName + "/Event" + str(i) + ".png"))#"insert min polyfit Coefficient"
+        maxMiliSec = SubElement(subEvent,"maxMiliSec_pixel")
+        maxMiliSec.text = str(endX[i])
+        it = 0
+        for point in points:
+            big = SubElement(subEvent,"big" +str(it)+"_pixel")
+            big.text = str(point)
+            it += 1
+        # big0 = SubElement(subEvent,"big0_pixel")
+        # big0.text = str(points[0])
+        #
+        # big1 = SubElement(subEvent,"big1_pixel")
+        # big1.text = str(points[1])
+        #
+        # big2 = SubElement(subEvent,"big2_pixel")
+        # big2.text = str(points[2])
+        #
+        # big3 = SubElement(subEvent,"big3_pixel")
+        # big3.text = str(points[3])
+        #
+        # big4 = SubElement(subEvent,"big4_pixel")
+        # big4.text = str(points[4])
+        #
+        # big5 = SubElement(subEvent,"big5_pixel")
+        # big5.text = str(points[5])
+        #
+        # big6 = SubElement(subEvent,"big6_pixel")
+        # big6.text = str(points[6])
+        #
+        # big7 = SubElement(subEvent,"big7_pixel")
+        # big7.text = str(points[7])
+        #
+        # big8 = SubElement(subEvent,"big8_pixel")
+        # big8.text = str(points[8])
+        #
+        # big9 = SubElement(subEvent,"big9_pixel")
+        # big9.text = str(points[9])
+        #
+        # big10 = SubElement(subEvent,"big10_pixel")
+        # big10.text = str(points[10])
 
         batID = SubElement(subEvent, "batID")
         batID.text = "NOT CLASSIFIED"
@@ -398,16 +441,10 @@ def eventLabel(eventName, topX, topY, endX, bottomY, event_img_path, savePath,im
         MainEventSoundFile = SubElement(subEvent,"MainEventSoundFile")
         MainEventSoundFile.text = eventName
 
-        MainEventFile = SubElement(subEvent,"MainEventFile")
-        MainEventFile.text = event_img_path
 
     #print prettify(top)
     tree = ET.ElementTree(top)
     tree.write(savePath + eventName + "/label.xml")
-
-def eventLabelChange(event_label_path, eventNo, batLabel):
-    tree = ET.parse(event_label_path)
-    root = tree.getroot()
 
 #############################################GUI SETTINGS###############################################################
 
@@ -520,6 +557,14 @@ def GUI(rootpath):
 
 #############################################Classified Neural Network##################################################
 
+def toTime(timePixel):
+    imageLength = 5000.0
+    return (1000.0/imageLength)*timePixel
+
+def tokFreq(freqPixel):
+    imageWidth = 1025.0
+    return (250.0/imageWidth)*(imageWidth-freqPixel)
+
 def ANN_input(event_dir,eventNo):
     rootpath = "/home/anoch/Documents/BatSamples/"
     labelPath =  rootpath + "SpectrogramMarked/" + event_dir + "/label.xml"
@@ -529,20 +574,121 @@ def ANN_input(event_dir,eventNo):
     root = tree.getroot()
 
     for elem in tree.find("Event/"+lookup):
-        if elem.tag == "minFreq":
-            minFreq = elem.text
-        if elem.tag == "maxFreq":
-            maxFreq = elem.text
-        if elem.tag == "minMiliSec":
-            minMiliSec = elem.text
-        if elem.tag == "maxMiliSec":
-            maxMiliSec = elem.text
-        if elem.tag == "polyfitCof":
-            polyfitCof = elem.text
+        if elem.tag == "minFreq_pixel":
+            minFreq_pixel = elem.text
+        if elem.tag == "maxFreq_pixel":
+            maxFreq_pixel = elem.text
+        if elem.tag == "minMiliSec_pixel":
+            minMiliSec_pixel = elem.text
+        if elem.tag == "maxMiliSec_pixel":
+            maxMiliSec_pixel = elem.text
+
+    for elem in tree.find("Event/"+lookup):
+        if elem.tag == "big0_pixel":
+            big0_pixel = elem.text
+            break
+        else:
+            big0_pixel = 0
+    for elem in tree.find("Event/"+lookup):
+
+        if elem.tag == "big1_pixel":
+            big1_pixel = elem.text
+            break
+        else:
+            big1_pixel = 0
+    for elem in tree.find("Event/"+lookup):
+        if elem.tag == "big2_pixel":
+            big2_pixel = elem.text
+            break
+        else:
+            big2_pixel = 0
+
+    for elem in tree.find("Event/"+lookup):
+        if elem.tag == "big3_pixel":
+            big3_pixel = elem.text
+            break
+        else:
+            big3_pixel = 0
+
+    for elem in tree.find("Event/"+lookup):
+        if elem.tag == "big4_pixel":
+            big4_pixel = elem.text
+            break
+        else:
+            big4_pixel = 0
+
+    for elem in tree.find("Event/"+lookup):
+        if elem.tag == "big5_pixel":
+            big5_pixel = elem.text
+            break
+        else:
+            big5_pixel = 0
+
+    for elem in tree.find("Event/"+lookup):
+        if elem.tag == "big6_pixel":
+            big6_pixel = elem.text
+            break
+        else:
+            big6_pixel = 0
+
+    for elem in tree.find("Event/"+lookup):
+        if elem.tag == "big7_pixel":
+            big7_pixel = elem.text
+            break
+        else:
+            big7_pixel = 0
+
+    for elem in tree.find("Event/"+lookup):
+        if elem.tag == "big8_pixel":
+            big8_pixel = elem.text
+            break
+        else:
+            big8_pixel = 0
+
+    for elem in tree.find("Event/"+lookup):
+        if elem.tag == "big9_pixel":
+            big9_pixel = elem.text
+            break
+        else:
+            big9_pixel = 0
+
+    for elem in tree.find("Event/"+lookup):
+        if elem.tag == "big10_pixel":
+            big10_pixel = elem.text
+            break
+        else:
+            big10_pixel = 0
+
+    minMiliSec = toTime(float(minMiliSec_pixel))
+    maxMiliSec = toTime(float(maxMiliSec_pixel))
+
+    minFreq = tokFreq(float(minFreq_pixel))
+    maxFreq = tokFreq(float(maxFreq_pixel))
     MiliSec = float(maxMiliSec)-float(minMiliSec)
 
+    T_1 = toTime(float(big1_pixel)-float(big0_pixel))
+    T_2 = toTime(float(big2_pixel)-float(big0_pixel))
+    T_3 = toTime(float(big3_pixel)-float(big0_pixel))
+    T_4 = toTime(float(big4_pixel)-float(big0_pixel))
+    T_5 = toTime(float(big5_pixel)-float(big0_pixel))
+    T_6 = toTime(float(big6_pixel)-float(big0_pixel))
+    T_7 = toTime(float(big7_pixel)-float(big0_pixel))
+    T_8 = toTime(float(big8_pixel)-float(big0_pixel))
+    T_9 = toTime(float(big9_pixel)-float(big0_pixel))
+    T_10 = toTime(float(big10_pixel)-float(big0_pixel))
 
-    return float(minFreq), float(maxFreq), MiliSec, int(polyfitCof)
+    t_1 = toTime(float(big1_pixel)-float(big0_pixel))
+    t_2 = toTime(float(big2_pixel)-float(big1_pixel))
+    t_3 = toTime(float(big3_pixel)-float(big2_pixel))
+    t_4 = toTime(float(big4_pixel)-float(big3_pixel))
+    t_5 = toTime(float(big5_pixel)-float(big4_pixel))
+    t_6 = toTime(float(big6_pixel)-float(big5_pixel))
+    t_7 = toTime(float(big7_pixel)-float(big6_pixel))
+    t_8 = toTime(float(big8_pixel)-float(big7_pixel))
+    t_9 = toTime(float(big9_pixel)-float(big8_pixel))
+    t_10 = toTime(float(big10_pixel)-float(big9_pixel))
+
+    return minFreq, maxFreq, MiliSec, T_1, T_2, T_3, T_4, T_5, T_6, T_7, T_8, T_9, T_10, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9, t_10
 
 def ANN_outout(event_dir,eventNo):
     rootpath = "/home/anoch/Documents/BatSamples/"
@@ -645,6 +791,7 @@ def ANN_SupervisedBackPro():
     print "non bat: " + str(realnonbat)
     print "bat: " + str(realthisisBat)
 
+
 #Get a desired number of a desired output
 def getSample(sampleAmount, desired_target):
     listEvent_dir = []
@@ -674,8 +821,8 @@ def ANN_Classifier():
 
 
     #Set up Classicication Data, 4 input, output is a one dim. and 2 possible outcome or two possible classes
-    trndata = ClassificationDataSet(2,target=1, nb_classes=2)
-    tstdata = ClassificationDataSet(2,target=1, nb_classes=2)
+    trndata = ClassificationDataSet(13,target=1, nb_classes=2)
+    tstdata = ClassificationDataSet(13,target=1, nb_classes=2)
 
     rootpath = "/home/anoch/Documents/BatSamples/"
     #get all events
@@ -683,11 +830,11 @@ def ANN_Classifier():
     print "Add true event"
     list_event_dir,eventNo = getSample(160,1)
     for i in range(0, len(list_event_dir)):
-        minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo[i])
-        print minFreq, maxFreq, MiliSec, pixels
+        minFreq, maxFreq, MiliSec, T_1, T_2, T_3, T_4, T_5, T_6, T_7, T_8, T_9, T_10, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9, t_10 = ANN_input(list_event_dir[i],eventNo[i])
+        print minFreq, maxFreq, MiliSec, T_1, T_2, T_3, T_4, T_5, T_6, T_7, T_8, T_9, T_10, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9, t_10
         target = ANN_outout(list_event_dir[i],eventNo[i])
         print target
-        trndata.addSample([minFreq, maxFreq],[target])
+        trndata.addSample([minFreq, maxFreq, MiliSec, T_1, T_2, T_3, T_4, T_5, T_6, T_7, T_8, T_9, T_10],[target])
 
     print "Add nontrue event"
 
@@ -695,41 +842,28 @@ def ANN_Classifier():
     #event, list_event_dir = get_all_bat_event(rootpath)
     for i in range(0, len(list_event_dir)):
         #eventNo= ''.join(x for x in event[i] if x.isdigit())
-        minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo[i])
-        print "Input: " + str(minFreq), str(maxFreq), str(MiliSec), str(pixels)
-        target = ANN_outout(list_event_dir[i],eventNo[i])
+        minFreq, maxFreq, MiliSec, T_1, T_2, T_3, T_4, T_5, T_6, T_7, T_8, T_9, T_10, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9, t_10 = ANN_input(list_event_dir[i], eventNo[i])
+        print "Input"
+        print minFreq, maxFreq, MiliSec, T_1, T_2, T_3, T_4, T_5, T_6, T_7, T_8, T_9, T_10, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9, t_10
+        target = ANN_outout(list_event_dir[i], eventNo[i])
         print "Output Target: " + str(target)
-        trndata.addSample([minFreq, maxFreq],[target])
+        trndata.addSample([minFreq, maxFreq, MiliSec, T_1, T_2, T_3, T_4, T_5, T_6, T_7, T_8, T_9, T_10], [target])
 
     event, list_event_dir = get_all_bat_event(rootpath)
     for i in range(1000, len(list_event_dir)):
+        hej = len(list_event_dir)
         eventNo= ''.join(x for x in event[i] if x.isdigit())
         #Get input data
-        minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo)
-        print "Input: " + str(minFreq), str(maxFreq), str(MiliSec), str(pixels)
-        print minFreq, maxFreq, MiliSec, pixels
+        minFreq, maxFreq, MiliSec, T_1, T_2, T_3, T_4, T_5, T_6, T_7, T_8, T_9, T_10, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9, t_10 = ANN_input(list_event_dir[i],eventNo)
+        print "Input"
+        print minFreq, maxFreq, MiliSec, T_1, T_2, T_3, T_4, T_5, T_6, T_7, T_8, T_9, T_10, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9, t_10
         #get output data
         target = ANN_outout(list_event_dir[i],eventNo)
         print "Output Target: " + str(target)
         #Add the samples to dataset
-        tstdata.addSample([minFreq, maxFreq], [target])
+        tstdata.addSample([minFreq, maxFreq, MiliSec, T_1, T_2, T_3, T_4, T_5, T_6, T_7, T_8, T_9, T_10], [target])
     #print "Add training set"
-    """
-    for i in range(0, len(list_event_dir)):
-        eventNo= ''.join(x for x in event[i] if x.isdigit())
-        #Get input data
-        minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo)
-        print minFreq, maxFreq, MiliSec, pixels
-        #get output data
-        target = ANN_outout(list_event_dir[i],eventNo)
-        print target
-        if target == 1:
-            realthisisBat = realthisisBat + 1
-        else:
-            realnonbat = realnonbat + 1
-        #Add the samples to dataset
-        DS.addSample([minFreq, maxFreq, MiliSec, pixels], [target])
-    """
+
     # we want a 75% training data and 25% test data
 
     trndata._convertToOneOfMany( )
@@ -746,8 +880,8 @@ def ANN_Classifier():
     #print "bat: " + str(realthisisBat)
 
     #set up the Feed Forward Network
-    net = buildNetwork(trndata.indim,2,trndata.outdim, bias=True, outclass=SoftmaxLayer)
-    trainer = BackpropTrainer(net, dataset=trndata, momentum=0.1, learningrate=0.001 , verbose=True, weightdecay=0)
+    net = buildNetwork(trndata.indim,10,trndata.outdim, bias=True, outclass=SoftmaxLayer)
+    trainer = BackpropTrainer(net, dataset=trndata, momentum=0.1, learningrate=0.001, verbose=True, weightdecay=0)
     print "Training data"
     #trainer.trainUntilConvergence()
     """
@@ -778,24 +912,28 @@ def ANN_Classifier():
     trueNegative = 0
     falsePositive = 0
     falseNegative = 0
+    tp = 0
     fp = 0
+    tn = 0
+    fn = 0
     event, list_event_dir = get_all_bat_event(rootpath)
-    text_file = open("/home/anoch/Documents/Output.txt", "w")
-    for i in range(0, len(list_event_dir)):
+    #text_file = open("/home/anoch/Documents/Output.txt", "w")
+    for i in range(600, len(list_event_dir)):
         eventNo= ''.join(x for x in event[i] if x.isdigit())
-        minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo)
+        minFreq, maxFreq, MiliSec, T_1, T_2, T_3, T_4, T_5, T_6, T_7, T_8, T_9, T_10, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9, t_10 = ANN_input(list_event_dir[i],eventNo)
         real_target = ANN_outout(list_event_dir[i],eventNo)
-        print minFreq, maxFreq, MiliSec, pixels
+        print minFreq, maxFreq, MiliSec, T_1, T_2, T_3, T_4, T_5, T_6, T_7, T_8, T_9, T_10, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9, t_10
         print "Sample: " + list_event_dir[i]
         print "EventNo: " + eventNo
         print "Real Target: " + str(real_target)
-        pred = net.activate([minFreq,maxFreq])
+        pred = net.activate([minFreq, maxFreq, MiliSec, T_1, T_2, T_3, T_4, T_5, T_6, T_7, T_8, T_9, T_10])
         print pred
         #if bat
         if pred[0] < 0.5 and pred[1] > 0.5:
             thisisBat = thisisBat + 1
             if real_target == 1:
                 truePositive = truePositive + 1
+                tp = 1
             elif real_target == 0:
                 falsePositive = falsePositive + 1
                 fp = 1
@@ -804,8 +942,10 @@ def ANN_Classifier():
         elif pred[0] > 0.5 and pred[1] < 0.5:
             if real_target == 0:
                 trueNegative = trueNegative + 1
+                tn = 1
             elif real_target == 1:
                 falseNegative = falseNegative + 1
+                fn = 1
             nonbat = nonbat + 1
             print 0
 
@@ -815,10 +955,13 @@ def ANN_Classifier():
         else:
             realnonbat = realnonbat + 1
         print "\n\n"
-        data = str(minFreq) + "," + str(maxFreq) + "," + str(MiliSec) + "," + str(pixels) + "," + str(real_target) + "," + str(fp) + "\n"
-        text_file.write(data)
+        #data = str(minFreq) + "," + str(maxFreq) + "," + str(MiliSec) + "," + str(pixels) + "," + str(real_target) + "," + str(tp) + "," + str(tn) + "," + str(fp) + "," + str(fn) + "\n"
+        #text_file.write(data)
+        tp = 0
         fp = 0
-    text_file.close()
+        tn = 0
+        fn = 0
+    #text_file.close()
     print "Classifier Result"
     print "non bat: " + str(nonbat)
     print "bat: " + str(thisisBat)
@@ -838,16 +981,47 @@ def saveData():
     text_file = open("/home/anoch/Documents/Output.txt", "w")
     for i in range(0, len(list_event_dir)):
         eventNo= ''.join(x for x in event[i] if x.isdigit())
-        minFreq, maxFreq, MiliSec, pixels = ANN_input(list_event_dir[i],eventNo)
+        minFreq, maxFreq, MiliSec, T_1, T_2, T_3, T_4, T_5, T_6, T_7, T_8, T_9, T_10, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9, t_10 = ANN_input(list_event_dir[i],eventNo)
         target = ANN_outout(list_event_dir[i],eventNo)
-        data = str(minFreq) +"," + str(maxFreq)+"," + str(MiliSec)+"," + str(pixels)+"," +str(target) + "\n"
-        text_file.write(data)
+        #data = str(minFreq) +"," + str(maxFreq)+"," + str(MiliSec)+"," + str(pixels)+"," +str(target) + "\n"
+        #text_file.write(data)
     text_file.close()
     print "Save Done!"
 
 
 
+def getFrontLineFeature(imgPath):
+    X = []
+    ffit, miniX, maxiX, miniY, maxiY = bestFit(imgPath)
+    if ffit == 0 and miniX == 0 and maxiX == 0 and maxiY == 0 and miniY == 0:
+        X.append(0)
+        return X
 
+    rangey = maxiX - miniX
+    #print "Range X: " + str(rangey), str(maxiX),  str(miniX)
+    rangey = maxiY - miniY
+    #print "Range Y: " + str(rangey), str(maxiY), str(miniY)
+    step = rangey/10.0
+    #print miniY, maxiY, step
+    we = miniX
+    for s in range(0,11):
+        #print "step: " + str(s)
+        newY = (step*s) + miniY
+        #print "for y: " + str(newY)
+        #We want to ensure we make a good search.
+        we -= 2
+        for i in range(0, 10000):
+            tempy = ffit(we)
+
+            if ((tempy + 1) > newY) and (newY > (tempy - 1)):
+                #print "GOTIT for: " + str(newY)
+                #print "Result x: "+ str(we) + "  y: " + str(tempy) +  "\n"
+                X.append(we)
+                break
+
+            we += 0.01
+
+    return X
 
 
 #####################################################MAIN###############################################################
@@ -863,14 +1037,18 @@ def main():
     #ANN_SupervisedBackPro()
     ANN_Classifier()
     #saveData()
-    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000016807303500/Event1.png")
-    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000016807303500/Event0.png")
-    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000018916088000/Event5.png")
-    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000008460585000/Event0.png")
-    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000008460585000/Event3.png")
-    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000008460585000/Event4.png")
-    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000008460585000/Event8.png")
-    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000008460585000/Event9.png")
+    ######################################FOR THE NEW FEATURE EXTRACTION -- WORKS#########################################
+    #poly =  getFrontLineFeature("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000029923979000/Event0.png")
+    #print poly, len(poly)
+    #poly =  getFrontLineFeature("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000007842559000/Event1.png")
+    #print poly, len(poly)
+    #bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000041706671000/Event1.png")
+    # bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000018916088000/Event5.png")
+    # bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000008460585000/Event0.png")
+    # bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000008460585000/Event3.png")
+    # bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000008460585000/Event4.png")
+    # bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000008460585000/Event8.png")
+    # bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000008460585000/Event9.png")
 
 #run main
 main()
