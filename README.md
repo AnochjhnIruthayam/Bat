@@ -1,7 +1,7 @@
-Bat
+Bat Species Event Extraction by Neural Network Classifier
 ===
 
-Bat sound analyzer
+
 Reqires SoX, OpenCV, NumPy and PyBrain
 
 - Input files are binary .s16 sound files.
