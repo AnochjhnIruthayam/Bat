@@ -24,7 +24,7 @@ import Classifier as c
 # import MultiNEAT as NEAT #not as neat I thought it would be! BASTARD!! Still remember ET to phone home
 # from pybrain.tools.shortcuts import buildNetwork
 
-# Set up global frequency band. Set to the range of Bat Calls aka. 13 Khz to 75 KHz into Pixel values
+# Set up global frequency band. Set to the range of BatClassification Calls aka. 13 Khz to 75 KHz into Pixel values
 #getHeightMin = 500
 #getHeightMax = 980
 
