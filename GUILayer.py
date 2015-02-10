@@ -1,9 +1,9 @@
 __author__ = 'Anochjhn Iruthayam'
 
-import BatMain
-import os
+
 import Tkinter as tk
 import Image, ImageTk
+import xml.etree.ElementTree as ET # phone  home
 
 def event_non_bat(image, event_dir, eventNo, top):
     rootpath = "/home/anoch/Documents/BatSamples/"
