@@ -4,6 +4,8 @@ import os
 import cv2
 import numpy as np
 from numpy.polynomial import polynomial as P
+import LabelFunctions
+
 def getFileList(path, extension):
     sampleList = []
     for file in os.listdir(path):
@@ -268,3 +270,52 @@ def getFrontLineFeature(imgPath):
             we += 0.01
 
     return X
+
+def findEvent(SearchPath, eventFile, SavePath):
+
+    threshold = 5
+    soundFilePath = SearchPath + eventFile #"/home/anoch/Documents/BatSamples/Spectrogram/sr_500000_ch_4_offset_00000000008460585000.png"
+    #Read image
+    img = cv2.imread(soundFilePath,0)
+    imgColor = cv2.cvtColor(img,cv2.COLOR_GRAY2RGB)
+    #get information about size
+    imgHeight,imgLength = img.shape
+    #Create Lists
+    topX = []
+    topY = []
+    endX = []
+    bottomY = []
+    #Run Vertical Scanner
+    StartX, StartY, end = verticalScan(img)
+    for i in range (0,len(StartX)):
+        #flag is added to filter out the non bat events by looking at the horizontal axis
+        tempSX, tempSY, tempEnd, tempBottom, flag = horizontelScan(img, StartX[i], StartY[i], end[i])
+        if flag == 1:
+            topX.append(tempSX)
+            topY.append(tempSY)
+            endX.append(tempEnd)
+            bottomY.append(tempBottom)
+        #bottomY.append()
+    crop_offset = 5
+    eventNum = []
+    for i in range(0,len(bottomY)):
+        #if topY[i] > getHeightMin and bottomY[i] < getHeightMax: # ensure that the call is in range
+
+        cv2.rectangle(imgColor, (topX[i],topY[i]), (endX[i],bottomY[i]), (0,0,255),3)
+        if topX[i]>crop_offset and topY[i]>crop_offset and endX[i]< imgLength-crop_offset and bottomY[i] < imgHeight- crop_offset:
+            imgEvent = img[topY[i]-crop_offset:bottomY[i]+crop_offset, topX[i]-crop_offset:endX[i]+crop_offset]
+            eventNum.append(i)
+            checkFolder = SavePath + os.path.splitext((eventFile))[0]
+            if not os.path.exists(checkFolder):
+                os.makedirs(checkFolder)
+            cv2.imwrite(SavePath + os.path.splitext((eventFile))[0] + "/Event" + str(i) + ".png", imgEvent)
+    cv2.imwrite(SavePath + os.path.splitext((eventFile))[0] + "SpectrogramAllMarked.png", imgColor)
+    #If there are event, then label them
+    if len(eventNum)> 0:
+        LabelFunctions.eventLabel(os.path.splitext((eventFile))[0], topX, topY, endX, bottomY, eventFile, SavePath,imgHeight,imgLength, eventNum)
+    #plt.imshow(imgColor)
+    #plt.xticks([]), plt.yticks([])
+   # plt.show()
+    #cv2.imshow('image',imgColor)
+    #cv2.waitKey(0)
+    #cv2.destroyAllWindows()

@@ -1,4 +1,5 @@
 __author__ = 'Anochjhn Iruthayam'
+import os
 
 
 def getFileList(path, extension):
@@ -9,13 +10,14 @@ def getFileList(path, extension):
     return sampleList
 
 def getAllEvents(rootpath):
+    import EventExtraction
     SearchPath = rootpath + "Spectrogram/"
     SavePath = rootpath + "SpectrogramMarked/"
     sampleList = getFileList(SearchPath,".png")
     for eventFile in sampleList:
         print "Analyzing " + os.path.splitext((eventFile))[0]
         #topX to endX is the time range, while topX and bottomY is the frequency range
-        findEvent(SearchPath, eventFile, SavePath)
+        EventExtraction.findEvent(SearchPath, eventFile, SavePath)
     print "Event extraction done!"
 
 def get_all_bat_event(rootpath):

@@ -13,6 +13,7 @@ def prettify(elem):
     return reparsed.toprettyxml(indent="  ")
 
 def eventLabel(eventName, topX, topY, endX, bottomY, event_img_path, savePath,imgHeight,imgLength, eventNum):
+    import EventExtraction as ee
     top = Element('top')
     comment = Comment("Event information for: " + eventName)
     top.append(comment)

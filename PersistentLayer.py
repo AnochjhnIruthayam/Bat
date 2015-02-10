@@ -1,7 +1,8 @@
 __author__ = 'Anochjhn Iruthayam'
-import BatMain
+
 import Classifier as c
 def saveData():
+    import BatMain
     print "Saving to file.."
     rootpath = "/home/anoch/Documents/BatSamples/"
     event, list_event_dir = BatMain.get_all_bat_event(rootpath)

@@ -16,6 +16,7 @@ def tokFreq(freqPixel):
     return (250.0/imageWidth)*(imageWidth-freqPixel)
 
 def ANN_input(event_dir,eventNo):
+    import xml.etree.ElementTree as ET # phone  home
     rootpath = "/home/anoch/Documents/BatSamples/"
     labelPath =  rootpath + "SpectrogramMarked/" + event_dir + "/label.xml"
     lookup = "Event"+str(eventNo)
@@ -141,6 +142,7 @@ def ANN_input(event_dir,eventNo):
     return minFreq, maxFreq, MiliSec, T_1, T_2, T_3, T_4, T_5, T_6, T_7, T_8, T_9, T_10, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9, t_10
 
 def ANN_outout(event_dir,eventNo):
+    import xml.etree.ElementTree as ET # phone  home
     rootpath = "/home/anoch/Documents/BatSamples/"
     labelPath =  rootpath + "SpectrogramMarked/" + event_dir + "/label.xml"
     lookup = "Event"+str(eventNo)
