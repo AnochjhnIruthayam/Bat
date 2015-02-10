@@ -1,4 +1,4 @@
-__author__ = 'anoch'
+__author__ = 'Anochjhn Iruthayam'
 
 import os
 import cv2

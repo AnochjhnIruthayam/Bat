@@ -1,4 +1,4 @@
-__author__ = 'anoch'
+__author__ = 'Anochjhn Iruthayam'
 
 def toTime(timePixel):
     imageLength = 5000.0
