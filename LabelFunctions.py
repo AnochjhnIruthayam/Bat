@@ -25,6 +25,9 @@ def eventLabel(eventName, topX, topY, endX, bottomY, event_img_path, savePath,im
 
         subEvent = SubElement(event, "Event" + str(i))
 
+        ee.hdfgroup(bottomY[i],topY[i],topX[i],endX[i],points,eventName,i)
+
+
         minFreq = SubElement(subEvent,"minFreq_pixel")
         minFreq.text = str(bottomY[i])
 

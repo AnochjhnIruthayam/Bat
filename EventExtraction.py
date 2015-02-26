@@ -271,6 +271,103 @@ def getFrontLineFeature(imgPath):
 
     return X
 
+def getFileList(path, extension):
+    sampleList = []
+    for file in os.listdir(path):
+        if file.endswith(extension):
+            sampleList.append(file)
+    return sampleList
+
+def month_to_int(month):
+    if month == "Jan":
+        return "1"
+    if month == "Feb":
+        return "2"
+    if month == "Mar":
+        return "3"
+    if month == "Apr":
+        return "4"
+    if month == "May":
+        return "5"
+    if month == "Jun":
+        return "6"
+    if month == "Jul":
+        return "7"
+    if month == "Aug":
+        return "8"
+    if month == "Sep":
+        return "9"
+    if month == "Oct":
+        return "10"
+    if month == "Nov":
+        return "11"
+    if month == "Dec":
+        return "12"
+    return "0"
+
+
+def get_time_for_modified_files(file):
+    import os, time
+    (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat(file)
+    mstr = time.ctime(mtime)
+    splittedstr = mstr.split(' ')
+    mytime = splittedstr[3].split(':')
+    day = splittedstr[2]
+    month = month_to_int(splittedstr[1])
+    year = splittedstr[4]
+    hour = mytime[0]
+    min = mytime[1]
+    sec = mytime[2]
+
+    return day,month,year,hour,min,sec
+
+def hdfgroup(minFreq_pixel,maxFreq_pixel,minMiliSec_pixel,maxMiliSec_pixel,points,eventName, eventNum):
+    import h5py
+    soundfile = "/home/anoch/Documents/BatSamples/" +eventName + ".s16"
+    f = h5py.File("Groups.hdf5")
+    #print "Creating Database"
+
+    #Meta data for weather
+    temperature = 0
+    humidity = 0
+    windspeed = 0
+    weathercondition = 0
+    bat_id = 0
+
+
+    #testdata = np.random.random(14)
+
+    #Process which zero pads feature data, if there is not enough data
+    test_zero = 0
+    zero_int = 0
+    for point in points:
+        test_zero += point
+        zero_int += 1
+    if test_zero <= 0 or zero_int < 11:
+        points = np.zeros(11)
+
+    #Feature data
+    data = np.array([minFreq_pixel, maxFreq_pixel,minMiliSec_pixel, maxMiliSec_pixel,points[0],points[1],points[2],points[3],points[4],points[5],points[6],points[7],points[8],points[9],points[10]])
+    #print data.shape
+
+    currentfile = soundfile
+    day,month,year,hour,min,sec = get_time_for_modified_files(currentfile)
+    DirectoryString = year + "/" + month + "/" + day  + "/" + eventName
+    e = DirectoryString in f
+
+    if not e:
+        out = f.create_group(DirectoryString)
+    else:
+        out = f[DirectoryString]
+    dbName = "FeatureDataEvent_" + str(eventNum)
+    out[dbName] = data
+    out[dbName].attrs["Temperature"] = temperature
+    out[dbName].attrs["Humidity"] = humidity
+    out[dbName].attrs["Wind Speed"] = windspeed
+    out[dbName].attrs["Weather Condition"] = weathercondition
+    out[dbName].attrs["BatID"] = bat_id
+    #f.close()
+
 def findEvent(SearchPath, eventFile, SavePath):
 
     threshold = 5
