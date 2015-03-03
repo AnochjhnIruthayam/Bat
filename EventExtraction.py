@@ -41,7 +41,7 @@ def verticalScan(img):
         #subtract -4 to filter out the noise at the very bottom
         for y in range(0, getHeight-4):
             #When we see a  white pixel register it and break this loop
-            if img.item(y,x) > threshold:
+            if img.item(y, x) > threshold:
                 #for eaach white pixel, count one up
                 ColumnCount += 1
                 #if we find a white pixel for the first time, then save the point
@@ -64,6 +64,7 @@ def verticalScan(img):
             elif y == getHeight-5:# if we reach end of the vertical line, then there is no white pixel
                 reset = 1
     return topX, topY, endX
+
 
 #This algorithm is different from the vertical scanner. Diffrent way to filter out noise.
 def horizontelScan(img, StartX, StartY, EndX):

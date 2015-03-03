@@ -39,6 +39,8 @@ def main():
 
     #createSpectrogram(rootpath)
     getFunctions.getAllEvents(rootpath)
+
+    #ee.verticalScanColor()
     #img = cv2.imread("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000029921020500SpectrogramAllMarked.png",0)
     #verticalScan2(img)
     #GUI(rootpath)
@@ -59,4 +61,4 @@ def main():
     # bestFit("/home/anoch/Documents/BatSamples/SpectrogramMarked/sr_500000_ch_4_offset_00000000008460585000/Event9.png")
 
 #run main
-main()
+#main()
