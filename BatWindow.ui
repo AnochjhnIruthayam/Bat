@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>BatWindow</class>
+ <widget class="QMainWindow" name="BatWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1124</width>
+    <height>821</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Bat GUI Analyzer</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QTabWidget" name="tabWidget">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>10</y>
+      <width>1091</width>
+      <height>781</height>
+     </rect>
+    </property>
+    <property name="currentIndex">
+     <number>1</number>
+    </property>
+    <widget class="QWidget" name="tab_analyze">
+     <attribute name="title">
+      <string>Analyze</string>
+     </attribute>
+     <widget class="QPushButton" name="button_start">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>476</y>
+        <width>181</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Start Analyzing</string>
+      </property>
+     </widget>
+     <widget class="QProgressBar" name="progressBar">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>440</y>
+        <width>691</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="value">
+       <number>24</number>
+      </property>
+     </widget>
+     <widget class="QTextEdit" name="textEdit_overview">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>50</y>
+        <width>681</width>
+        <height>371</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_status">
+      <property name="geometry">
+       <rect>
+        <x>40</x>
+        <y>30</y>
+        <width>66</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Status</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="tab_label">
+     <attribute name="title">
+      <string>Label Events</string>
+     </attribute>
+     <widget class="QPushButton" name="button_loaddatabase">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>131</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Load Database</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_database_name">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>20</y>
+        <width>601</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>No Database Selected</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_imageshow">
+      <property name="geometry">
+       <rect>
+        <x>35</x>
+        <y>60</y>
+        <width>701</width>
+        <height>361</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Event Viewer</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="QFrame" name="frame_status">
+      <property name="geometry">
+       <rect>
+        <x>799</x>
+        <y>19</y>
+        <width>271</width>
+        <height>561</height>
+       </rect>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <widget class="QLabel" name="label_ConstEventName">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>241</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Event Name:</string>
+       </property>
+      </widget>
+      <widget class="Line" name="line">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>60</y>
+         <width>231</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_ConstEventNo">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>80</y>
+         <width>241</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Event no.:</string>
+       </property>
+      </widget>
+      <widget class="Line" name="line_2">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>130</y>
+         <width>231</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_ConstDate">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>150</y>
+         <width>241</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Date:</string>
+       </property>
+      </widget>
+      <widget class="Line" name="line_3">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>200</y>
+         <width>231</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_EventName">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>40</y>
+         <width>66</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>N/A</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_EventNo">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>110</y>
+         <width>66</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>N/A</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_Date">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>180</y>
+         <width>66</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>N/A</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QPushButton" name="button_EptesicusSerptinus">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>530</y>
+        <width>151</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Eptesicus serptinus</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="button_PipistrellusPygmaeus">
+      <property name="geometry">
+       <rect>
+        <x>210</x>
+        <y>530</y>
+        <width>171</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Pipistrellus pygmaeus</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="button_MyotisDasycneme">
+      <property name="geometry">
+       <rect>
+        <x>600</x>
+        <y>530</y>
+        <width>161</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Myotis dasycneme</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="button_pipistrellusNathusii">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>670</y>
+        <width>151</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Pipistrellus nathusii</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="button_NyctalusNoctula">
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>670</y>
+        <width>171</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Nyctalus noctula</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="button_noise">
+      <property name="geometry">
+       <rect>
+        <x>460</x>
+        <y>670</y>
+        <width>161</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Noise</string>
+      </property>
+     </widget>
+     <widget class="QFrame" name="frame_eventviewer">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>60</y>
+        <width>721</width>
+        <height>361</height>
+       </rect>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <zorder>label_imageshow</zorder>
+     </widget>
+     <widget class="QPushButton" name="button_MyotisDaubentonii">
+      <property name="geometry">
+       <rect>
+        <x>410</x>
+        <y>530</y>
+        <width>161</width>
+        <height>27</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Myotis daubentonii</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_image_EptesicusSerptinus">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>436</y>
+        <width>141</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="pixmap">
+       <pixmap>Images/EptesicusSerotinus.png</pixmap>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_image_PipistrellusPygmaeus">
+      <property name="geometry">
+       <rect>
+        <x>240</x>
+        <y>440</y>
+        <width>141</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="pixmap">
+       <pixmap>Images/PipistrellusPygmaeus.png</pixmap>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_image_MyotisDaubentonii">
+      <property name="geometry">
+       <rect>
+        <x>440</x>
+        <y>440</y>
+        <width>141</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="pixmap">
+       <pixmap>Images/MyotisDaubentonii.png</pixmap>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_image_MyotisDasycneme">
+      <property name="geometry">
+       <rect>
+        <x>630</x>
+        <y>440</y>
+        <width>141</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="pixmap">
+       <pixmap>Images/MyotisDasycneme.png</pixmap>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_image_pipistrellusNathusii">
+      <property name="geometry">
+       <rect>
+        <x>50</x>
+        <y>580</y>
+        <width>141</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="pixmap">
+       <pixmap>Images/PipistrellusNathusii.png</pixmap>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_image_NyctalusNoctula">
+      <property name="geometry">
+       <rect>
+        <x>260</x>
+        <y>580</y>
+        <width>141</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="pixmap">
+       <pixmap>Images/NyctalusNoctula.png</pixmap>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
