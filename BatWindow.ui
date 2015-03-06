@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1127</width>
-    <height>924</height>
+    <width>1133</width>
+    <height>946</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,11 +20,11 @@
       <x>10</x>
       <y>10</y>
       <width>1111</width>
-      <height>901</height>
+      <height>931</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab_analyze">
      <attribute name="title">
@@ -43,7 +43,7 @@
        <string>Start Analyzing</string>
       </property>
      </widget>
-     <widget class="QProgressBar" name="progressBar">
+     <widget class="QProgressBar" name="progressBar_analyse">
       <property name="geometry">
        <rect>
         <x>40</x>
@@ -53,7 +53,7 @@
        </rect>
       </property>
       <property name="value">
-       <number>24</number>
+       <number>0</number>
       </property>
      </widget>
      <widget class="QTextEdit" name="textEdit_overview">
@@ -114,7 +114,7 @@
       <property name="geometry">
        <rect>
         <x>800</x>
-        <y>20</y>
+        <y>30</y>
         <width>301</width>
         <height>841</height>
        </rect>
@@ -859,7 +859,7 @@
         <x>30</x>
         <y>70</y>
         <width>751</width>
-        <height>421</height>
+        <height>441</height>
        </rect>
       </property>
       <property name="frameShape">
@@ -874,7 +874,7 @@
          <x>0</x>
          <y>0</y>
          <width>751</width>
-         <height>421</height>
+         <height>441</height>
         </rect>
        </property>
        <property name="text">
@@ -889,7 +889,7 @@
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>510</y>
+        <y>560</y>
         <width>751</width>
         <height>331</height>
        </rect>
@@ -1061,7 +1061,7 @@
         <string>Myotis dasycneme</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="button_EptesicusSerptinus">
+      <widget class="QPushButton" name="button_EptesicusSerotinus">
        <property name="geometry">
         <rect>
          <x>0</x>
@@ -1071,7 +1071,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>Eptesicus serptinus</string>
+        <string>Eptesicus serotinus</string>
        </property>
       </widget>
       <widget class="QPushButton" name="button_PipistrellusPygmaeus">
@@ -1100,6 +1100,19 @@
         <string>Other Species</string>
        </property>
       </widget>
+     </widget>
+     <widget class="QProgressBar" name="progressBar_eventLabel">
+      <property name="geometry">
+       <rect>
+        <x>27</x>
+        <y>520</y>
+        <width>751</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="value">
+       <number>0</number>
+      </property>
      </widget>
     </widget>
    </widget>
