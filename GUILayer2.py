@@ -59,11 +59,11 @@ class StartQT4(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.button_NyctalusNoctula, QtCore.SIGNAL("clicked()"), self.getValueNyctalusNoctula)
         QtCore.QObject.connect(self.ui.button_noise, QtCore.SIGNAL("clicked()"), self.getValueNoise)
         QtCore.QObject.connect(self.ui.button_OtherSpecies, QtCore.SIGNAL("clicked()"), self.getValueOtherSpecies)
-
         #QtCore.QObject.connect(self.ui.progressBar)
         self.HDFFile = h5py
         self.EventSize = 0
         self.currentEvent = 0
+        self.ProcessCount = 0
         self.day = []
         self.month = []
         self.year = []
@@ -74,8 +74,8 @@ class StartQT4(QtGui.QMainWindow):
     def labelBat(self, ID):
         data = self.HDFFile[str(self.pathcorr[self.currentEvent])]
         data.attrs['BatID'] = ID
-        self.scanForNextEvent()
-        self.updateEventInfomation()
+        if self.scanForNextEvent():
+            self.updateEventInfomation()
 
     def getValueEptesicusSerotinus(self):
         self.labelBat(1)
@@ -97,6 +97,26 @@ class StartQT4(QtGui.QMainWindow):
     def saveEventPath(self,name):
         self.pathEventList.append(name)
 
+    def keyPressEvent(self, QKeyEvent):
+        # if this batbuttons are visible, means we have loaded the data
+        if self.ui.frame_BatButtons.isVisible():
+            if type(QKeyEvent) == QtGui.QKeyEvent:
+                if QKeyEvent.key() == 49:
+                    self.getValueEptesicusSerotinus()
+                if QKeyEvent.key() == 50:
+                    self.getValueMyotisDasycneme()
+                if QKeyEvent.key() == 51:
+                    self.getValueNyctalusNoctula()
+                if QKeyEvent.key() == 52:
+                    self.getValuePipistrellusNathusii()
+                if QKeyEvent.key() == 53:
+                    self.getValuePipistrellusPygmaeus()
+                if QKeyEvent.key() == 54:
+                    self.getValueOtherSpecies()
+                if QKeyEvent.key() == 55:
+                    self.getValueNoise()
+
+
     def setEventImage(self, event, eventno):
         root = "/home/anoch/Documents/BatSamples/SpectrogramMarked/"
         path  = root + event + "/Event" + eventno + ".png"
@@ -106,13 +126,16 @@ class StartQT4(QtGui.QMainWindow):
 
     def updateEventInfomation(self):
 
+
+
         data = self.HDFFile[str(self.pathcorr[self.currentEvent])]
         self.setEventImage(self.file[self.currentEvent],self.eventno[self.currentEvent])
         dateToShow = self.day[self.currentEvent] + "-" + self.month[self.currentEvent] + "-" + self.year[self.currentEvent]
         self.ui.label_Date.setText(dateToShow)
         self.ui.label_EventName.setText(self.file[self.currentEvent])
         self.ui.label_EventNo.setText(self.eventno[self.currentEvent])
-
+        self.ui.progressBar_eventLabel.setValue(self.currentEvent)
+        self.ui.label_currentStatus.setText("Current Event Status: " + str(self.currentEvent + 1) + " out of " + str(self.EventSize) + ". Process Count: " + str(self.ProcessCount))
 
         duration = str(toTime(abs(data[2]-data[3])))
         self.ui.label_MinFreq.setText(str(tokFreq(data[0])))
@@ -130,14 +153,42 @@ class StartQT4(QtGui.QMainWindow):
         self.ui.label_FrontLine_10.setText(str(data[13]))
 
 
-
     def scanForNextEvent(self):
+        SAVE_ITERATION = 5
+        self.ProcessCount += 1
+        # save to disk for every 5th event
+        tempSave = self.ProcessCount % SAVE_ITERATION
+        if tempSave == 0:
+            self.HDFFile.flush()
         for i in range(self.currentEvent, self.EventSize):
             data = self.HDFFile[str(self.pathcorr[i])]
             if data.attrs['BatID'] == 0:
+
                 self.currentEvent = i
-                self.ui.progressBar_eventLabel.setValue(self.currentEvent)
-                break
+                return True
+        #when we are finished with labelling, hide buttons for bats and show N/A on labels
+        self.ui.progressBar_eventLabel.setValue(self.currentEvent)
+        self.ui.frame_BatButtons.hide()
+        self.ui.label_imageshow.setText("Labelling Done!")
+        self.ui.label_Date.setText("N/A")
+        self.ui.label_EventName.setText("N/A")
+        self.ui.label_EventNo.setText("N/A")
+
+        self.ui.label_MinFreq.setText("N/A")
+        self.ui.label_maxFreq.setText("N/A")
+        self.ui.label_Duration.setText("N/A")
+        self.ui.label_FrontLine_1.setText("N/A")
+        self.ui.label_FrontLine_2.setText("N/A")
+        self.ui.label_FrontLine_3.setText("N/A")
+        self.ui.label_FrontLine_4.setText("N/A")
+        self.ui.label_FrontLine_5.setText("N/A")
+        self.ui.label_FrontLine_6.setText("N/A")
+        self.ui.label_FrontLine_7.setText("N/A")
+        self.ui.label_FrontLine_8.setText("N/A")
+        self.ui.label_FrontLine_9.setText("N/A")
+        self.ui.label_FrontLine_10.setText("N/A")
+        self.HDFFile.close()
+        return False
 
 
     def file_dialog(self):
@@ -152,7 +203,7 @@ class StartQT4(QtGui.QMainWindow):
             self.EventSize = len(self.day)
             self.currentEvent = 0
             self.ui.progressBar_eventLabel.setMinimum(self.currentEvent)
-            self.ui.progressBar_eventLabel.setMaximum(self.EventSize)
+            self.ui.progressBar_eventLabel.setMaximum(self.EventSize-1)
             filename = os.path.basename(str(self.filepath))
             self.ui.label_database_name.setText(filename)
             self.ui.frame_BatButtons.show()
@@ -175,15 +226,12 @@ class StartQT4(QtGui.QMainWindow):
         progressCount = 0
 
         for eventFile in sampleList:
-            #print "Analyzing " + os.path.splitext((eventFile))[0]
-            #self.ui.textEdit_overview.setText("Analyzing " + os.path.splitext((eventFile))[0] + "\n")
-            #topX to endX is the time range, while topX and bottomY is the frequency range
+            self.ui.textEdit_overview.setText("Analyzing " + os.path.splitext((eventFile))[0] + "\n")
             EventExtraction.findEvent(SearchPath, eventFile, SavePath)
             progressCount += 1
             self.ui.progressBar_analyse.setValue(progressCount)
+        self.ui.textEdit_overview.setText("Event extraction done!")
 
-        #self.ui.textEdit_overview.setText("Event extraction done!")
-        #print "Event extraction done!"
 
 
 if __name__ == "__main__":
