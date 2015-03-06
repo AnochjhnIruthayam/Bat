@@ -12,6 +12,7 @@ This project is made as a part of our Master Thesis
 
 
 **General:**
+
 Can be split into three stages: 
 - Creating Spectrogram
 - Extracting events from spectrogram and labelling them
