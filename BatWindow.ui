@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1124</width>
-    <height>821</height>
+    <width>1127</width>
+    <height>924</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,8 +19,8 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>1091</width>
-      <height>781</height>
+      <width>1111</width>
+      <height>901</height>
      </rect>
     </property>
     <property name="currentIndex">
@@ -33,8 +33,8 @@
      <widget class="QPushButton" name="button_start">
       <property name="geometry">
        <rect>
-        <x>40</x>
-        <y>476</y>
+        <x>450</x>
+        <y>550</y>
         <width>181</width>
         <height>41</height>
        </rect>
@@ -48,7 +48,7 @@
        <rect>
         <x>40</x>
         <y>440</y>
-        <width>691</width>
+        <width>991</width>
         <height>23</height>
        </rect>
       </property>
@@ -61,7 +61,7 @@
        <rect>
         <x>40</x>
         <y>50</y>
-        <width>681</width>
+        <width>991</width>
         <height>371</height>
        </rect>
       </property>
@@ -87,10 +87,10 @@
      <widget class="QPushButton" name="button_loaddatabase">
       <property name="geometry">
        <rect>
-        <x>10</x>
+        <x>30</x>
         <y>20</y>
         <width>131</width>
-        <height>27</height>
+        <height>41</height>
        </rect>
       </property>
       <property name="text">
@@ -100,9 +100,9 @@
      <widget class="QLabel" name="label_database_name">
       <property name="geometry">
        <rect>
-        <x>150</x>
-        <y>20</y>
-        <width>601</width>
+        <x>170</x>
+        <y>30</y>
+        <width>611</width>
         <height>17</height>
        </rect>
       </property>
@@ -110,29 +110,13 @@
        <string>No Database Selected</string>
       </property>
      </widget>
-     <widget class="QLabel" name="label_imageshow">
-      <property name="geometry">
-       <rect>
-        <x>35</x>
-        <y>60</y>
-        <width>701</width>
-        <height>361</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Event Viewer</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
      <widget class="QFrame" name="frame_status">
       <property name="geometry">
        <rect>
-        <x>799</x>
-        <y>19</y>
-        <width>271</width>
-        <height>561</height>
+        <x>800</x>
+        <y>20</y>
+        <width>301</width>
+        <height>841</height>
        </rect>
       </property>
       <property name="frameShape">
@@ -164,8 +148,8 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>60</y>
-         <width>231</width>
+         <y>50</y>
+         <width>281</width>
          <height>16</height>
         </rect>
        </property>
@@ -177,7 +161,7 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>80</y>
+         <y>60</y>
          <width>241</width>
          <height>17</height>
         </rect>
@@ -196,7 +180,7 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>130</y>
+         <y>100</y>
          <width>231</width>
          <height>16</height>
         </rect>
@@ -209,7 +193,7 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>150</y>
+         <y>110</y>
          <width>241</width>
          <height>17</height>
         </rect>
@@ -228,7 +212,7 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>200</y>
+         <y>150</y>
          <width>231</width>
          <height>16</height>
         </rect>
@@ -241,10 +225,17 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>40</y>
-         <width>66</width>
+         <y>30</y>
+         <width>281</width>
          <height>17</height>
         </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>9</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
        </property>
        <property name="text">
         <string>N/A</string>
@@ -254,8 +245,8 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>110</y>
-         <width>66</width>
+         <y>80</y>
+         <width>231</width>
          <height>17</height>
         </rect>
        </property>
@@ -267,8 +258,593 @@
        <property name="geometry">
         <rect>
          <x>10</x>
+         <y>130</y>
+         <width>231</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>N/A</string>
+       </property>
+      </widget>
+      <widget class="Line" name="line_4">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>200</y>
+         <width>231</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_maxFreq">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
          <y>180</y>
-         <width>66</width>
+         <width>231</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>N/A</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_ConstMaxFreq">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>160</y>
+         <width>241</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Max Frequency [kHz]:</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_MinFreq">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>230</y>
+         <width>231</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>N/A</string>
+       </property>
+      </widget>
+      <widget class="Line" name="line_5">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>250</y>
+         <width>231</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_ConstMinFreq">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>210</y>
+         <width>241</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Min Frequency [kHz]:</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_ConstDuration">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>260</y>
+         <width>241</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Duration [ms]:</string>
+       </property>
+      </widget>
+      <widget class="Line" name="line_6">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>300</y>
+         <width>231</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_Duration">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>280</y>
+         <width>231</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>N/A</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_ConstFrontLine_1">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>310</y>
+         <width>241</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Front Line 1:</string>
+       </property>
+      </widget>
+      <widget class="Line" name="line_7">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>350</y>
+         <width>231</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_FrontLine_1">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>330</y>
+         <width>231</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>N/A</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_ConstFrontLine_2">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>360</y>
+         <width>241</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Front Line 2:</string>
+       </property>
+      </widget>
+      <widget class="Line" name="line_8">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>400</y>
+         <width>231</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_FrontLine_2">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>380</y>
+         <width>231</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>N/A</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_ConstFrontLine_3">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>410</y>
+         <width>241</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Front Line 3:</string>
+       </property>
+      </widget>
+      <widget class="Line" name="line_9">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>450</y>
+         <width>231</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_FrontLine_3">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>430</y>
+         <width>231</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>N/A</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_ConstFrontLine_4">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>460</y>
+         <width>241</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Front Line 4:</string>
+       </property>
+      </widget>
+      <widget class="Line" name="line_10">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>500</y>
+         <width>231</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_FrontLine_4">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>480</y>
+         <width>231</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>N/A</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_ConstFrontLine_5">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>510</y>
+         <width>241</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Front Line 5:</string>
+       </property>
+      </widget>
+      <widget class="Line" name="line_11">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>550</y>
+         <width>231</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_FrontLine_5">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>530</y>
+         <width>231</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>N/A</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_ConstFrontLine_6">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>560</y>
+         <width>241</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Front Line 6:</string>
+       </property>
+      </widget>
+      <widget class="Line" name="line_12">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>600</y>
+         <width>231</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_FrontLine_6">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>580</y>
+         <width>231</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>N/A</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_ConstFrontLine_7">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>610</y>
+         <width>241</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Front Line 7:</string>
+       </property>
+      </widget>
+      <widget class="Line" name="line_13">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>650</y>
+         <width>231</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_FrontLine_7">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>630</y>
+         <width>231</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>N/A</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_ConstFrontLine_8">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>660</y>
+         <width>241</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Front Line 8:</string>
+       </property>
+      </widget>
+      <widget class="Line" name="line_14">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>700</y>
+         <width>231</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_FrontLine_8">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>680</y>
+         <width>231</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>N/A</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_ConstFrontLine_9">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>710</y>
+         <width>241</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Front Line 9:</string>
+       </property>
+      </widget>
+      <widget class="Line" name="line_15">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>750</y>
+         <width>231</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_FrontLine_9">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>730</y>
+         <width>231</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>N/A</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_ConstFrontLine_10">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>760</y>
+         <width>241</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Front Line 10:</string>
+       </property>
+      </widget>
+      <widget class="Line" name="line_16">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>800</y>
+         <width>231</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_FrontLine_10">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>780</y>
+         <width>231</width>
          <height>17</height>
         </rect>
        </property>
@@ -277,91 +853,13 @@
        </property>
       </widget>
      </widget>
-     <widget class="QPushButton" name="button_EptesicusSerptinus">
+     <widget class="QFrame" name="frame_eventview">
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>530</y>
-        <width>151</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Eptesicus serptinus</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="button_PipistrellusPygmaeus">
-      <property name="geometry">
-       <rect>
-        <x>210</x>
-        <y>530</y>
-        <width>171</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Pipistrellus pygmaeus</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="button_MyotisDasycneme">
-      <property name="geometry">
-       <rect>
-        <x>600</x>
-        <y>530</y>
-        <width>161</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Myotis dasycneme</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="button_pipistrellusNathusii">
-      <property name="geometry">
-       <rect>
-        <x>30</x>
-        <y>670</y>
-        <width>151</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Pipistrellus nathusii</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="button_NyctalusNoctula">
-      <property name="geometry">
-       <rect>
-        <x>230</x>
-        <y>670</y>
-        <width>171</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Nyctalus noctula</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="button_noise">
-      <property name="geometry">
-       <rect>
-        <x>460</x>
-        <y>670</y>
-        <width>161</width>
-        <height>27</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>Noise</string>
-      </property>
-     </widget>
-     <widget class="QFrame" name="frame_eventviewer">
-      <property name="geometry">
-       <rect>
-        <x>20</x>
-        <y>60</y>
-        <width>721</width>
-        <height>361</height>
+        <y>70</y>
+        <width>751</width>
+        <height>421</height>
        </rect>
       </property>
       <property name="frameShape">
@@ -370,116 +868,238 @@
       <property name="frameShadow">
        <enum>QFrame::Raised</enum>
       </property>
-      <zorder>label_imageshow</zorder>
+      <widget class="QLabel" name="label_imageshow">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>751</width>
+         <height>421</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Event Viewer</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
      </widget>
-     <widget class="QPushButton" name="button_MyotisDaubentonii">
+     <widget class="QFrame" name="frame_BatButtons">
       <property name="geometry">
        <rect>
-        <x>410</x>
-        <y>530</y>
-        <width>161</width>
-        <height>27</height>
+        <x>30</x>
+        <y>510</y>
+        <width>751</width>
+        <height>331</height>
        </rect>
       </property>
-      <property name="text">
-       <string>Myotis daubentonii</string>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
       </property>
-     </widget>
-     <widget class="QLabel" name="label_image_EptesicusSerptinus">
-      <property name="geometry">
-       <rect>
-        <x>50</x>
-        <y>436</y>
-        <width>141</width>
-        <height>91</height>
-       </rect>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
       </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="pixmap">
-       <pixmap>Images/EptesicusSerotinus.png</pixmap>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_image_PipistrellusPygmaeus">
-      <property name="geometry">
-       <rect>
-        <x>240</x>
-        <y>440</y>
-        <width>141</width>
-        <height>91</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="pixmap">
-       <pixmap>Images/PipistrellusPygmaeus.png</pixmap>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_image_MyotisDaubentonii">
-      <property name="geometry">
-       <rect>
-        <x>440</x>
-        <y>440</y>
-        <width>141</width>
-        <height>91</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="pixmap">
-       <pixmap>Images/MyotisDaubentonii.png</pixmap>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_image_MyotisDasycneme">
-      <property name="geometry">
-       <rect>
-        <x>630</x>
-        <y>440</y>
-        <width>141</width>
-        <height>91</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="pixmap">
-       <pixmap>Images/MyotisDasycneme.png</pixmap>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_image_pipistrellusNathusii">
-      <property name="geometry">
-       <rect>
-        <x>50</x>
-        <y>580</y>
-        <width>141</width>
-        <height>91</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="pixmap">
-       <pixmap>Images/PipistrellusNathusii.png</pixmap>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_image_NyctalusNoctula">
-      <property name="geometry">
-       <rect>
-        <x>260</x>
-        <y>580</y>
-        <width>141</width>
-        <height>91</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string/>
-      </property>
-      <property name="pixmap">
-       <pixmap>Images/NyctalusNoctula.png</pixmap>
-      </property>
+      <widget class="QLabel" name="label_image_pipistrellusNathusii">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>170</y>
+         <width>141</width>
+         <height>91</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="pixmap">
+        <pixmap>Images/PipistrellusNathusii.png</pixmap>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="button_noise">
+       <property name="geometry">
+        <rect>
+         <x>380</x>
+         <y>260</y>
+         <width>161</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Noise</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_image_MyotisDasycneme">
+       <property name="geometry">
+        <rect>
+         <x>600</x>
+         <y>30</y>
+         <width>141</width>
+         <height>91</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="pixmap">
+        <pixmap>Images/MyotisDasycneme.png</pixmap>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="button_MyotisDaubentonii">
+       <property name="geometry">
+        <rect>
+         <x>380</x>
+         <y>120</y>
+         <width>161</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Myotis daubentonii</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_image_PipistrellusPygmaeus">
+       <property name="geometry">
+        <rect>
+         <x>210</x>
+         <y>30</y>
+         <width>141</width>
+         <height>91</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="pixmap">
+        <pixmap>Images/PipistrellusPygmaeus.png</pixmap>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_image_MyotisDaubentonii">
+       <property name="geometry">
+        <rect>
+         <x>410</x>
+         <y>30</y>
+         <width>141</width>
+         <height>91</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="pixmap">
+        <pixmap>Images/MyotisDaubentonii.png</pixmap>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="button_pipistrellusNathusii">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>260</y>
+         <width>151</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Pipistrellus nathusii</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_image_NyctalusNoctula">
+       <property name="geometry">
+        <rect>
+         <x>210</x>
+         <y>170</y>
+         <width>141</width>
+         <height>91</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="pixmap">
+        <pixmap>Images/NyctalusNoctula.png</pixmap>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_image_EptesicusSerptinus">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>26</y>
+         <width>141</width>
+         <height>91</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="pixmap">
+        <pixmap>Images/EptesicusSerotinus.png</pixmap>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="button_NyctalusNoctula">
+       <property name="geometry">
+        <rect>
+         <x>180</x>
+         <y>260</y>
+         <width>171</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Nyctalus noctula</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="button_MyotisDasycneme">
+       <property name="geometry">
+        <rect>
+         <x>570</x>
+         <y>120</y>
+         <width>161</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Myotis dasycneme</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="button_EptesicusSerptinus">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>120</y>
+         <width>151</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Eptesicus serptinus</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="button_PipistrellusPygmaeus">
+       <property name="geometry">
+        <rect>
+         <x>180</x>
+         <y>120</y>
+         <width>171</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Pipistrellus pygmaeus</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="button_OtherSpecies">
+       <property name="geometry">
+        <rect>
+         <x>577</x>
+         <y>260</y>
+         <width>151</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Other Species</string>
+       </property>
+      </widget>
      </widget>
     </widget>
    </widget>
