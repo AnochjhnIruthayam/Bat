@@ -1,7 +1,7 @@
 __author__ = 'Anochjhn Iruthayam'
 import os
 
-
+###########################USED BY GUI#############
 def getFileList(path, extension):
     sampleList = []
     for file in os.listdir(path):
@@ -9,10 +9,27 @@ def getFileList(path, extension):
             sampleList.append(file)
     return sampleList
 
+###################################3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def getAllEvents(rootpath):
     import EventExtraction
-    SearchPath = rootpath + "Spectrogram/"
-    SavePath = rootpath + "SpectrogramMarked/"
+    SearchPath = rootpath + "/Spectrogram/"
+    SavePath = rootpath + "/SpectrogramMarked/"
     sampleList = getFileList(SearchPath,".png")
     for eventFile in sampleList:
         print "Analyzing " + os.path.splitext((eventFile))[0]
@@ -47,6 +64,7 @@ def get_all_bat_event(rootpath):
 
 #Get a desired number of a desired output
 def getSample(sampleAmount, desired_target):
+    import Classifier as c
     listEvent_dir = []
     listEvent_No = []
     sampleCount = 0

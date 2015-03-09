@@ -18,27 +18,7 @@ def tokFreq(freqPixel):
 
 
 
-def getHDFInformation(paths):
-    day = []
-    month = []
-    year = []
-    file = []
-    pathcorr = []
-    eventno = []
-    for path in paths:
-        temp = re.split('/', path)
-        # if there are 5 elements in the array, means that this one has an event
-        if len(temp) > 4:
-            #get data from path
-            year.append(temp[0])
-            month.append(temp[1])
-            day.append(temp[2])
-            file.append(temp[3])
-            eventnoTemp = re.split('_',temp[4])
-            eventno.append(eventnoTemp[1])
-            pathcorr.append(path)
 
-    return day, month, year, file, eventno, pathcorr
 
 
 
@@ -49,7 +29,10 @@ class StartQT4(QtGui.QMainWindow):
         self.ui.setupUi(self)
         self.ui.frame_BatButtons.hide()
         self.pathEventList = []
+        QtCore.QObject.connect(self.ui.pushButton_SetInputDirectory, QtCore.SIGNAL("clicked()"), self.setInputDirectory)
+        QtCore.QObject.connect(self.ui.pushButton_SetOutputDirectory, QtCore.SIGNAL("clicked()"), self.setOutputDirectory)
         QtCore.QObject.connect(self.ui.button_start, QtCore.SIGNAL("clicked()"), self.run_analyser)
+        QtCore.QObject.connect(self.ui.pushButton_createSpectrogram, QtCore.SIGNAL("clicked()"), self.create_spectrogram)
         QtCore.QObject.connect(self.ui.button_loaddatabase, QtCore.SIGNAL("clicked()"), self.file_dialog)
         QtCore.QObject.connect(self.ui.button_EptesicusSerotinus, QtCore.SIGNAL("clicked()"), self.getValueEptesicusSerotinus)
         QtCore.QObject.connect(self.ui.button_PipistrellusPygmaeus, QtCore.SIGNAL("clicked()"), self.getValuePipistrellusPygmaeus)
@@ -59,6 +42,11 @@ class StartQT4(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.button_NyctalusNoctula, QtCore.SIGNAL("clicked()"), self.getValueNyctalusNoctula)
         QtCore.QObject.connect(self.ui.button_noise, QtCore.SIGNAL("clicked()"), self.getValueNoise)
         QtCore.QObject.connect(self.ui.button_OtherSpecies, QtCore.SIGNAL("clicked()"), self.getValueOtherSpecies)
+        QtCore.QObject.connect(self.ui.checkBox_scaledZoom, QtCore.SIGNAL("clicked()"), self.ScaledZoom)
+        QtCore.QObject.connect(self.ui.button_ShowFullSpectrogram, QtCore.SIGNAL("pressed()"), self.ShowFullSpectrogramPressed)
+        QtCore.QObject.connect(self.ui.button_ShowFullSpectrogram, QtCore.SIGNAL("released()"), self.resetRelease)
+        QtCore.QObject.connect(self.ui.button_ShowMarkedSpectrogram, QtCore.SIGNAL("pressed()"), self.ShowMarkedSpectrogramPressed)
+        QtCore.QObject.connect(self.ui.button_ShowMarkedSpectrogram, QtCore.SIGNAL("released()"), self.resetRelease)
         #QtCore.QObject.connect(self.ui.progressBar)
         self.HDFFile = h5py
         self.EventSize = 0
@@ -70,6 +58,16 @@ class StartQT4(QtGui.QMainWindow):
         self.file = []
         self.pathcorr = []
         self.eventno = []
+        self.SoundFileList = []
+        self.OutputDirectory = "/home/anoch/Documents/BatSamplesOutput"
+        self.InputDirectory = "/home/anoch/Documents/BatSamplesInput"
+        self.ui.label_outputDirectory.setText(self.OutputDirectory)
+        self.ui.label_inputDirectory.setText(self.InputDirectory)
+
+        if self.ui.checkBox_scaledZoom.isChecked():
+            self.ZoomInParameter = 1
+        else:
+            self.ZoomInParameter = 0
 
     def labelBat(self, ID):
         data = self.HDFFile[str(self.pathcorr[self.currentEvent])]
@@ -97,10 +95,41 @@ class StartQT4(QtGui.QMainWindow):
     def saveEventPath(self,name):
         self.pathEventList.append(name)
 
+
+    def ShowFullSpectrogramPressed(self):
+        FullSpecImg = self.OutputDirectory + "/Spectrogram/" + self.file[self.currentEvent] + ".png"
+        eventImage = QtGui.QPixmap(FullSpecImg)
+        if self.ZoomInParameter == 1:
+            scaledEventImage = eventImage.scaled(self.ui.label_imageshow.size(), QtCore.Qt.KeepAspectRatio)
+            self.ui.label_imageshow.setPixmap(scaledEventImage)
+        else:
+            self.ui.label_imageshow.setPixmap(eventImage)
+
+    def ShowMarkedSpectrogramPressed(self):
+        MarkedSpecImg = self.OutputDirectory + "/SpectrogramMarked/" + self.file[self.currentEvent] + "/SpectrogramAllMarked.png"
+        eventImage = QtGui.QPixmap(MarkedSpecImg)
+        if self.ZoomInParameter == 1:
+            scaledEventImage = eventImage.scaled(self.ui.label_imageshow.size(), QtCore.Qt.KeepAspectRatio)
+            self.ui.label_imageshow.setPixmap(scaledEventImage)
+        else:
+            self.ui.label_imageshow.setPixmap(eventImage)
+
+    def resetRelease(self):
+        self.updateEventInfomation()
+
+    def ScaledZoom(self):
+        if self.ui.checkBox_scaledZoom.isChecked():
+            self.ZoomInParameter = 1
+            self.updateEventInfomation()
+        else:
+            self.ZoomInParameter = 0
+            self.updateEventInfomation()
+
     def keyPressEvent(self, QKeyEvent):
         # if this batbuttons are visible, means we have loaded the data
         if self.ui.frame_BatButtons.isVisible():
             if type(QKeyEvent) == QtGui.QKeyEvent:
+                # following numbers are ASCII for 1, 2, 3, 4, 5, 6 and 7
                 if QKeyEvent.key() == 49:
                     self.getValueEptesicusSerotinus()
                 if QKeyEvent.key() == 50:
@@ -115,26 +144,85 @@ class StartQT4(QtGui.QMainWindow):
                     self.getValueOtherSpecies()
                 if QKeyEvent.key() == 55:
                     self.getValueNoise()
+                if QKeyEvent.key() == 90:
+                    if self.ui.checkBox_scaledZoom.isChecked():
+                        self.ui.checkBox_scaledZoom.setChecked(False)
+                        self.ScaledZoom()
+                    else:
+                        self.ui.checkBox_scaledZoom.setChecked(True)
+                        self.ScaledZoom()
+                if QKeyEvent.key() == 83:
+                    self.ShowFullSpectrogramPressed()
+                if QKeyEvent.key() == 77:
+                    self.ShowMarkedSpectrogramPressed()
 
+    def keyReleaseEvent(self, QKeyEvent):
+        if self.ui.frame_BatButtons.isVisible():
+            if type(QKeyEvent) == QtGui.QKeyEvent:
+                if QKeyEvent.key() == 83:
+                    self.resetRelease()
+                if QKeyEvent.key() == 77:
+                    self.resetRelease()
+
+    def getHDFInformation(self, paths):
+        day = []
+        month = []
+        year = []
+        file = []
+        pathcorr = []
+        eventno = []
+        for path in paths:
+            temp = re.split('/', path)
+            # if there are 5 elements in the array, means that this one has an event
+            if len(temp) > 4:
+                #get data from path
+                year.append(temp[0])
+                month.append(temp[1])
+                day.append(temp[2])
+                data = self.HDFFile[path]
+                hour = str(data.attrs["Hour"])
+                minute = str(data.attrs["Minute"])
+                second = str(data.attrs["Second"])
+                offset = str(data.attrs["Offset"])
+                channel = str(data.attrs["Recording Channel"])
+                if len(offset) != 20:
+                    for i in range(0,20):
+                        offset = "0" + offset
+                        if len(offset) == 20:
+                            break
+                filename = "date_" + temp[2] + "_" + temp[1] + "_" + temp[0] + "_time_" + hour + "_" + minute + "_" + second +"_ch_" + channel +  "_offset_" + offset
+                file.append(filename)
+                #file.append(temp[3])
+                eventnoTemp = re.split('_',temp[4])
+                eventno.append(eventnoTemp[1])
+                pathcorr.append(path)
+
+        return day, month, year, file, eventno, pathcorr
 
     def setEventImage(self, event, eventno):
-        root = "/home/anoch/Documents/BatSamples/SpectrogramMarked/"
+        root = self.OutputDirectory + "/SpectrogramMarked/"
         path  = root + event + "/Event" + eventno + ".png"
         eventImage = QtGui.QPixmap(path)
-        scaledEventImage = eventImage.scaled(self.ui.label_imageshow.size(), QtCore.Qt.KeepAspectRatio)
-        self.ui.label_imageshow.setPixmap(scaledEventImage)
+        if self.ZoomInParameter == 1:
+            scaledEventImage = eventImage.scaled(self.ui.label_imageshow.size(), QtCore.Qt.KeepAspectRatio)
+            self.ui.label_imageshow.setPixmap(scaledEventImage)
+        else:
+            self.ui.label_imageshow.setPixmap(eventImage)
 
     def updateEventInfomation(self):
-
-
-
         data = self.HDFFile[str(self.pathcorr[self.currentEvent])]
-        self.setEventImage(self.file[self.currentEvent],self.eventno[self.currentEvent])
+        self.setEventImage(self.file[self.currentEvent], self.eventno[self.currentEvent])
         dateToShow = self.day[self.currentEvent] + "-" + self.month[self.currentEvent] + "-" + self.year[self.currentEvent]
         self.ui.label_Date.setText(dateToShow)
-        self.ui.label_EventName.setText(self.file[self.currentEvent])
+
+        # Recontruction of original filename
+        originalFilename = "sr_500000_ch_4_offset_" + str(data.attrs["Offset"])
+
+        self.ui.label_EventName.setText(originalFilename)
         self.ui.label_EventNo.setText(self.eventno[self.currentEvent])
         self.ui.progressBar_eventLabel.setValue(self.currentEvent)
+
+        self.ui.label_time.setText(self.timeHandler(data))
         self.ui.label_currentStatus.setText("Current Event Status: " + str(self.currentEvent + 1) + " out of " + str(self.EventSize) + ". Process Count: " + str(self.ProcessCount))
 
         duration = str(toTime(abs(data[2]-data[3])))
@@ -152,20 +240,19 @@ class StartQT4(QtGui.QMainWindow):
         self.ui.label_FrontLine_9.setText(str(data[12]))
         self.ui.label_FrontLine_10.setText(str(data[13]))
 
+    def timeHandler(self, data):
+        hour = str(data.attrs["Hour"])
+        minute = str(data.attrs["Minute"])
+        second = str(data.attrs["Second"])
+        if len(hour) == 1:
+            hour = "0" + hour
+        if len(minute) == 1:
+            minute = "0" + minute
+        if len(second) == 1:
+            second = "0" + second
+        return hour + ":" + minute + ":" + second
 
-    def scanForNextEvent(self):
-        SAVE_ITERATION = 5
-        self.ProcessCount += 1
-        # save to disk for every 5th event
-        tempSave = self.ProcessCount % SAVE_ITERATION
-        if tempSave == 0:
-            self.HDFFile.flush()
-        for i in range(self.currentEvent, self.EventSize):
-            data = self.HDFFile[str(self.pathcorr[i])]
-            if data.attrs['BatID'] == 0:
-
-                self.currentEvent = i
-                return True
+    def lastEventHandler(self):
         #when we are finished with labelling, hide buttons for bats and show N/A on labels
         self.ui.progressBar_eventLabel.setValue(self.currentEvent)
         self.ui.frame_BatButtons.hide()
@@ -173,6 +260,7 @@ class StartQT4(QtGui.QMainWindow):
         self.ui.label_Date.setText("N/A")
         self.ui.label_EventName.setText("N/A")
         self.ui.label_EventNo.setText("N/A")
+        self.ui.label_time.setText("N/A")
 
         self.ui.label_MinFreq.setText("N/A")
         self.ui.label_maxFreq.setText("N/A")
@@ -188,7 +276,37 @@ class StartQT4(QtGui.QMainWindow):
         self.ui.label_FrontLine_9.setText("N/A")
         self.ui.label_FrontLine_10.setText("N/A")
         self.HDFFile.close()
+
+    def scanForNextEvent(self):
+        SAVE_ITERATION = 5
+        self.ProcessCount += 1
+        # save to disk for every 5th event
+        tempSave = self.ProcessCount % SAVE_ITERATION
+        if tempSave == 0:
+            self.HDFFile.flush()
+        for i in range(self.currentEvent, self.EventSize):
+            data = self.HDFFile[str(self.pathcorr[i])]
+            if data.attrs['BatID'] == 0:
+
+                self.currentEvent = i
+                return True
+        self.lastEventHandler()
         return False
+
+    def setInputDirectory(self):
+        self.InputDirectory = str(QtGui.QFileDialog.getExistingDirectory(self, "Select Input Directory"))
+        if os.path.exists(self.InputDirectory):
+            self.ui.label_inputDirectory.setText(self.InputDirectory)
+        else:
+            self.ui.label_inputDirectory.setText("None Selected!")
+
+    def setOutputDirectory(self):
+        self.OutputDirectory = str(QtGui.QFileDialog.getExistingDirectory(self, "Select Output Directory"))
+        if os.path.exists(self.OutputDirectory):
+            self.ui.label_outputDirectory.setText(self.OutputDirectory)
+        else:
+            self.ui.label_outputDirectory.setText("None Selected!")
+
 
 
     def file_dialog(self):
@@ -199,26 +317,52 @@ class StartQT4(QtGui.QMainWindow):
 
             self.HDFFile = h5py.File(str(self.filepath))
             self.HDFFile.visit(self.saveEventPath)
-            self.day, self.month, self.year, self.file, self.eventno, self.pathcorr = getHDFInformation(self.pathEventList)
+            self.day, self.month, self.year, self.file, self.eventno, self.pathcorr = self.getHDFInformation(self.pathEventList)
             self.EventSize = len(self.day)
             self.currentEvent = 0
             self.ui.progressBar_eventLabel.setMinimum(self.currentEvent)
             self.ui.progressBar_eventLabel.setMaximum(self.EventSize-1)
-            filename = os.path.basename(str(self.filepath))
-            self.ui.label_database_name.setText(filename)
+            thisFilePath, thisFile = os.path.split(str(self.filepath))
+            self.OutputDirectory = thisFilePath
+            self.ui.label_outputDirectory.setText(self.OutputDirectory)
+            self.ui.label_database_name.setText(thisFile)
             self.ui.frame_BatButtons.show()
             self.scanForNextEvent()
             self.updateEventInfomation()
         else:
             self.ui.label_database_name.setText("None selected")
 
+    def create_spectrogram(self):
+        SampleRate = 500000
+        SearchDirectory = self.InputDirectory + "/"
+        SaveDirectory = self.OutputDirectory + "/"
+        channel = 1 # default
+        if self.ui.radioButton_channel_1.isChecked():
+            channel = 1
+        if self.ui.radioButton_channel_2.isChecked():
+            channel = 2
+        if self.ui.radioButton_channel_3.isChecked():
+            channel = 3
+        if self.ui.radioButton_channel_4.isChecked():
+            channel = 4
+        self.SoundFileList = getFunctions.getFileList(SearchDirectory, ".s16")
+        self.ui.progressBar_analyse.setMinimum(0)
+        self.ui.progressBar_analyse.setMaximum(len(self.SoundFileList))
+        Count = 0
+        for soundfile in self.SoundFileList:
+            self.ui.textEdit_overview.setText("Creating Spectrogram for " + soundfile + " at channel " + str(channel))
+            EventExtraction.createSpectrogram(soundfile, SearchDirectory, SaveDirectory, channel, SampleRate)
+            self.ui.progressBar_analyse.setValue(Count)
+            Count += 1
+        self.ui.progressBar_analyse.setValue(Count)
+        self.ui.textEdit_overview.setText("Creating Spectrogram Done!")
 
 
     def run_analyser(self):
-        rootpath = "/home/anoch/Documents/BatSamples/"
+        rootpath = self.OutputDirectory
 
-        SearchPath = rootpath + "Spectrogram/"
-        SavePath = rootpath + "SpectrogramMarked/"
+        SearchPath = rootpath + "/Spectrogram/"
+        SavePath = rootpath + "/SpectrogramMarked/"
         sampleList = getFunctions.getFileList(SearchPath,".png")
         maxSize = len(sampleList)
         self.ui.progressBar_analyse.setMinimum(0)
@@ -227,7 +371,8 @@ class StartQT4(QtGui.QMainWindow):
 
         for eventFile in sampleList:
             self.ui.textEdit_overview.setText("Analyzing " + os.path.splitext((eventFile))[0] + "\n")
-            EventExtraction.findEvent(SearchPath, eventFile, SavePath)
+
+            EventExtraction.findEvent(self.OutputDirectory, self.InputDirectory, eventFile)
             progressCount += 1
             self.ui.progressBar_analyse.setValue(progressCount)
         self.ui.textEdit_overview.setText("Event extraction done!")

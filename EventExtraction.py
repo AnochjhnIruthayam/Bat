@@ -4,7 +4,7 @@ import os
 import cv2
 import numpy as np
 from numpy.polynomial import polynomial as P
-import LabelFunctions
+import LabelFunctions, re
 
 def getFileList(path, extension):
     sampleList = []
@@ -14,14 +14,33 @@ def getFileList(path, extension):
     return sampleList
 
 
-def createSpectrogram(path):
+def createSpectrogramOLD(path, OutputPath):
     sampleList = getFileList(path,".s16")
+    checkFolder = OutputPath + "/Spectrogram"
+    if not os.path.exists(checkFolder):
+        os.makedirs(checkFolder)
     os.chdir(path)
     for soundFile in sampleList:
         print "Processing " + soundFile + " at channel 1"
-        soxCommand = "sox -c 4 -r 500e3 " + soundFile + " -n remix 1 trim 0s 500000s spectrogram -r -m -x 5000 -y 1025 -z 88 -o Spectrogram/" + os.path.splitext((soundFile))[0] + ".png"
+        soxCommand = "sox -c 4 -r 500e3 " + soundFile + " -n remix 1 trim 0s 500000s spectrogram -r -m -x 5000 -y 1025 -z 88 -o " + OutputPath + "/Spectrogram/" + os.path.splitext((soundFile))[0] + ".png"
         os.system(soxCommand)
     print "Conversion process done!"
+
+def createSpectrogram(soundFile, SearchDirectory, SaveDirectory, Channel, SampleRate):
+    checkFolder = SaveDirectory + "/Spectrogram"
+    if not os.path.exists(checkFolder):
+        os.makedirs(checkFolder)
+    os.chdir(SearchDirectory)
+    day,month,year,hour,min,sec = get_time_for_modified_files(soundFile)
+    temp = re.split('_', os.path.splitext((soundFile))[0])
+    offset = temp[5]
+    # outputFilename = os.path.splitext((soundFile))[0]
+    outputFilename = "date_"+ day + "_" + month + "_" + year + "_" + "time_"  + hour + "_" + min + "_" + sec + "_" + "ch_" + str(Channel) + "_offset_" + offset
+    soxCommand = "sox -c 4 -r 500e3 " + soundFile + " -n remix " + str(Channel) + " trim 0s 500000s spectrogram -r -m -x 5000 -y 1025 -z 88 -o " + SaveDirectory + "/Spectrogram/" + outputFilename + ".png"
+
+    # soxCommand = "sox -c 4 -r 500e3 " + soundFile + " -n remix " + str(Channel) + " trim 0s 500000s spectrogram -r -m -x 5000 -y 1025 -z 88 -o " + SaveDirectory + "/Spectrogram/" + os.path.splitext((soundFile))[0] + ".png"
+    os.system(soxCommand)
+
 
 def verticalScan(img):
     topX = []
@@ -306,7 +325,6 @@ def month_to_int(month):
         return "12"
     return "0"
 
-
 def get_time_for_modified_files(file):
     import os, time
     (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat(file)
@@ -322,59 +340,13 @@ def get_time_for_modified_files(file):
 
     return day,month,year,hour,min,sec
 
-def hdfgroup(minFreq_pixel,maxFreq_pixel,minMiliSec_pixel,maxMiliSec_pixel,points,eventName, eventNum):
-    import h5py
-    soundfile = "/home/anoch/Documents/BatSamples/" +eventName + ".s16"
-    f = h5py.File("Groups.hdf5")
-    #print "Creating Database"
-
-    #Meta data for weather
-    temperature = 0
-    humidity = 0
-    windspeed = 0
-    weathercondition = 0
-    bat_id = 0
-
-
-    #testdata = np.random.random(14)
-
-    #Process which zero pads feature data, if there is not enough data
-    test_zero = 0
-    zero_int = 0
-    for point in points:
-        test_zero += point
-        zero_int += 1
-    if test_zero <= 0 or zero_int < 11:
-        points = np.zeros(11)
-
-    #Feature data
-    data = np.array([minFreq_pixel, maxFreq_pixel,minMiliSec_pixel, maxMiliSec_pixel,points[0],points[1],points[2],points[3],points[4],points[5],points[6],points[7],points[8],points[9],points[10]])
-    #print data.shape
-
-    currentfile = soundfile
-    day,month,year,hour,min,sec = get_time_for_modified_files(currentfile)
-    DirectoryString = year + "/" + month + "/" + day  + "/" + eventName
-    e = DirectoryString in f
-
-    if not e:
-        out = f.create_group(DirectoryString)
-    else:
-        out = f[DirectoryString]
-    dbName = "FeatureDataEvent_" + str(eventNum)
-    out[dbName] = data
-    out[dbName].attrs["Temperature"] = temperature
-    out[dbName].attrs["Humidity"] = humidity
-    out[dbName].attrs["Wind Speed"] = windspeed
-    out[dbName].attrs["Weather Condition"] = weathercondition
-    out[dbName].attrs["BatID"] = bat_id
-    #f.close()
-
-def findEvent(SearchPath, eventFile, SavePath):
-
+def findEvent(OutputDirectory, InputDirectory, eventFile):
     threshold = 5
-    soundFilePath = SearchPath + eventFile #"/home/anoch/Documents/BatSamples/Spectrogram/sr_500000_ch_4_offset_00000000008460585000.png"
+    #soundFilePath = SearchPath + eventFile #"/home/anoch/Documents/BatSamples/Spectrogram/sr_500000_ch_4_offset_00000000008460585000.png"
+    SavePath = OutputDirectory + "/SpectrogramMarked/"
+    soundImgFilePath = OutputDirectory + "/Spectrogram/" + eventFile
     #Read image
-    img = cv2.imread(soundFilePath,0)
+    img = cv2.imread(soundImgFilePath,0)
     imgColor = cv2.cvtColor(img,cv2.COLOR_GRAY2RGB)
     #get information about size
     imgHeight,imgLength = img.shape
@@ -407,10 +379,10 @@ def findEvent(SearchPath, eventFile, SavePath):
             if not os.path.exists(checkFolder):
                 os.makedirs(checkFolder)
             cv2.imwrite(SavePath + os.path.splitext((eventFile))[0] + "/Event" + str(i) + ".png", imgEvent)
-    cv2.imwrite(SavePath + os.path.splitext((eventFile))[0] + "SpectrogramAllMarked.png", imgColor)
+    cv2.imwrite(SavePath + os.path.splitext((eventFile))[0] + "/SpectrogramAllMarked.png", imgColor)
     #If there are event, then label them
     if len(eventNum)> 0:
-        LabelFunctions.eventLabel(os.path.splitext((eventFile))[0], topX, topY, endX, bottomY, eventFile, SavePath,imgHeight,imgLength, eventNum)
+        LabelFunctions.eventHDFLabel(os.path.splitext((eventFile))[0], topX, topY, endX, bottomY, SavePath, eventNum, OutputDirectory, InputDirectory)
     #plt.imshow(imgColor)
     #plt.xticks([]), plt.yticks([])
    # plt.show()
