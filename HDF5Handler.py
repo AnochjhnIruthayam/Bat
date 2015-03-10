@@ -92,6 +92,7 @@ def eventHDFLabel(eventName, minMiliSec_pixel, maxFreq_pixel, maxMiliSec_pixel, 
         else:
             out = f[DirectoryString]
 
+        # Gets the pixels array and saves it to HDF5
         ArrayImgEvent = imageToHDF5_img(imgEvent)
         ds_Event = out.create_dataset("ArrayImgEvent_" + str(i), ArrayImgEvent.shape, compression="gzip")
         ds_Event[:] = ArrayImgEvent

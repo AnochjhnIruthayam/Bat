@@ -346,7 +346,6 @@ def get_time_for_modified_files(file):
 
 def findEvent(OutputDirectory, InputDirectory, eventFile):
     threshold = 5
-    #soundFilePath = SearchPath + eventFile #"/home/anoch/Documents/BatSamples/Spectrogram/sr_500000_ch_4_offset_00000000008460585000.png"
     SavePath = OutputDirectory + "/SpectrogramMarked/"
     soundImgFilePath = OutputDirectory + "/Spectrogram/" + eventFile
     #Read image
@@ -378,8 +377,7 @@ def findEvent(OutputDirectory, InputDirectory, eventFile):
 
         cv2.rectangle(imgMarkedSpectrogram, (topX[i], topY[i]), (endX[i], bottomY[i]), (255), 5)
         if topX[i]>crop_offset and topY[i]>crop_offset and endX[i]< imgLength-crop_offset and bottomY[i] < imgHeight- crop_offset:
-            imgEvent = imgSpectrogram[topY[i] - crop_offset:bottomY[i] + crop_offset,
-                       topX[i] - crop_offset:endX[i] + crop_offset]
+            imgEvent = imgSpectrogram[topY[i] - crop_offset:bottomY[i] + crop_offset, topX[i] - crop_offset:endX[i] + crop_offset]
             eventNum.append(i)
             checkFolder = SavePath + os.path.splitext((eventFile))[0]
             if not os.path.exists(checkFolder):
@@ -388,8 +386,7 @@ def findEvent(OutputDirectory, InputDirectory, eventFile):
     cv2.imwrite(SavePath + os.path.splitext((eventFile))[0] + "/SpectrogramAllMarked.png", imgMarkedSpectrogram)
     #If there are event, then label them
     if len(eventNum)> 0:
-        HDF5Handler.eventHDFLabel(os.path.splitext((eventFile))[0], topX, topY, endX, bottomY, SavePath, eventNum,
-                                  OutputDirectory, imgSpectrogram, imgMarkedSpectrogram, imgEvent)
+        HDF5Handler.eventHDFLabel(os.path.splitext((eventFile))[0], topX, topY, endX, bottomY, SavePath, eventNum, OutputDirectory, imgSpectrogram, imgMarkedSpectrogram, imgEvent)
     #plt.imshow(imgColor)
     #plt.xticks([]), plt.yticks([])
    # plt.show()

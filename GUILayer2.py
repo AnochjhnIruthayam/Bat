@@ -337,6 +337,7 @@ class StartQT4(QtGui.QMainWindow):
         SearchDirectory = self.InputDirectory + "/"
         SaveDirectory = self.OutputDirectory + "/"
         channel = 1 # default
+        #Check radioButton for which channel we should make spectrogram of
         if self.ui.radioButton_channel_1.isChecked():
             channel = 1
         if self.ui.radioButton_channel_2.isChecked():
