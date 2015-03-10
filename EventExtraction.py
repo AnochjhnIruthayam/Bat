@@ -1,10 +1,14 @@
 __author__ = 'Anochjhn Iruthayam'
 
 import os
-import cv2
 import numpy as np
 from numpy.polynomial import polynomial as P
-import LabelFunctions, re
+import re
+
+import cv2
+
+import HDF5Handler
+
 
 def getFileList(path, extension):
     sampleList = []
@@ -346,20 +350,21 @@ def findEvent(OutputDirectory, InputDirectory, eventFile):
     SavePath = OutputDirectory + "/SpectrogramMarked/"
     soundImgFilePath = OutputDirectory + "/Spectrogram/" + eventFile
     #Read image
-    img = cv2.imread(soundImgFilePath,0)
-    imgColor = cv2.cvtColor(img,cv2.COLOR_GRAY2RGB)
+    imgSpectrogram = cv2.imread(soundImgFilePath, 0)
+    imgTemp = cv2.cvtColor(imgSpectrogram, cv2.COLOR_GRAY2RGB)
+    imgMarkedSpectrogram = cv2.cvtColor(imgTemp, cv2.COLOR_RGB2GRAY)
     #get information about size
-    imgHeight,imgLength = img.shape
+    imgHeight, imgLength = imgSpectrogram.shape
     #Create Lists
     topX = []
     topY = []
     endX = []
     bottomY = []
     #Run Vertical Scanner
-    StartX, StartY, end = verticalScan(img)
+    StartX, StartY, end = verticalScan(imgSpectrogram)
     for i in range (0,len(StartX)):
         #flag is added to filter out the non bat events by looking at the horizontal axis
-        tempSX, tempSY, tempEnd, tempBottom, flag = horizontelScan(img, StartX[i], StartY[i], end[i])
+        tempSX, tempSY, tempEnd, tempBottom, flag = horizontelScan(imgSpectrogram, StartX[i], StartY[i], end[i])
         if flag == 1:
             topX.append(tempSX)
             topY.append(tempSY)
@@ -371,18 +376,20 @@ def findEvent(OutputDirectory, InputDirectory, eventFile):
     for i in range(0,len(bottomY)):
         #if topY[i] > getHeightMin and bottomY[i] < getHeightMax: # ensure that the call is in range
 
-        cv2.rectangle(imgColor, (topX[i],topY[i]), (endX[i],bottomY[i]), (0,0,255),3)
+        cv2.rectangle(imgMarkedSpectrogram, (topX[i], topY[i]), (endX[i], bottomY[i]), (255), 5)
         if topX[i]>crop_offset and topY[i]>crop_offset and endX[i]< imgLength-crop_offset and bottomY[i] < imgHeight- crop_offset:
-            imgEvent = img[topY[i]-crop_offset:bottomY[i]+crop_offset, topX[i]-crop_offset:endX[i]+crop_offset]
+            imgEvent = imgSpectrogram[topY[i] - crop_offset:bottomY[i] + crop_offset,
+                       topX[i] - crop_offset:endX[i] + crop_offset]
             eventNum.append(i)
             checkFolder = SavePath + os.path.splitext((eventFile))[0]
             if not os.path.exists(checkFolder):
                 os.makedirs(checkFolder)
             cv2.imwrite(SavePath + os.path.splitext((eventFile))[0] + "/Event" + str(i) + ".png", imgEvent)
-    cv2.imwrite(SavePath + os.path.splitext((eventFile))[0] + "/SpectrogramAllMarked.png", imgColor)
+    cv2.imwrite(SavePath + os.path.splitext((eventFile))[0] + "/SpectrogramAllMarked.png", imgMarkedSpectrogram)
     #If there are event, then label them
     if len(eventNum)> 0:
-        LabelFunctions.eventHDFLabel(os.path.splitext((eventFile))[0], topX, topY, endX, bottomY, SavePath, eventNum, OutputDirectory, InputDirectory)
+        HDF5Handler.eventHDFLabel(os.path.splitext((eventFile))[0], topX, topY, endX, bottomY, SavePath, eventNum,
+                                  OutputDirectory, imgSpectrogram, imgMarkedSpectrogram, imgEvent)
     #plt.imshow(imgColor)
     #plt.xticks([]), plt.yticks([])
    # plt.show()

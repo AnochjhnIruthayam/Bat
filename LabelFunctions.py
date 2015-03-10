@@ -2,11 +2,12 @@ __author__ = 'Anochjhn Iruthayam'
 import xml.etree.ElementTree as ET # phone  home
 from xml.etree import ElementTree
 from xml.dom import minidom
-from xml.etree.ElementTree import Element, SubElement, Comment, tostring
+from xml.etree.ElementTree import Element, SubElement, Comment
 import numpy as np
-import EventExtraction as ee
-import h5py, re
+import h5py
+import re
 
+import EventExtraction as ee
 
 
 def eventHDFLabel(eventName, minMiliSec_pixel, maxFreq_pixel, maxMiliSec_pixel, minFreq_pixel, savePath, eventNum, OutputDirectory, InputDirectory):
@@ -66,8 +67,7 @@ def eventHDFLabel(eventName, minMiliSec_pixel, maxFreq_pixel, maxMiliSec_pixel, 
         timeName = hour + ":" + min + ":" + sec
         DirectoryString = year + "/" + month + "/" + day  + "/" + timeName + "_" + offset
         e = DirectoryString in f
-        print DirectoryString
-        print "\n\n"
+
         if not e:
             out = f.create_group(DirectoryString)
         else:
