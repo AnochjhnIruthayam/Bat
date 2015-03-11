@@ -26,8 +26,7 @@ def imageRecontructFromHDF5(ArrayDataImg):
     return image_3d
 
 
-def eventHDFLabel(eventName, minMiliSec_pixel, maxFreq_pixel, maxMiliSec_pixel, minFreq_pixel, savePath, eventNum,
-                  OutputDirectory, imgSpectrogram, imgMarkedSpectrogram, imgEvent):
+def eventHDFLabel(eventName, minMiliSec_pixel, maxFreq_pixel, maxMiliSec_pixel, minFreq_pixel, savePath, eventNum, OutputDirectory, imgSpectrogram, imgMarkedSpectrogram, imgEvent):
     SAVE_ITERATION = 10
     myHDFFile = OutputDirectory + "/BatData.hdf5"
     f = h5py.File(myHDFFile)
@@ -89,29 +88,58 @@ def eventHDFLabel(eventName, minMiliSec_pixel, maxFreq_pixel, maxMiliSec_pixel, 
 
         if not e:
             out = f.create_group(DirectoryString)
+            # Gets the pixels array and saves it to HDF5
+            ArrayImgSpectrogram = imageToHDF5_img(imgSpectrogram)
+            ds_Spectrogram = out.create_dataset("ArrayImgSpectrogram", ArrayImgSpectrogram.shape, dtype=ArrayImgSpectrogram.dtype, compression="gzip")
+            ds_Spectrogram[:] = ArrayImgSpectrogram
+            out["ArrayImgSpectrogram"].attrs["Image Format"] = ".PNG"
+            out["ArrayImgSpectrogram"].attrs["Bit Depth"] = 8
+            out["ArrayImgSpectrogram"].attrs["Bit Depth"] = 8
+            out["ArrayImgSpectrogram"].attrs["Interlace"] = 0
+            out["ArrayImgSpectrogram"].attrs["Grayscale"] = "TRUE"
+            out["ArrayImgSpectrogram"].attrs["Alpha"] = "FALSE"
+
+            # Gets the pixels array and saves it to HDF5
+            ArrayImgMarkedSpectrogram = imageToHDF5_img(imgMarkedSpectrogram)
+            ds_MarkedSpectrogram = out.create_dataset("ArrayImgMarkedSpectrogram", ArrayImgMarkedSpectrogram.shape, dtype=ArrayImgMarkedSpectrogram.dtype , compression="gzip")
+            ds_MarkedSpectrogram[:] = ArrayImgMarkedSpectrogram
+            out["ArrayImgMarkedSpectrogram"].attrs["Image Format"] = ".PNG"
+            out["ArrayImgMarkedSpectrogram"].attrs["Bit Depth"] = 8
+            out["ArrayImgMarkedSpectrogram"].attrs["Interlace"] = 0
+            out["ArrayImgMarkedSpectrogram"].attrs["Grayscale"] = "TRUE"
+            out["ArrayImgMarkedSpectrogram"].attrs["Alpha"] = "FALSE"
+            # Gets the pixels array and saves it to HDF5
         else:
             out = f[DirectoryString]
 
+        EventGroup = out.create_group("Event_" + str(i) )
+
         # Gets the pixels array and saves it to HDF5
         ArrayImgEvent = imageToHDF5_img(imgEvent)
-        ds_Event = out.create_dataset("ArrayImgEvent_" + str(i), ArrayImgEvent.shape, compression="gzip")
+        ds_Event = EventGroup.create_dataset("ArrayImgEvent", ArrayImgEvent.shape, dtype=ArrayImgEvent.dtype , compression="gzip")
         ds_Event[:] = ArrayImgEvent
+        EventGroup["ArrayImgEvent"].attrs["Image Format"] = ".PNG"
+        EventGroup["ArrayImgEvent"].attrs["Bit Depth"] = 8
+        EventGroup["ArrayImgEvent"].attrs["Interlace"] = 0
+        EventGroup["ArrayImgEvent"].attrs["Grayscale"] = "TRUE"
+        EventGroup["ArrayImgEvent"].attrs["Alpha"] = "FALSE"
 
-        dbName = "FeatureDataEvent_" + str(i)
-        ds_FeatureDataEvent = out.create_dataset(dbName, data.shape, compression="gzip")
+
+        dbName = "FeatureDataEvent"
+        ds_FeatureDataEvent = EventGroup.create_dataset(dbName, data.shape, dtype=data.dtype, compression="gzip")
         ds_FeatureDataEvent[:] = data
-        out[dbName].attrs["Day"] = int(day)
-        out[dbName].attrs["Month"] = int(month)
-        out[dbName].attrs["Year"] = int(year)
-        out[dbName].attrs["Hour"] = int(hour)
-        out[dbName].attrs["Minute"] = int(min)
-        out[dbName].attrs["Second"] = int(sec)
-        out[dbName].attrs["Offset"] = int(offset)
-        out[dbName].attrs["Recording Channel"] = int(channel)
-        out[dbName].attrs["Sample Rate"] = 500000
-        out[dbName].attrs["Temperature"] = temperature
-        out[dbName].attrs["Humidity"] = humidity
-        out[dbName].attrs["Wind Speed"] = windspeed
-        out[dbName].attrs["Weather Condition"] = weathercondition
-        out[dbName].attrs["BatID"] = bat_id
+        EventGroup[dbName].attrs["Day"] = int(day)
+        EventGroup[dbName].attrs["Month"] = int(month)
+        EventGroup[dbName].attrs["Year"] = int(year)
+        EventGroup[dbName].attrs["Hour"] = int(hour)
+        EventGroup[dbName].attrs["Minute"] = int(min)
+        EventGroup[dbName].attrs["Second"] = int(sec)
+        EventGroup[dbName].attrs["Offset"] = int(offset)
+        EventGroup[dbName].attrs["Recording Channel"] = int(channel)
+        EventGroup[dbName].attrs["Sample Rate"] = 500000
+        EventGroup[dbName].attrs["Temperature"] = temperature
+        EventGroup[dbName].attrs["Humidity"] = humidity
+        EventGroup[dbName].attrs["Wind Speed"] = windspeed
+        EventGroup[dbName].attrs["Weather Condition"] = weathercondition
+        EventGroup[dbName].attrs["BatID"] = bat_id
     f.close()

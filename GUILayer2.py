@@ -42,15 +42,18 @@ class StartQT4(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.button_NyctalusNoctula, QtCore.SIGNAL("clicked()"), self.getValueNyctalusNoctula)
         QtCore.QObject.connect(self.ui.button_noise, QtCore.SIGNAL("clicked()"), self.getValueNoise)
         QtCore.QObject.connect(self.ui.button_OtherSpecies, QtCore.SIGNAL("clicked()"), self.getValueOtherSpecies)
+        QtCore.QObject.connect(self.ui.button_SomethingElse, QtCore.SIGNAL("clicked()"), self.getValueSomethingElse)
         QtCore.QObject.connect(self.ui.checkBox_scaledZoom, QtCore.SIGNAL("clicked()"), self.ScaledZoom)
         QtCore.QObject.connect(self.ui.button_ShowFullSpectrogram, QtCore.SIGNAL("pressed()"), self.ShowFullSpectrogramPressed)
         QtCore.QObject.connect(self.ui.button_ShowFullSpectrogram, QtCore.SIGNAL("released()"), self.resetRelease)
         QtCore.QObject.connect(self.ui.button_ShowMarkedSpectrogram, QtCore.SIGNAL("pressed()"), self.ShowMarkedSpectrogramPressed)
         QtCore.QObject.connect(self.ui.button_ShowMarkedSpectrogram, QtCore.SIGNAL("released()"), self.resetRelease)
+        QtCore.QObject.connect(self.ui.button_undo, QtCore.SIGNAL("clicked()"), self.undoLastEvent)
         #QtCore.QObject.connect(self.ui.progressBar)
         self.HDFFile = h5py
         self.EventSize = 0
         self.currentEvent = 0
+        self.previousEvent = 0
         self.ProcessCount = 0
         self.day = []
         self.month = []
@@ -91,10 +94,16 @@ class StartQT4(QtGui.QMainWindow):
         self.labelBat(7)
     def getValueNoise(self):
         self.labelBat(8)
+    def getValueSomethingElse(self):
+        self.labelBat(9)
 
     def saveEventPath(self,name):
         self.pathEventList.append(name)
 
+    def undoLastEvent(self):
+        if not self.currentEvent == 0:
+            self.currentEvent = self.previousEvent
+            self.updateEventInfomation()
 
     def ShowFullSpectrogramPressed(self):
         FullSpecImg = self.OutputDirectory + "/Spectrogram/" + self.file[self.currentEvent] + ".png"
@@ -135,15 +144,19 @@ class StartQT4(QtGui.QMainWindow):
                 if QKeyEvent.key() == 50:
                     self.getValueMyotisDasycneme()
                 if QKeyEvent.key() == 51:
-                    self.getValueNyctalusNoctula()
+                    self.getValueMyotisDaubentonii()
                 if QKeyEvent.key() == 52:
-                    self.getValuePipistrellusNathusii()
+                    self.getValueNyctalusNoctula()
                 if QKeyEvent.key() == 53:
-                    self.getValuePipistrellusPygmaeus()
+                    self.getValuePipistrellusNathusii()
                 if QKeyEvent.key() == 54:
-                    self.getValueOtherSpecies()
+                    self.getValuePipistrellusPygmaeus()
                 if QKeyEvent.key() == 55:
+                    self.getValueOtherSpecies()
+                if QKeyEvent.key() == 56:
                     self.getValueNoise()
+                if QKeyEvent.key() == 57:
+                    self.getValueSomethingElse()
                 if QKeyEvent.key() == 90:
                     if self.ui.checkBox_scaledZoom.isChecked():
                         self.ui.checkBox_scaledZoom.setChecked(False)
@@ -155,6 +168,8 @@ class StartQT4(QtGui.QMainWindow):
                     self.ShowFullSpectrogramPressed()
                 if QKeyEvent.key() == 77:
                     self.ShowMarkedSpectrogramPressed()
+                if QKeyEvent.key() == 85:
+                    self.undoLastEvent()
 
     def keyReleaseEvent(self, QKeyEvent):
         if self.ui.frame_BatButtons.isVisible():
@@ -174,7 +189,7 @@ class StartQT4(QtGui.QMainWindow):
         for path in paths:
             temp = re.split('/', path)
             # if there are 5 elements in the array, means that this one has an event
-            if len(temp) > 4:
+            if len(temp) == 6 and temp[5] == "FeatureDataEvent":
                 #get data from path
                 year.append(temp[0])
                 month.append(temp[1])
@@ -185,11 +200,19 @@ class StartQT4(QtGui.QMainWindow):
                 second = str(data.attrs["Second"])
                 offset = str(data.attrs["Offset"])
                 channel = str(data.attrs["Recording Channel"])
-                if len(offset) != 20:
-                    for i in range(0,20):
-                        offset = "0" + offset
-                        if len(offset) == 20:
-                            break
+                if len(hour) == 1:
+                    hour = "0" + hour
+                if len(minute) == 1:
+                    minute = "0" + minute
+                if len(second) == 1:
+                    second = "0" + second
+                tempOffset = re.split('_', temp[3])
+                offset = tempOffset[1]
+                #if len(offset) != 20:
+                #    for i in range(0,20):
+                #        offset = "0" + offset
+                #        if len(offset) == 20:
+                #            break
                 filename = "date_" + temp[2] + "_" + temp[1] + "_" + temp[0] + "_time_" + hour + "_" + minute + "_" + second +"_ch_" + channel +  "_offset_" + offset
                 file.append(filename)
                 #file.append(temp[3])
@@ -239,6 +262,7 @@ class StartQT4(QtGui.QMainWindow):
         self.ui.label_FrontLine_8.setText(str(data[11]))
         self.ui.label_FrontLine_9.setText(str(data[12]))
         self.ui.label_FrontLine_10.setText(str(data[13]))
+        self.ui.label_FrontLine_11.setText(str(data[14]))
 
     def timeHandler(self, data):
         hour = str(data.attrs["Hour"])
@@ -275,9 +299,14 @@ class StartQT4(QtGui.QMainWindow):
         self.ui.label_FrontLine_8.setText("N/A")
         self.ui.label_FrontLine_9.setText("N/A")
         self.ui.label_FrontLine_10.setText("N/A")
+        self.ui.label_FrontLine_11.setText("N/A")
         self.HDFFile.close()
 
+
+
+
     def scanForNextEvent(self):
+        self.previousEvent = self.currentEvent
         SAVE_ITERATION = 5
         self.ProcessCount += 1
         # save to disk for every 5th event
@@ -287,9 +316,15 @@ class StartQT4(QtGui.QMainWindow):
         for i in range(self.currentEvent, self.EventSize):
             data = self.HDFFile[str(self.pathcorr[i])]
             if data.attrs['BatID'] == 0:
-
-                self.currentEvent = i
-                return True
+                FrontLineValue = 0
+                # We check if the full frontline has a value, if not its noise
+                for FrontLineIndex in range(4,14):
+                    FrontLineValue += data[FrontLineIndex]
+                if FrontLineValue > 0:
+                    self.currentEvent = i
+                    return True
+                else:
+                    data.attrs['BatID'] = 8 # 8 is the ID for noise
         self.lastEventHandler()
         return False
 
