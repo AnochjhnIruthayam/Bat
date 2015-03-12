@@ -10,26 +10,6 @@ import cv2
 import HDF5Handler
 
 
-def getFileList(path, extension):
-    sampleList = []
-    for file in os.listdir(path):
-        if file.endswith(extension):
-            sampleList.append(file)
-    return sampleList
-
-
-def createSpectrogramOLD(path, OutputPath):
-    sampleList = getFileList(path,".s16")
-    checkFolder = OutputPath + "/Spectrogram"
-    if not os.path.exists(checkFolder):
-        os.makedirs(checkFolder)
-    os.chdir(path)
-    for soundFile in sampleList:
-        print "Processing " + soundFile + " at channel 1"
-        soxCommand = "sox -c 4 -r 500e3 " + soundFile + " -n remix 1 trim 0s 500000s spectrogram -r -m -x 5000 -y 1025 -z 88 -o " + OutputPath + "/Spectrogram/" + os.path.splitext((soundFile))[0] + ".png"
-        os.system(soxCommand)
-    print "Conversion process done!"
-
 def createSpectrogram(soundFile, SearchDirectory, SaveDirectory, Channel, SampleRate):
     checkFolder = SaveDirectory + "/Spectrogram"
     if not os.path.exists(checkFolder):
@@ -334,13 +314,27 @@ def get_time_for_modified_files(file):
     (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat(file)
     mstr = time.ctime(mtime)
     splittedstr = mstr.split(' ')
-    mytime = splittedstr[3].split(':')
-    day = splittedstr[2]
-    month = month_to_int(splittedstr[1])
-    year = splittedstr[4]
-    hour = mytime[0]
-    min = mytime[1]
-    sec = mytime[2]
+
+    if len(splittedstr) != 5:
+        mynewstring = []
+        for i in range(0, len(splittedstr)):
+            if len(splittedstr[i]) > 0:
+                mynewstring.append(splittedstr[i])
+        mytime = mynewstring[3].split(':')
+        day = mynewstring[2]
+        month = month_to_int(mynewstring[1])
+        year = mynewstring[4]
+        hour = mytime[0]
+        min = mytime[1]
+        sec = mytime[2]
+    else:
+        mytime = splittedstr[3].split(':')
+        day = splittedstr[2]
+        month = month_to_int(splittedstr[1])
+        year = splittedstr[4]
+        hour = mytime[0]
+        min = mytime[1]
+        sec = mytime[2]
 
     return day,month,year,hour,min,sec
 

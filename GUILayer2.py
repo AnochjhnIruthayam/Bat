@@ -381,7 +381,7 @@ class StartQT4(QtGui.QMainWindow):
             channel = 3
         if self.ui.radioButton_channel_4.isChecked():
             channel = 4
-        self.SoundFileList = getFunctions.getFileList(SearchDirectory, ".s16")
+        self.SoundFileList = getFunctions.getFileListDepthScan(SearchDirectory, ".s16")
         self.ui.progressBar_analyse.setMinimum(0)
         self.ui.progressBar_analyse.setMaximum(len(self.SoundFileList))
         Count = 0

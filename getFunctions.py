@@ -9,6 +9,15 @@ def getFileList(path, extension):
             sampleList.append(file)
     return sampleList
 
+def getFileListDepthScan(path, extension):
+    sampleList = []
+    for root, dirs, files in os.walk(path):
+        if len(files) > 0:
+            for file in files:
+                if file.endswith(extension):
+                    currentPath = root +"/" + file
+                    sampleList.append(currentPath)
+    return sampleList
 ###################################3
 
 
