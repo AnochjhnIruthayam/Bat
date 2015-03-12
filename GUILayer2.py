@@ -78,6 +78,12 @@ class StartQT4(QtGui.QMainWindow):
         if self.scanForNextEvent():
             self.updateEventInfomation()
 
+    def labelCall(self, ID):
+        data = self.HDFFile[str(self.pathcorr[self.currentEvent])]
+        data.attrs['Call Type'] = ID
+        if self.scanForNextEvent():
+            self.updateEventInfomation()
+
     def getValueEptesicusSerotinus(self):
         self.labelBat(1)
     def getValueMyotisDasycneme(self):
@@ -96,6 +102,17 @@ class StartQT4(QtGui.QMainWindow):
         self.labelBat(8)
     def getValueSomethingElse(self):
         self.labelBat(9)
+
+    def getCallEcholocation(self):
+        self.labelCall(1)
+    def getCallSocialCall(self):
+        self.labelCall(2)
+    def getCallForaging(self):
+        self.labelCall(3)
+    def getCallEcholocationSocialCall(self):
+        self.labelCall(4)
+    def getCallSomethingElse(self):
+        self.labelCall(5)
 
     def saveEventPath(self,name):
         self.pathEventList.append(name)
@@ -136,48 +153,65 @@ class StartQT4(QtGui.QMainWindow):
 
     def keyPressEvent(self, QKeyEvent):
         # if this batbuttons are visible, means we have loaded the data
-        if self.ui.frame_BatButtons.isVisible():
-            if type(QKeyEvent) == QtGui.QKeyEvent:
-                # following numbers are ASCII for 1, 2, 3, 4, 5, 6 and 7
+        if type(QKeyEvent) == QtGui.QKeyEvent:
+            if self.ui.tabWidget.currentIndex() == 1:
+                #Check if the label species tab is open
+                if self.ui.frame_BatButtons.isVisible():
+                    # following numbers are ASCII for 1, 2, 3, 4, 5, 6 and 7
+                    if QKeyEvent.key() == 49:
+                        self.getValueEptesicusSerotinus()
+                    if QKeyEvent.key() == 50:
+                        self.getValueMyotisDasycneme()
+                    if QKeyEvent.key() == 51:
+                        self.getValueMyotisDaubentonii()
+                    if QKeyEvent.key() == 52:
+                        self.getValueNyctalusNoctula()
+                    if QKeyEvent.key() == 53:
+                        self.getValuePipistrellusNathusii()
+                    if QKeyEvent.key() == 54:
+                        self.getValuePipistrellusPygmaeus()
+                    if QKeyEvent.key() == 55:
+                        self.getValueOtherSpecies()
+                    if QKeyEvent.key() == 56:
+                        self.getValueNoise()
+                    if QKeyEvent.key() == 57:
+                        self.getValueSomethingElse()
+                    if QKeyEvent.key() == 90:
+                        if self.ui.checkBox_scaledZoom.isChecked():
+                            self.ui.checkBox_scaledZoom.setChecked(False)
+                            self.ScaledZoom()
+                        else:
+                            self.ui.checkBox_scaledZoom.setChecked(True)
+                            self.ScaledZoom()
+                    if QKeyEvent.key() == 83:
+                        self.ShowFullSpectrogramPressed()
+                    if QKeyEvent.key() == 77:
+                        self.ShowMarkedSpectrogramPressed()
+                    if QKeyEvent.key() == 85:
+                        self.undoLastEvent()
+                # Check if lavel action tab is open
+            if self.ui.tabWidget.currentIndex() == 2:
                 if QKeyEvent.key() == 49:
-                    self.getValueEptesicusSerotinus()
+                    self.getCallEcholocation()
                 if QKeyEvent.key() == 50:
-                    self.getValueMyotisDasycneme()
+                    self.getCallSocialCall()
                 if QKeyEvent.key() == 51:
-                    self.getValueMyotisDaubentonii()
+                    self.getCallForaging()
                 if QKeyEvent.key() == 52:
-                    self.getValueNyctalusNoctula()
+                    self.getCallEcholocationSocialCall()
                 if QKeyEvent.key() == 53:
-                    self.getValuePipistrellusNathusii()
-                if QKeyEvent.key() == 54:
-                    self.getValuePipistrellusPygmaeus()
-                if QKeyEvent.key() == 55:
-                    self.getValueOtherSpecies()
-                if QKeyEvent.key() == 56:
-                    self.getValueNoise()
-                if QKeyEvent.key() == 57:
-                    self.getValueSomethingElse()
-                if QKeyEvent.key() == 90:
-                    if self.ui.checkBox_scaledZoom.isChecked():
-                        self.ui.checkBox_scaledZoom.setChecked(False)
-                        self.ScaledZoom()
-                    else:
-                        self.ui.checkBox_scaledZoom.setChecked(True)
-                        self.ScaledZoom()
-                if QKeyEvent.key() == 83:
-                    self.ShowFullSpectrogramPressed()
-                if QKeyEvent.key() == 77:
-                    self.ShowMarkedSpectrogramPressed()
-                if QKeyEvent.key() == 85:
-                    self.undoLastEvent()
+                    self.getCallSomethingElse()
+
+
 
     def keyReleaseEvent(self, QKeyEvent):
-        if self.ui.frame_BatButtons.isVisible():
-            if type(QKeyEvent) == QtGui.QKeyEvent:
-                if QKeyEvent.key() == 83:
-                    self.resetRelease()
-                if QKeyEvent.key() == 77:
-                    self.resetRelease()
+        if self.ui.tabWidget.currentIndex() == 1:
+            if self.ui.frame_BatButtons.isVisible():
+                if type(QKeyEvent) == QtGui.QKeyEvent:
+                    if QKeyEvent.key() == 83:
+                        self.resetRelease()
+                    if QKeyEvent.key() == 77:
+                        self.resetRelease()
 
     def getHDFInformation(self, paths):
         day = []
@@ -368,7 +402,7 @@ class StartQT4(QtGui.QMainWindow):
             self.ui.label_database_name.setText("None selected")
 
     def create_spectrogram(self):
-        SampleRate = 500000
+        SampleRate = self.ui.spinBox_SampleRate.value()
         SearchDirectory = self.InputDirectory + "/"
         SaveDirectory = self.OutputDirectory + "/"
         channel = 1 # default
@@ -397,6 +431,8 @@ class StartQT4(QtGui.QMainWindow):
     def run_analyser(self):
         rootpath = self.OutputDirectory
 
+        recordedAt = str(self.ui.lineEdit_recordedAt.text())
+
         SearchPath = rootpath + "/Spectrogram/"
         SavePath = rootpath + "/SpectrogramMarked/"
         sampleList = getFunctions.getFileList(SearchPath,".png")
@@ -408,7 +444,7 @@ class StartQT4(QtGui.QMainWindow):
         for eventFile in sampleList:
             self.ui.textEdit_overview.setText("Analyzing " + os.path.splitext((eventFile))[0] + "\n")
 
-            EventExtraction.findEvent(self.OutputDirectory, self.InputDirectory, eventFile)
+            EventExtraction.findEvent(self.OutputDirectory, eventFile, recordedAt)
             progressCount += 1
             self.ui.progressBar_analyse.setValue(progressCount)
         self.ui.textEdit_overview.setText("Event extraction done!")

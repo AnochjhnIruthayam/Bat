@@ -25,8 +25,7 @@ def imageRecontructFromHDF5(ArrayDataImg):
 
     return image_3d
 
-
-def eventHDFLabel(eventName, minMiliSec_pixel, maxFreq_pixel, maxMiliSec_pixel, minFreq_pixel, savePath, eventNum, OutputDirectory, imgSpectrogram, imgMarkedSpectrogram, imgEvent):
+def eventHDFLabel(eventName, minMiliSec_pixel, maxFreq_pixel, maxMiliSec_pixel, minFreq_pixel, savePath, eventNum, OutputDirectory, imgSpectrogram, imgMarkedSpectrogram, imgEvent, recordedAt):
     SAVE_ITERATION = 10
     myHDFFile = OutputDirectory + "/BatData.hdf5"
     f = h5py.File(myHDFFile)
@@ -60,6 +59,7 @@ def eventHDFLabel(eventName, minMiliSec_pixel, maxFreq_pixel, maxMiliSec_pixel, 
         windspeed = 0
         weathercondition = 0
         bat_id = 0
+        call_type = 0
 
 
         #testdata = np.random.random(14)
@@ -88,12 +88,14 @@ def eventHDFLabel(eventName, minMiliSec_pixel, maxFreq_pixel, maxMiliSec_pixel, 
 
         if not e:
             out = f.create_group(DirectoryString)
+
             # Gets the pixels array and saves it to HDF5
             ArrayImgSpectrogram = imageToHDF5_img(imgSpectrogram)
+            # Create dataset with ArrayImgSpectrogram specifications
             ds_Spectrogram = out.create_dataset("ArrayImgSpectrogram", ArrayImgSpectrogram.shape, dtype=ArrayImgSpectrogram.dtype, compression="gzip")
+            # Save data to dataset
             ds_Spectrogram[:] = ArrayImgSpectrogram
             out["ArrayImgSpectrogram"].attrs["Image Format"] = ".PNG"
-            out["ArrayImgSpectrogram"].attrs["Bit Depth"] = 8
             out["ArrayImgSpectrogram"].attrs["Bit Depth"] = 8
             out["ArrayImgSpectrogram"].attrs["Interlace"] = 0
             out["ArrayImgSpectrogram"].attrs["Grayscale"] = "TRUE"
@@ -108,38 +110,61 @@ def eventHDFLabel(eventName, minMiliSec_pixel, maxFreq_pixel, maxMiliSec_pixel, 
             out["ArrayImgMarkedSpectrogram"].attrs["Interlace"] = 0
             out["ArrayImgMarkedSpectrogram"].attrs["Grayscale"] = "TRUE"
             out["ArrayImgMarkedSpectrogram"].attrs["Alpha"] = "FALSE"
+
+
+        SubDirectory = DirectoryString + "/Event_" + str(i)
+        e2 = SubDirectory in f
+        if not e2:
+            EventGroup = f.create_group(SubDirectory)
+
             # Gets the pixels array and saves it to HDF5
-        else:
-            out = f[DirectoryString]
-
-        EventGroup = out.create_group("Event_" + str(i) )
-
-        # Gets the pixels array and saves it to HDF5
-        ArrayImgEvent = imageToHDF5_img(imgEvent)
-        ds_Event = EventGroup.create_dataset("ArrayImgEvent", ArrayImgEvent.shape, dtype=ArrayImgEvent.dtype , compression="gzip")
-        ds_Event[:] = ArrayImgEvent
-        EventGroup["ArrayImgEvent"].attrs["Image Format"] = ".PNG"
-        EventGroup["ArrayImgEvent"].attrs["Bit Depth"] = 8
-        EventGroup["ArrayImgEvent"].attrs["Interlace"] = 0
-        EventGroup["ArrayImgEvent"].attrs["Grayscale"] = "TRUE"
-        EventGroup["ArrayImgEvent"].attrs["Alpha"] = "FALSE"
+            ArrayImgEvent = imageToHDF5_img(imgEvent)
+            ds_Event = EventGroup.create_dataset("ArrayImgEvent", ArrayImgEvent.shape, dtype=ArrayImgEvent.dtype , compression="gzip")
+            ds_Event[:] = ArrayImgEvent
+            EventGroup["ArrayImgEvent"].attrs["Image Format"] = ".PNG"
+            EventGroup["ArrayImgEvent"].attrs["Bit Depth"] = 8
+            EventGroup["ArrayImgEvent"].attrs["Interlace"] = 0
+            EventGroup["ArrayImgEvent"].attrs["Grayscale"] = "TRUE"
+            EventGroup["ArrayImgEvent"].attrs["Alpha"] = "FALSE"
 
 
-        dbName = "FeatureDataEvent"
-        ds_FeatureDataEvent = EventGroup.create_dataset(dbName, data.shape, dtype=data.dtype, compression="gzip")
-        ds_FeatureDataEvent[:] = data
-        EventGroup[dbName].attrs["Day"] = int(day)
-        EventGroup[dbName].attrs["Month"] = int(month)
-        EventGroup[dbName].attrs["Year"] = int(year)
-        EventGroup[dbName].attrs["Hour"] = int(hour)
-        EventGroup[dbName].attrs["Minute"] = int(min)
-        EventGroup[dbName].attrs["Second"] = int(sec)
-        EventGroup[dbName].attrs["Offset"] = int(offset)
-        EventGroup[dbName].attrs["Recording Channel"] = int(channel)
-        EventGroup[dbName].attrs["Sample Rate"] = 500000
-        EventGroup[dbName].attrs["Temperature"] = temperature
-        EventGroup[dbName].attrs["Humidity"] = humidity
-        EventGroup[dbName].attrs["Wind Speed"] = windspeed
-        EventGroup[dbName].attrs["Weather Condition"] = weathercondition
-        EventGroup[dbName].attrs["BatID"] = bat_id
+            dbName = "FeatureDataEvent"
+            ds_FeatureDataEvent = EventGroup.create_dataset(dbName, data.shape, dtype=data.dtype, compression="gzip")
+            ds_FeatureDataEvent[:] = data
+            EventGroup[dbName].attrs["Day"] = int(day)
+            EventGroup[dbName].attrs["Month"] = int(month)
+            EventGroup[dbName].attrs["Year"] = int(year)
+            EventGroup[dbName].attrs["Hour"] = int(hour)
+            EventGroup[dbName].attrs["Minute"] = int(min)
+            EventGroup[dbName].attrs["Second"] = int(sec)
+            EventGroup[dbName].attrs["Offset"] = int(offset)
+            EventGroup[dbName].attrs["Recording Channel"] = int(channel)
+            EventGroup[dbName].attrs["Sample Rate"] = 500000
+            EventGroup[dbName].attrs["Temperature"] = temperature
+            EventGroup[dbName].attrs["Humidity"] = humidity
+            EventGroup[dbName].attrs["Wind Speed"] = windspeed
+            EventGroup[dbName].attrs["Weather Condition"] = weathercondition
+            EventGroup[dbName].attrs["BatID"] = bat_id
+            EventGroup[dbName].attrs["Call Type"] = call_type
+            EventGroup[dbName].attrs["Recorded At"] = recordedAt
+
+            #Data already existing, then overwrite
+            """
+            ArrayImgSpectrogram = imageToHDF5_img(imgSpectrogram)
+            f[DirectoryString + "/ArrayImgSpectrogram"] = ArrayImgSpectrogram
+            f[DirectoryString + "/ArrayImgSpectrogram"].attrs["Image Format"] = ".PNG"
+            f[DirectoryString + "/ArrayImgSpectrogram"].attrs["Bit Depth"] = 8
+            f[DirectoryString + "/ArrayImgSpectrogram"].attrs["Interlace"] = 0
+            f[DirectoryString + "/ArrayImgSpectrogram"].attrs["Grayscale"] = "TRUE"
+            f[DirectoryString + "/ArrayImgSpectrogram"].attrs["Alpha"] = "FALSE"
+
+            ArrayImgMarkedSpectrogram = imageToHDF5_img(imgMarkedSpectrogram)
+            f[DirectoryString + "/ArrayImgMarkedSpectrogram"] = ArrayImgMarkedSpectrogram
+            f[DirectoryString + "/ArrayImgMarkedSpectrogram"].attrs["Image Format"] = ".PNG"
+            f[DirectoryString + "/ArrayImgMarkedSpectrogram"].attrs["Bit Depth"] = 8
+            f[DirectoryString + "/ArrayImgMarkedSpectrogram"].attrs["Interlace"] = 0
+            f[DirectoryString + "/ArrayImgMarkedSpectrogram"].attrs["Grayscale"] = "TRUE"
+            f[DirectoryString + "/ArrayImgMarkedSpectrogram"].attrs["Alpha"] = "FALSE"
+            """
+
     f.close()

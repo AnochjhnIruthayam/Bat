@@ -16,11 +16,15 @@ def createSpectrogram(soundFile, SearchDirectory, SaveDirectory, Channel, Sample
         os.makedirs(checkFolder)
     os.chdir(SearchDirectory)
     day,month,year,hour,min,sec = get_time_for_modified_files(soundFile)
-    temp = re.split('_', os.path.splitext((soundFile))[0])
-    offset = temp[5]
+    PathWithoutExtension = os.path.splitext((soundFile))[0]
+    soundFileName = re.split('/', PathWithoutExtension)
+    temp = soundFileName[len(soundFileName) - 1]
+    tempOffset = re.split('_',temp)
+    offset = tempOffset[len(tempOffset) - 1]
     # outputFilename = os.path.splitext((soundFile))[0]
     outputFilename = "date_"+ day + "_" + month + "_" + year + "_" + "time_"  + hour + "_" + min + "_" + sec + "_" + "ch_" + str(Channel) + "_offset_" + offset
-    soxCommand = "sox -c 4 -r 500e3 " + soundFile + " -n remix " + str(Channel) + " trim 0s 500000s spectrogram -r -m -x 5000 -y 1025 -z 88 -o " + SaveDirectory + "/Spectrogram/" + outputFilename + ".png"
+    #soxCommand = "sox -c 4 -r 500e3 " + soundFile + " -n remix " + str(Channel) + " trim 0s 500000s spectrogram -r -m -x 5000 -y 1025 -z 88 -o " + SaveDirectory + "/Spectrogram/" + outputFilename + ".png"
+    soxCommand = "sox -c 4 -r "+  str(SampleRate) + " " + soundFile + " -n remix " + str(Channel) + " trim 0s 500000s spectrogram -r -m -x 5000 -y 1025 -z 88 -o " + SaveDirectory + "/Spectrogram/" + outputFilename + ".png"
 
     # soxCommand = "sox -c 4 -r 500e3 " + soundFile + " -n remix " + str(Channel) + " trim 0s 500000s spectrogram -r -m -x 5000 -y 1025 -z 88 -o " + SaveDirectory + "/Spectrogram/" + os.path.splitext((soundFile))[0] + ".png"
     os.system(soxCommand)
@@ -338,7 +342,7 @@ def get_time_for_modified_files(file):
 
     return day,month,year,hour,min,sec
 
-def findEvent(OutputDirectory, InputDirectory, eventFile):
+def findEvent(OutputDirectory, eventFile, recordedAt):
     threshold = 5
     SavePath = OutputDirectory + "/SpectrogramMarked/"
     soundImgFilePath = OutputDirectory + "/Spectrogram/" + eventFile
@@ -380,7 +384,7 @@ def findEvent(OutputDirectory, InputDirectory, eventFile):
     cv2.imwrite(SavePath + os.path.splitext((eventFile))[0] + "/SpectrogramAllMarked.png", imgMarkedSpectrogram)
     #If there are event, then label them
     if len(eventNum)> 0:
-        HDF5Handler.eventHDFLabel(os.path.splitext((eventFile))[0], topX, topY, endX, bottomY, SavePath, eventNum, OutputDirectory, imgSpectrogram, imgMarkedSpectrogram, imgEvent)
+        HDF5Handler.eventHDFLabel(os.path.splitext((eventFile))[0], topX, topY, endX, bottomY, SavePath, eventNum, OutputDirectory, imgSpectrogram, imgMarkedSpectrogram, imgEvent, recordedAt)
     #plt.imshow(imgColor)
     #plt.xticks([]), plt.yticks([])
    # plt.show()
