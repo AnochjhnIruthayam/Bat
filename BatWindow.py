@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'BatWindow.ui'
 #
-# Created: Thu Mar 12 18:28:11 2015
+# Created: Fri Mar 13 10:22:45 2015
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -420,12 +420,12 @@ class Ui_BatWindow(object):
         self.line_21.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_21.setObjectName(_fromUtf8("line_21"))
         self.frame_eventview = QtGui.QFrame(self.tab_label_species)
-        self.frame_eventview.setGeometry(QtCore.QRect(30, 50, 821, 411))
+        self.frame_eventview.setGeometry(QtCore.QRect(30, 60, 821, 411))
         self.frame_eventview.setFrameShape(QtGui.QFrame.StyledPanel)
         self.frame_eventview.setFrameShadow(QtGui.QFrame.Raised)
         self.frame_eventview.setObjectName(_fromUtf8("frame_eventview"))
         self.label_imageshow = QtGui.QLabel(self.frame_eventview)
-        self.label_imageshow.setGeometry(QtCore.QRect(10, 10, 791, 421))
+        self.label_imageshow.setGeometry(QtCore.QRect(0, 0, 821, 411))
         self.label_imageshow.setAlignment(QtCore.Qt.AlignCenter)
         self.label_imageshow.setObjectName(_fromUtf8("label_imageshow"))
         self.frame_BatButtons = QtGui.QFrame(self.tab_label_species)
@@ -498,17 +498,17 @@ class Ui_BatWindow(object):
         self.label_currentStatus.setGeometry(QtCore.QRect(30, 510, 621, 17))
         self.label_currentStatus.setObjectName(_fromUtf8("label_currentStatus"))
         self.checkBox_scaledZoom = QtGui.QCheckBox(self.tab_label_species)
-        self.checkBox_scaledZoom.setGeometry(QtCore.QRect(710, 470, 131, 22))
+        self.checkBox_scaledZoom.setGeometry(QtCore.QRect(710, 480, 131, 22))
         self.checkBox_scaledZoom.setChecked(True)
         self.checkBox_scaledZoom.setObjectName(_fromUtf8("checkBox_scaledZoom"))
         self.button_ShowFullSpectrogram = QtGui.QPushButton(self.tab_label_species)
-        self.button_ShowFullSpectrogram.setGeometry(QtCore.QRect(30, 460, 231, 41))
+        self.button_ShowFullSpectrogram.setGeometry(QtCore.QRect(30, 470, 231, 41))
         self.button_ShowFullSpectrogram.setObjectName(_fromUtf8("button_ShowFullSpectrogram"))
         self.button_ShowMarkedSpectrogram = QtGui.QPushButton(self.tab_label_species)
-        self.button_ShowMarkedSpectrogram.setGeometry(QtCore.QRect(270, 460, 231, 41))
+        self.button_ShowMarkedSpectrogram.setGeometry(QtCore.QRect(270, 470, 231, 41))
         self.button_ShowMarkedSpectrogram.setObjectName(_fromUtf8("button_ShowMarkedSpectrogram"))
         self.button_undo = QtGui.QPushButton(self.tab_label_species)
-        self.button_undo.setGeometry(QtCore.QRect(510, 460, 111, 41))
+        self.button_undo.setGeometry(QtCore.QRect(510, 470, 111, 41))
         self.button_undo.setObjectName(_fromUtf8("button_undo"))
         self.tabWidget.addTab(self.tab_label_species, _fromUtf8(""))
         self.tab_label_call = QtGui.QWidget()
@@ -1248,7 +1248,7 @@ class Ui_BatWindow(object):
         BatWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(BatWindow)
-        self.tabWidget.setCurrentIndex(4)
+        self.tabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(BatWindow)
 
     def retranslateUi(self, BatWindow):

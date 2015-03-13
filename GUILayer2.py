@@ -6,7 +6,7 @@ from PyQt4 import QtCore, QtGui
 from BatWindow import Ui_BatWindow
 import EventExtraction, os, getFunctions, time
 import h5py, re
-
+import threading
 
 def toTime(timePixel):
     imageLength = 5000.0
@@ -15,11 +15,6 @@ def toTime(timePixel):
 def tokFreq(freqPixel):
     imageWidth = 1025.0
     return (250.0/imageWidth)*(imageWidth-freqPixel)
-
-
-
-
-
 
 
 class StartQT4(QtGui.QMainWindow):
@@ -55,6 +50,7 @@ class StartQT4(QtGui.QMainWindow):
         self.currentEvent = 0
         self.previousEvent = 0
         self.ProcessCount = 0
+        self.MultiCount = 0
         self.day = []
         self.month = []
         self.year = []
@@ -232,7 +228,7 @@ class StartQT4(QtGui.QMainWindow):
                 hour = str(data.attrs["Hour"])
                 minute = str(data.attrs["Minute"])
                 second = str(data.attrs["Second"])
-                offset = str(data.attrs["Offset"])
+                #offset = str(data.attrs["Offset"])
                 channel = str(data.attrs["Recording Channel"])
                 if len(hour) == 1:
                     hour = "0" + hour
@@ -418,6 +414,8 @@ class StartQT4(QtGui.QMainWindow):
         self.SoundFileList = getFunctions.getFileListDepthScan(SearchDirectory, ".s16")
         self.ui.progressBar_analyse.setMinimum(0)
         self.ui.progressBar_analyse.setMaximum(len(self.SoundFileList))
+
+
         Count = 0
         for soundfile in self.SoundFileList:
             self.ui.textEdit_overview.setText("Creating Spectrogram for " + soundfile + " at channel " + str(channel))

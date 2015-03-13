@@ -137,7 +137,12 @@ def eventHDFLabel(eventName, minMiliSec_pixel, maxFreq_pixel, maxMiliSec_pixel, 
             EventGroup[dbName].attrs["Hour"] = int(hour)
             EventGroup[dbName].attrs["Minute"] = int(min)
             EventGroup[dbName].attrs["Second"] = int(sec)
-            EventGroup[dbName].attrs["Offset"] = int(offset)
+            tempOffset = re.split('-', offset)
+            EventGroup[dbName].attrs["Offset"] = int(tempOffset[0])
+            #if len(tempOffset) > 1:
+            #    EventGroup[dbName].attrs["Offset Number"] = int(offset[1])
+            #else:
+            #    EventGroup[dbName].attrs["Offset Number"] = 0
             EventGroup[dbName].attrs["Recording Channel"] = int(channel)
             EventGroup[dbName].attrs["Sample Rate"] = 500000
             EventGroup[dbName].attrs["Temperature"] = temperature

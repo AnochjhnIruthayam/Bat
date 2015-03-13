@@ -31,7 +31,7 @@
      <enum>QTabWidget::Rounded</enum>
     </property>
     <property name="currentIndex">
-     <number>4</number>
+     <number>1</number>
     </property>
     <property name="elideMode">
      <enum>Qt::ElideNone</enum>
@@ -1227,7 +1227,7 @@
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>50</y>
+        <y>60</y>
         <width>821</width>
         <height>411</height>
        </rect>
@@ -1241,10 +1241,10 @@
       <widget class="QLabel" name="label_imageshow">
        <property name="geometry">
         <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>791</width>
-         <height>421</height>
+         <x>0</x>
+         <y>0</y>
+         <width>821</width>
+         <height>411</height>
         </rect>
        </property>
        <property name="text">
@@ -1514,7 +1514,7 @@
       <property name="geometry">
        <rect>
         <x>710</x>
-        <y>470</y>
+        <y>480</y>
         <width>131</width>
         <height>22</height>
        </rect>
@@ -1530,7 +1530,7 @@
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>460</y>
+        <y>470</y>
         <width>231</width>
         <height>41</height>
        </rect>
@@ -1543,7 +1543,7 @@
       <property name="geometry">
        <rect>
         <x>270</x>
-        <y>460</y>
+        <y>470</y>
         <width>231</width>
         <height>41</height>
        </rect>
@@ -1556,7 +1556,7 @@
       <property name="geometry">
        <rect>
         <x>510</x>
-        <y>460</y>
+        <y>470</y>
         <width>111</width>
         <height>41</height>
        </rect>
