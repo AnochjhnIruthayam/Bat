@@ -150,6 +150,7 @@ class StartQT4(QtGui.QMainWindow):
             self.ZoomInParameter = 0
             self.updateEventInfomation()
 
+    # Overload function
     def keyPressEvent(self, QKeyEvent):
         # if this batbuttons are visible, means we have loaded the data
         if type(QKeyEvent) == QtGui.QKeyEvent:
@@ -206,7 +207,7 @@ class StartQT4(QtGui.QMainWindow):
                     self.getCallSomethingElse()
 
 
-
+    # Overload function
     def keyReleaseEvent(self, QKeyEvent):
         if self.ui.tabWidget.currentIndex() == 1:
             if self.ui.frame_BatButtons.isVisible():

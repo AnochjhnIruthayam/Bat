@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'BatWindow.ui'
 #
-# Created: Mon Mar 16 19:05:07 2015
+# Created: Mon Mar 16 19:11:18 2015
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -439,7 +439,7 @@ class Ui_BatWindow(object):
         self.label_imageshow.setAlignment(QtCore.Qt.AlignCenter)
         self.label_imageshow.setObjectName(_fromUtf8("label_imageshow"))
         self.frame_BatButtons = QtGui.QFrame(self.tab_label_species)
-        self.frame_BatButtons.setGeometry(QtCore.QRect(60, 600, 751, 331))
+        self.frame_BatButtons.setGeometry(QtCore.QRect(60, 610, 751, 331))
         self.frame_BatButtons.setFrameShape(QtGui.QFrame.StyledPanel)
         self.frame_BatButtons.setFrameShadow(QtGui.QFrame.Raised)
         self.frame_BatButtons.setObjectName(_fromUtf8("frame_BatButtons"))
