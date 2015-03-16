@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1225</width>
-    <height>975</height>
+    <width>1277</width>
+    <height>1000</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,10 +18,10 @@
    <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
      <rect>
-      <x>10</x>
+      <x>20</x>
       <y>10</y>
-      <width>1201</width>
-      <height>961</height>
+      <width>1231</width>
+      <height>981</height>
      </rect>
     </property>
     <property name="tabPosition">
@@ -44,7 +44,7 @@
       <property name="geometry">
        <rect>
         <x>765</x>
-        <y>840</y>
+        <y>870</y>
         <width>181</width>
         <height>51</height>
        </rect>
@@ -57,7 +57,7 @@
       <property name="geometry">
        <rect>
         <x>95</x>
-        <y>440</y>
+        <y>470</y>
         <width>991</width>
         <height>23</height>
        </rect>
@@ -106,7 +106,7 @@
       <property name="geometry">
        <rect>
         <x>170</x>
-        <y>850</y>
+        <y>880</y>
         <width>181</width>
         <height>51</height>
        </rect>
@@ -119,7 +119,7 @@
       <property name="geometry">
        <rect>
         <x>105</x>
-        <y>490</y>
+        <y>520</y>
         <width>171</width>
         <height>31</height>
        </rect>
@@ -135,7 +135,7 @@
       <property name="geometry">
        <rect>
         <x>105</x>
-        <y>570</y>
+        <y>600</y>
         <width>171</width>
         <height>31</height>
        </rect>
@@ -151,7 +151,7 @@
       <property name="geometry">
        <rect>
         <x>105</x>
-        <y>530</y>
+        <y>560</y>
         <width>811</width>
         <height>20</height>
        </rect>
@@ -164,7 +164,7 @@
       <property name="geometry">
        <rect>
         <x>15</x>
-        <y>550</y>
+        <y>580</y>
         <width>1161</width>
         <height>20</height>
        </rect>
@@ -177,7 +177,7 @@
       <property name="geometry">
        <rect>
         <x>105</x>
-        <y>610</y>
+        <y>640</y>
         <width>811</width>
         <height>20</height>
        </rect>
@@ -190,7 +190,7 @@
       <property name="geometry">
        <rect>
         <x>15</x>
-        <y>630</y>
+        <y>660</y>
         <width>1161</width>
         <height>20</height>
        </rect>
@@ -203,7 +203,7 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>700</y>
+        <y>730</y>
         <width>111</width>
         <height>20</height>
        </rect>
@@ -222,7 +222,7 @@
       <property name="geometry">
        <rect>
         <x>170</x>
-        <y>700</y>
+        <y>730</y>
         <width>181</width>
         <height>131</height>
        </rect>
@@ -293,7 +293,7 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>660</y>
+        <y>690</y>
         <width>131</width>
         <height>17</height>
        </rect>
@@ -312,7 +312,7 @@
       <property name="geometry">
        <rect>
         <x>170</x>
-        <y>660</y>
+        <y>690</y>
         <width>181</width>
         <height>27</height>
        </rect>
@@ -331,7 +331,7 @@
       <property name="geometry">
        <rect>
         <x>670</x>
-        <y>800</y>
+        <y>830</y>
         <width>91</width>
         <height>17</height>
        </rect>
@@ -350,13 +350,45 @@
       <property name="geometry">
        <rect>
         <x>770</x>
-        <y>800</y>
+        <y>830</y>
         <width>171</width>
         <height>27</height>
        </rect>
       </property>
       <property name="text">
        <string>MMMI at SDU</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_ConstFilesFound">
+      <property name="geometry">
+       <rect>
+        <x>470</x>
+        <y>430</y>
+        <width>81</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Progress:</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_FilesFoundProgress">
+      <property name="geometry">
+       <rect>
+        <x>560</x>
+        <y>430</y>
+        <width>271</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>0</string>
       </property>
      </widget>
     </widget>
@@ -1259,7 +1291,7 @@
       <property name="geometry">
        <rect>
         <x>60</x>
-        <y>560</y>
+        <y>600</y>
         <width>751</width>
         <height>331</height>
        </rect>
@@ -1290,13 +1322,13 @@
        <property name="geometry">
         <rect>
          <x>380</x>
-         <y>190</y>
+         <y>260</y>
          <width>161</width>
          <height>41</height>
         </rect>
        </property>
        <property name="text">
-        <string>(7) Noise</string>
+        <string>(8) Noise</string>
        </property>
       </widget>
       <widget class="QLabel" name="label_image_MyotisDasycneme">
@@ -1365,7 +1397,7 @@
         <rect>
          <x>0</x>
          <y>260</y>
-         <width>151</width>
+         <width>161</width>
          <height>41</height>
         </rect>
        </property>
@@ -1461,13 +1493,13 @@
        <property name="geometry">
         <rect>
          <x>380</x>
-         <y>260</y>
+         <y>190</y>
          <width>161</width>
          <height>41</height>
         </rect>
        </property>
        <property name="text">
-        <string>(8) Other Species</string>
+        <string>(7) Other Species</string>
        </property>
       </widget>
       <widget class="QPushButton" name="button_SomethingElse">
@@ -1488,7 +1520,7 @@
       <property name="geometry">
        <rect>
         <x>27</x>
-        <y>530</y>
+        <y>570</y>
         <width>821</width>
         <height>23</height>
        </rect>
@@ -1501,7 +1533,7 @@
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>510</y>
+        <y>520</y>
         <width>621</width>
         <height>17</height>
        </rect>
@@ -1513,8 +1545,8 @@
      <widget class="QCheckBox" name="checkBox_scaledZoom">
       <property name="geometry">
        <rect>
-        <x>710</x>
-        <y>480</y>
+        <x>730</x>
+        <y>490</y>
         <width>131</width>
         <height>22</height>
        </rect>
@@ -1530,7 +1562,7 @@
       <property name="geometry">
        <rect>
         <x>30</x>
-        <y>470</y>
+        <y>480</y>
         <width>231</width>
         <height>41</height>
        </rect>
@@ -1543,7 +1575,7 @@
       <property name="geometry">
        <rect>
         <x>270</x>
-        <y>470</y>
+        <y>480</y>
         <width>231</width>
         <height>41</height>
        </rect>
@@ -1556,13 +1588,39 @@
       <property name="geometry">
        <rect>
         <x>510</x>
-        <y>470</y>
+        <y>480</y>
         <width>111</width>
         <height>41</height>
        </rect>
       </property>
       <property name="text">
        <string>(u) Undo</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_BatSuggestion">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>550</y>
+        <width>621</width>
+        <height>17</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Bat species suggestion: N/A</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="button_save">
+      <property name="geometry">
+       <rect>
+        <x>630</x>
+        <y>480</y>
+        <width>98</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Save</string>
       </property>
      </widget>
     </widget>

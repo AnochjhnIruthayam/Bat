@@ -44,6 +44,7 @@ class StartQT4(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.button_ShowMarkedSpectrogram, QtCore.SIGNAL("pressed()"), self.ShowMarkedSpectrogramPressed)
         QtCore.QObject.connect(self.ui.button_ShowMarkedSpectrogram, QtCore.SIGNAL("released()"), self.resetRelease)
         QtCore.QObject.connect(self.ui.button_undo, QtCore.SIGNAL("clicked()"), self.undoLastEvent)
+        QtCore.QObject.connect(self.ui.button_save, QtCore.SIGNAL("clicked()"), self.saveCurrentProgress())
         #QtCore.QObject.connect(self.ui.progressBar)
         self.HDFFile = h5py
         self.EventSize = 0
@@ -109,6 +110,8 @@ class StartQT4(QtGui.QMainWindow):
         self.labelCall(4)
     def getCallSomethingElse(self):
         self.labelCall(5)
+    def saveCurrentProgress(self):
+        self.HDFFile.flush()
 
     def saveEventPath(self,name):
         self.pathEventList.append(name)
@@ -166,12 +169,16 @@ class StartQT4(QtGui.QMainWindow):
                         self.getValuePipistrellusNathusii()
                     if QKeyEvent.key() == 54:
                         self.getValuePipistrellusPygmaeus()
-                    if QKeyEvent.key() == 55:
+
+                    if QKeyEvent.key() == 55: # 7
                         self.getValueOtherSpecies()
-                    if QKeyEvent.key() == 56:
+
+                    if QKeyEvent.key() == 56: # 8
                         self.getValueNoise()
-                    if QKeyEvent.key() == 57:
+
+                    if QKeyEvent.key() == 57: # 9
                         self.getValueSomethingElse()
+
                     if QKeyEvent.key() == 90:
                         if self.ui.checkBox_scaledZoom.isChecked():
                             self.ui.checkBox_scaledZoom.setChecked(False)
@@ -277,10 +284,26 @@ class StartQT4(QtGui.QMainWindow):
 
         self.ui.label_time.setText(self.timeHandler(data))
         self.ui.label_currentStatus.setText("Current Event Status: " + str(self.currentEvent + 1) + " out of " + str(self.EventSize) + ". Process Count: " + str(self.ProcessCount))
-
+        minFreq = tokFreq(data[0])
+        maxFreq = tokFreq(data[1])
+        bat_suggestion = ""
+        if minFreq > 20 and minFreq <30 and maxFreq > 30 and maxFreq < 60:
+            bat_suggestion += "(1) "
+        if minFreq > 45 and minFreq <60 and maxFreq > 70 and maxFreq < 100:
+            bat_suggestion += "(2) "
+        if minFreq > 25 and minFreq <38 and maxFreq > 70 and maxFreq < 90:
+            bat_suggestion += "(3) "
+        if minFreq > 20 and minFreq <30 and maxFreq > 70 and maxFreq < 80:
+            bat_suggestion += "(4) "
+        if minFreq > 27 and minFreq <44 and maxFreq > 57 and maxFreq < 68:
+            bat_suggestion += "(5) "
+        if minFreq > 15 and minFreq <30 and maxFreq > 15 and maxFreq < 50:
+            bat_suggestion += "(6) "
+        self.ui.label_BatSuggestion.setText("Bat species suggestion: " + bat_suggestion)
         duration = str(toTime(abs(data[2]-data[3])))
-        self.ui.label_MinFreq.setText(str(tokFreq(data[0])))
-        self.ui.label_maxFreq.setText(str(tokFreq(data[1])))
+        self.ui.label_MinFreq.setText(str(minFreq))
+        self.ui.label_maxFreq.setText(str(maxFreq))
+
         self.ui.label_Duration.setText(duration)
         self.ui.label_FrontLine_1.setText(str(data[4]))
         self.ui.label_FrontLine_2.setText(str(data[5]))
@@ -333,7 +356,13 @@ class StartQT4(QtGui.QMainWindow):
         self.HDFFile.close()
 
 
-
+    #def fix(self):
+    #    print "Begin Hotfix..."
+    #    for i in range(self.currentEvent, self.EventSize):
+    #        data = self.HDFFile[str(self.pathcorr[i])]
+    #        if data.attrs['BatID'] == 7:
+    #            data.attrs['BatID'] = 8
+    #    print "Done"
 
     def scanForNextEvent(self):
         self.previousEvent = self.currentEvent
@@ -433,19 +462,24 @@ class StartQT4(QtGui.QMainWindow):
 
         SearchPath = rootpath + "/Spectrogram/"
         SavePath = rootpath + "/SpectrogramMarked/"
-        sampleList = getFunctions.getFileList(SearchPath,".png")
-        maxSize = len(sampleList)
-        self.ui.progressBar_analyse.setMinimum(0)
-        self.ui.progressBar_analyse.setMaximum(maxSize)
-        progressCount = 0
+        try:
+            self.ui.textEdit_overview.setText("Loading Spectrogram Files...")
+            sampleList = getFunctions.getFileList(SearchPath,".png")
+            self.ui.textEdit_overview.setText("Loading Spectrogram Files... Done! Found " + str(len(sampleList)) + " files")
+            maxSize = len(sampleList)
+            self.ui.progressBar_analyse.setMinimum(0)
+            self.ui.progressBar_analyse.setMaximum(maxSize)
+            progressCount = 0
 
-        for eventFile in sampleList:
-            self.ui.textEdit_overview.setText("Analyzing " + os.path.splitext((eventFile))[0] + "\n")
-
-            EventExtraction.findEvent(self.OutputDirectory, eventFile, recordedAt)
-            progressCount += 1
-            self.ui.progressBar_analyse.setValue(progressCount)
-        self.ui.textEdit_overview.setText("Event extraction done!")
+            for eventFile in sampleList:
+                self.ui.textEdit_overview.setText("Analyzing " + os.path.splitext((eventFile))[0] + "\n")
+                self.ui.label_FilesFoundProgress.setText(str(progressCount) + " out of " + str(maxSize))
+                EventExtraction.findEvent(self.OutputDirectory, eventFile, recordedAt)
+                progressCount += 1
+                self.ui.progressBar_analyse.setValue(progressCount)
+            self.ui.textEdit_overview.setText("Event extraction done!")
+        except:
+            self.ui.textEdit_overview.setText("Loading Failed! Make sure the Input / Output directory are set correct")
 
 
 
