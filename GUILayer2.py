@@ -44,7 +44,7 @@ class StartQT4(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.button_ShowMarkedSpectrogram, QtCore.SIGNAL("pressed()"), self.ShowMarkedSpectrogramPressed)
         QtCore.QObject.connect(self.ui.button_ShowMarkedSpectrogram, QtCore.SIGNAL("released()"), self.resetRelease)
         QtCore.QObject.connect(self.ui.button_undo, QtCore.SIGNAL("clicked()"), self.undoLastEvent)
-        QtCore.QObject.connect(self.ui.button_save, QtCore.SIGNAL("clicked()"), self.saveCurrentProgress())
+        QtCore.QObject.connect(self.ui.button_save, QtCore.SIGNAL("clicked()"), self.saveCurrentProgress)
         #QtCore.QObject.connect(self.ui.progressBar)
         self.HDFFile = h5py
         self.EventSize = 0
