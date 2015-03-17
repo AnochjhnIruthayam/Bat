@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'BatWindow.ui'
 #
-# Created: Tue Mar 17 16:25:39 2015
+# Created: Tue Mar 17 16:30:54 2015
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -759,7 +759,7 @@ class Ui_BatWindow(object):
         self.label_ConstFrontLine_16.setFont(font)
         self.label_ConstFrontLine_16.setObjectName(_fromUtf8("label_ConstFrontLine_16"))
         self.line_32 = QtGui.QFrame(self.frame_status_2)
-        self.line_32.setGeometry(QtCore.QRect(10, 610, 231, 16))
+        self.line_32.setGeometry(QtCore.QRect(10, 600, 231, 16))
         self.line_32.setFrameShape(QtGui.QFrame.HLine)
         self.line_32.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_32.setObjectName(_fromUtf8("line_32"))
@@ -1142,7 +1142,7 @@ class Ui_BatWindow(object):
         self.label_ConstFrontLine_27.setFont(font)
         self.label_ConstFrontLine_27.setObjectName(_fromUtf8("label_ConstFrontLine_27"))
         self.line_50 = QtGui.QFrame(self.frame_status_browser)
-        self.line_50.setGeometry(QtCore.QRect(10, 610, 231, 16))
+        self.line_50.setGeometry(QtCore.QRect(10, 600, 231, 16))
         self.line_50.setFrameShape(QtGui.QFrame.HLine)
         self.line_50.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_50.setObjectName(_fromUtf8("line_50"))
@@ -1264,7 +1264,7 @@ class Ui_BatWindow(object):
         BatWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(BatWindow)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(4)
         QtCore.QMetaObject.connectSlotsByName(BatWindow)
 
     def retranslateUi(self, BatWindow):
