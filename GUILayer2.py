@@ -124,20 +124,24 @@ class StartQT4(QtGui.QMainWindow):
     def ShowFullSpectrogramPressed(self):
         FullSpecImg = self.OutputDirectory + "/Spectrogram/" + self.file[self.currentEvent] + ".png"
         eventImage = QtGui.QPixmap(FullSpecImg)
-        if self.ZoomInParameter == 1:
-            scaledEventImage = eventImage.scaled(self.ui.label_imageshow.size(), QtCore.Qt.KeepAspectRatio)
-            self.ui.label_imageshow.setPixmap(scaledEventImage)
-        else:
-            self.ui.label_imageshow.setPixmap(eventImage)
+        scaledEventImage = eventImage.scaled(self.ui.label_imageshow.size(), QtCore.Qt.KeepAspectRatio)
+        self.ui.label_imageshow.setPixmap(scaledEventImage)
+        #if self.ZoomInParameter == 1:
+        #    scaledEventImage = eventImage.scaled(self.ui.label_imageshow.size(), QtCore.Qt.KeepAspectRatio)
+        #    self.ui.label_imageshow.setPixmap(scaledEventImage)
+        #else:
+        #    self.ui.label_imageshow.setPixmap(eventImage)
 
     def ShowMarkedSpectrogramPressed(self):
         MarkedSpecImg = self.OutputDirectory + "/SpectrogramMarked/" + self.file[self.currentEvent] + "/SpectrogramAllMarked.png"
         eventImage = QtGui.QPixmap(MarkedSpecImg)
-        if self.ZoomInParameter == 1:
-            scaledEventImage = eventImage.scaled(self.ui.label_imageshow.size(), QtCore.Qt.KeepAspectRatio)
-            self.ui.label_imageshow.setPixmap(scaledEventImage)
-        else:
-            self.ui.label_imageshow.setPixmap(eventImage)
+        scaledEventImage = eventImage.scaled(self.ui.label_imageshow.size(), QtCore.Qt.KeepAspectRatio)
+        self.ui.label_imageshow.setPixmap(scaledEventImage)
+        #if self.ZoomInParameter == 1:
+        #    scaledEventImage = eventImage.scaled(self.ui.label_imageshow.size(), QtCore.Qt.KeepAspectRatio)
+        #    self.ui.label_imageshow.setPixmap(scaledEventImage)
+        #else:
+        #    self.ui.label_imageshow.setPixmap(eventImage)
 
     def resetRelease(self):
         self.updateEventInfomation()

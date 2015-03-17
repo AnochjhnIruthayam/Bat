@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'BatWindow.ui'
 #
-# Created: Mon Mar 16 19:11:18 2015
+# Created: Tue Mar 17 16:25:39 2015
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -317,7 +317,7 @@ class Ui_BatWindow(object):
         self.label_ConstFrontLine_5.setFont(font)
         self.label_ConstFrontLine_5.setObjectName(_fromUtf8("label_ConstFrontLine_5"))
         self.line_11 = QtGui.QFrame(self.frame_status)
-        self.line_11.setGeometry(QtCore.QRect(10, 610, 231, 16))
+        self.line_11.setGeometry(QtCore.QRect(10, 600, 231, 16))
         self.line_11.setFrameShape(QtGui.QFrame.HLine)
         self.line_11.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_11.setObjectName(_fromUtf8("line_11"))
