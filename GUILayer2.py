@@ -6,7 +6,7 @@ from PyQt4 import QtCore, QtGui
 from BatWindow import Ui_BatWindow
 import EventExtraction, os, getFunctions, time
 import h5py, re
-import threading
+import Classifier2
 
 def toTime(timePixel):
     imageLength = 5000.0
@@ -45,6 +45,12 @@ class StartQT4(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.button_ShowMarkedSpectrogram, QtCore.SIGNAL("released()"), self.resetRelease)
         QtCore.QObject.connect(self.ui.button_undo, QtCore.SIGNAL("clicked()"), self.undoLastEvent)
         QtCore.QObject.connect(self.ui.button_save, QtCore.SIGNAL("clicked()"), self.saveCurrentProgress)
+        QtCore.QObject.connect(self.ui.button_loaddatabase_browser, QtCore.SIGNAL("clicked()"), self.countSpecies)
+        QtCore.QObject.connect(self.ui.button_browser_Next, QtCore.SIGNAL("clicked()"), self.buttonNextHandler)
+        QtCore.QObject.connect(self.ui.button_browser_previous, QtCore.SIGNAL("clicked()"), self.buttonPreviousHandler)
+        QtCore.QObject.connect(self.ui.comboBox_SelectSpecies, QtCore.SIGNAL("activated(QString)"), self.browserComboxSelectSpeciesHandler)
+        QtCore.QObject.connect(self.ui.button_classifier_run, QtCore.SIGNAL("clicked()"), self.runClassifier)
+
         #QtCore.QObject.connect(self.ui.progressBar)
         self.HDFFile = h5py
         self.EventSize = 0
@@ -63,6 +69,7 @@ class StartQT4(QtGui.QMainWindow):
         self.InputDirectory = "/home/anoch/Documents/BatSamplesInput"
         self.ui.label_outputDirectory.setText(self.OutputDirectory)
         self.ui.label_inputDirectory.setText(self.InputDirectory)
+        self.classifier = Classifier2.Classifier()
 
         if self.ui.checkBox_scaledZoom.isChecked():
             self.ZoomInParameter = 1
@@ -221,6 +228,10 @@ class StartQT4(QtGui.QMainWindow):
                     if QKeyEvent.key() == 77:
                         self.resetRelease()
 
+    def runClassifier(self):
+        self.classifier.goClassifer()
+
+
     def getHDFInformation(self, paths):
         day = []
         month = []
@@ -261,6 +272,50 @@ class StartQT4(QtGui.QMainWindow):
                 eventnoTemp = re.split('_',temp[4])
                 eventno.append(eventnoTemp[1])
                 pathcorr.append(path)
+
+        return day, month, year, file, eventno, pathcorr
+
+    def getSpecificHDFInformation(self, paths, BatID):
+        day = []
+        month = []
+        year = []
+        file = []
+        pathcorr = []
+        eventno = []
+        for path in paths:
+            temp = re.split('/', path)
+            # if there are 5 elements in the array, means that this one has an event
+            if len(temp) == 6 and temp[5] == "FeatureDataEvent":
+                #get data from path
+                data = self.HDFFile[path]
+                if data.attrs["BatID"] == BatID:
+                    year.append(temp[0])
+                    month.append(temp[1])
+                    day.append(temp[2])
+                    hour = str(data.attrs["Hour"])
+                    minute = str(data.attrs["Minute"])
+                    second = str(data.attrs["Second"])
+                    #offset = str(data.attrs["Offset"])
+                    channel = str(data.attrs["Recording Channel"])
+                    if len(hour) == 1:
+                        hour = "0" + hour
+                    if len(minute) == 1:
+                        minute = "0" + minute
+                    if len(second) == 1:
+                        second = "0" + second
+                    tempOffset = re.split('_', temp[3])
+                    offset = tempOffset[1]
+                    #if len(offset) != 20:
+                    #    for i in range(0,20):
+                    #        offset = "0" + offset
+                    #        if len(offset) == 20:
+                    #            break
+                    filename = "date_" + temp[2] + "_" + temp[1] + "_" + temp[0] + "_time_" + hour + "_" + minute + "_" + second +"_ch_" + channel +  "_offset_" + offset
+                    file.append(filename)
+                    #file.append(temp[3])
+                    eventnoTemp = re.split('_',temp[4])
+                    eventno.append(eventnoTemp[1])
+                    pathcorr.append(path)
 
         return day, month, year, file, eventno, pathcorr
 
@@ -406,7 +461,108 @@ class StartQT4(QtGui.QMainWindow):
         else:
             self.ui.label_outputDirectory.setText("None Selected!")
 
+    def countSpecies(self):
+        self.filepath = QtGui.QFileDialog.getOpenFileName(self, "Open HDF5 File",'', "HDF5 Files (*.hdf5 *.h5)")
 
+        self.HDFFile = h5py.File(str(self.filepath))
+        self.HDFFile.visit(self.saveEventPath)
+
+        self.ui.comboBox_SelectSpecies.addItem("Eptesicus serotinus")
+        self.ui.comboBox_SelectSpecies.addItem("Pipistrellus pygmaeus")
+        self.ui.comboBox_SelectSpecies.addItem("Myotis daubeutonii")
+        self.ui.comboBox_SelectSpecies.addItem("Myotis dasycneme")
+        self.ui.comboBox_SelectSpecies.addItem("Pipistrellus nathusii")
+        self.ui.comboBox_SelectSpecies.addItem("Nyctalus noctula")
+        self.ui.comboBox_SelectSpecies.addItem("Other spicies")
+        self.ui.comboBox_SelectSpecies.addItem("Noise")
+        self.ui.comboBox_SelectSpecies.addItem("Something else")
+
+    def browserComboxSelectSpeciesHandler(self, text):
+        self.ui.label_imageshow_browser.setText("Loading...")
+        SelectedSpecies = 0
+        if text == "Eptesicus serotinus":
+            SelectedSpecies = 1
+        if text == "Pipistrellus pygmaeus":
+            SelectedSpecies = 2
+        if text == "Myotis daubeutonii":
+            SelectedSpecies = 3
+        if text == "Myotis dasycneme":
+            SelectedSpecies = 4
+        if text == "Pipistrellus nathusii":
+            SelectedSpecies = 5
+        if text == "Nyctalus noctula":
+            SelectedSpecies = 6
+        if text == "Other spicies":
+            SelectedSpecies = 7
+        if text == "Noise":
+            SelectedSpecies = 8
+        if text == "Something else":
+            SelectedSpecies = 9
+        #make sure if we have an empty list
+        self.day[:] = []
+        self.month[:] = []
+        self.year[:] = []
+        self.file[:] = []
+        self.eventno[:] = []
+        self.pathcorr[:] = []
+
+
+        self.day, self.month, self.year, self.file, self.eventno, self.pathcorr = self.getSpecificHDFInformation(self.pathEventList, SelectedSpecies)
+        self.EventSize = len(self.day)
+        self.currentEvent = 0
+        thisFilePath, thisFile = os.path.split(str(self.filepath))
+        self.OutputDirectory = thisFilePath
+        self.ui.label_outputDirectory.setText(self.OutputDirectory)
+        self.updateBrowserEventInfomation()
+
+
+    def buttonPreviousHandler(self):
+        if self.currentEvent != 0:
+            self.currentEvent -= 1
+            self.updateBrowserEventInfomation()
+
+    def buttonNextHandler(self):
+        if self.currentEvent != self.EventSize:
+            self.currentEvent += 1
+            self.updateBrowserEventInfomation()
+
+    def setBrowserEventImage(self, event, eventno):
+        root = self.OutputDirectory + "/SpectrogramMarked/"
+        path  = root + event + "/Event" + eventno + ".png"
+        eventImage = QtGui.QPixmap(path)
+        self.ui.label_imageshow_browser.setPixmap(eventImage)
+
+    def updateBrowserEventInfomation(self):
+        data = self.HDFFile[str(self.pathcorr[self.currentEvent])]
+        self.setBrowserEventImage(self.file[self.currentEvent], self.eventno[self.currentEvent])
+        dateToShow = self.day[self.currentEvent] + "-" + self.month[self.currentEvent] + "-" + self.year[self.currentEvent]
+        self.ui.label_Date.setText(dateToShow)
+
+        # Recontruction of original filename
+        originalFilename = "sr_500000_ch_4_offset_" + str(data.attrs["Offset"])
+        self.ui.label_browser_currentstatus.setText("Current Event Status: " + str(self.currentEvent + 1) + " out of " + str(self.EventSize) + ". Process Count: " + str(self.ProcessCount))
+        self.ui.label_EventName_3.setText(originalFilename)
+        self.ui.label_EventNo_3.setText(self.eventno[self.currentEvent])
+
+        self.ui.label_time_3.setText(self.timeHandler(data))
+        minFreq = tokFreq(data[0])
+        maxFreq = tokFreq(data[1])
+        duration = str(toTime(abs(data[2]-data[3])))
+        self.ui.label_MinFreq_3.setText(str(minFreq))
+        self.ui.label_maxFreq_3.setText(str(maxFreq))
+
+        self.ui.label_Duration_3.setText(duration)
+        self.ui.label_FrontLine_23.setText(str(data[4]))
+        self.ui.label_FrontLine_24.setText(str(data[5]))
+        self.ui.label_FrontLine_25.setText(str(data[6]))
+        self.ui.label_FrontLine_26.setText(str(data[7]))
+        self.ui.label_FrontLine_27.setText(str(data[8]))
+        self.ui.label_FrontLine_28.setText(str(data[9]))
+        self.ui.label_FrontLine_29.setText(str(data[10]))
+        self.ui.label_FrontLine_30.setText(str(data[11]))
+        self.ui.label_FrontLine_31.setText(str(data[12]))
+        self.ui.label_FrontLine_32.setText(str(data[13]))
+        self.ui.label_FrontLine_33.setText(str(data[14]))
 
     def file_dialog(self):
         self.filepath = QtGui.QFileDialog.getOpenFileName(self, "Open HDF5 File",'', "HDF5 Files (*.hdf5 *.h5)")
