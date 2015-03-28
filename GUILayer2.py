@@ -90,22 +90,38 @@ class StartQT4(QtGui.QMainWindow):
 
     def getValueEptesicusSerotinus(self):
         self.labelBat(1)
-    def getValueMyotisDasycneme(self):
+    def getValuePipistrellusPygmaeus(self):
         self.labelBat(2)
     def getValueMyotisDaubentonii(self):
         self.labelBat(3)
-    def getValueNyctalusNoctula(self):
+    def getValueMyotisDasycneme(self):
         self.labelBat(4)
     def getValuePipistrellusNathusii(self):
         self.labelBat(5)
-    def getValuePipistrellusPygmaeus(self):
+    def getValueNyctalusNoctula(self):
         self.labelBat(6)
+
     def getValueOtherSpecies(self):
         self.labelBat(7)
     def getValueNoise(self):
         self.labelBat(8)
     def getValueSomethingElse(self):
         self.labelBat(9)
+
+    def getValueEptesicusSerotinusMulti(self):
+        self.labelBat(10)
+    def getValuePipistrellusPygmaeusMulti(self):
+        self.labelBat(11)
+    def getValueMyotisDaubentoniiMulti(self):
+        self.labelBat(12)
+    def getValueMyotisDasycnemeMulti(self):
+        self.labelBat(13)
+    def getValuePipistrellusNathusiiMulti(self):
+        self.labelBat(14)
+    def getValueNyctalusNoctulaMulti(self):
+        self.labelBat(15)
+
+
 
     def getCallEcholocation(self):
         self.labelCall(1)
@@ -166,21 +182,28 @@ class StartQT4(QtGui.QMainWindow):
         # if this batbuttons are visible, means we have loaded the data
         if type(QKeyEvent) == QtGui.QKeyEvent:
             if self.ui.tabWidget.currentIndex() == 1:
+                print QKeyEvent.key()
                 #Check if the label species tab is open
                 if self.ui.frame_BatButtons.isVisible():
                     # following numbers are ASCII for 1, 2, 3, 4, 5, 6 and 7
-                    if QKeyEvent.key() == 49:
+                    ######SINGLE CALL KEY BINDINGS##########
+                    if QKeyEvent.key() == 49: # 1
                         self.getValueEptesicusSerotinus()
-                    if QKeyEvent.key() == 50:
-                        self.getValueMyotisDasycneme()
-                    if QKeyEvent.key() == 51:
-                        self.getValueMyotisDaubentonii()
-                    if QKeyEvent.key() == 52:
-                        self.getValueNyctalusNoctula()
-                    if QKeyEvent.key() == 53:
-                        self.getValuePipistrellusNathusii()
-                    if QKeyEvent.key() == 54:
+
+                    if QKeyEvent.key() == 50: # 2
                         self.getValuePipistrellusPygmaeus()
+
+                    if QKeyEvent.key() == 51: # 3
+                        self.getValueMyotisDaubentonii()
+
+                    if QKeyEvent.key() == 52: # 4
+                        self.getValueMyotisDasycneme()
+
+                    if QKeyEvent.key() == 53: # 5
+                        self.getValuePipistrellusNathusii()
+
+                    if QKeyEvent.key() == 54: # 6
+                        self.getValueNyctalusNoctula()
 
                     if QKeyEvent.key() == 55: # 7
                         self.getValueOtherSpecies()
@@ -191,16 +214,36 @@ class StartQT4(QtGui.QMainWindow):
                     if QKeyEvent.key() == 57: # 9
                         self.getValueSomethingElse()
 
-                    if QKeyEvent.key() == 90:
+                    ######MULTI CALLS KEY BINDINGS##########
+                    if QKeyEvent.key() == 81: # q
+                        self.getValueEptesicusSerotinusMulti()
+
+                    if QKeyEvent.key() == 87: # w
+                        self.getValuePipistrellusPygmaeusMulti()
+
+                    if QKeyEvent.key() == 69: # e
+                        self.getValueMyotisDaubentoniiMulti()
+
+                    if QKeyEvent.key() == 82: # r
+                        self.getValueMyotisDasycnemeMulti()
+
+                    if QKeyEvent.key() == 84: # t
+                        self.getValuePipistrellusNathusiiMulti()
+
+                    if QKeyEvent.key() == 89: # y
+                        self.getValueNyctalusNoctulaMulti()
+
+                    ####OTHER OPTIONS KEY BINDINGS#############
+                    if QKeyEvent.key() == 90: # z
                         if self.ui.checkBox_scaledZoom.isChecked():
                             self.ui.checkBox_scaledZoom.setChecked(False)
                             self.ScaledZoom()
                         else:
                             self.ui.checkBox_scaledZoom.setChecked(True)
                             self.ScaledZoom()
-                    if QKeyEvent.key() == 83:
+                    if QKeyEvent.key() == 83: # s
                         self.ShowFullSpectrogramPressed()
-                    if QKeyEvent.key() == 77:
+                    if QKeyEvent.key() == 77: # m
                         self.ShowMarkedSpectrogramPressed()
                     if QKeyEvent.key() == 85:
                         self.undoLastEvent()
@@ -216,6 +259,7 @@ class StartQT4(QtGui.QMainWindow):
                     self.getCallEcholocationSocialCall()
                 if QKeyEvent.key() == 53:
                     self.getCallSomethingElse()
+
 
 
     # Overload function
@@ -424,6 +468,34 @@ class StartQT4(QtGui.QMainWindow):
     #            data.attrs['BatID'] = 8
     #    print "Done"
 
+    def scanForNextEvent2(self):
+        self.previousEvent = self.currentEvent
+        SAVE_ITERATION = 5
+        self.ProcessCount += 1
+        # save to disk for every 5th event
+        tempSave = self.ProcessCount % SAVE_ITERATION
+        if tempSave == 0:
+            self.HDFFile.flush()
+        self.currentEvent += 1
+        return True
+        #for i in range(self.currentEvent, self.EventSize):
+            #data = self.HDFFile[str(self.pathcorr[i])]
+            ###############################################
+            ###############################################CHANGES!!
+            ###############################################
+            #if data.attrs['BatID'] == 0:
+
+                #FrontLineValue = 0
+                # We check if the full frontline has a value, if not its noise
+                #for FrontLineIndex in range(4,14):
+                #    FrontLineValue += data[FrontLineIndex]
+                #if FrontLineValue > 0:
+                #    self.currentEvent = i
+                #    return True
+                #else:
+                #    data.attrs['BatID'] = 8 # 8 is the ID for noise
+        #self.lastEventHandler()
+        #return False
     def scanForNextEvent(self):
         self.previousEvent = self.currentEvent
         SAVE_ITERATION = 5
@@ -436,7 +508,7 @@ class StartQT4(QtGui.QMainWindow):
             data = self.HDFFile[str(self.pathcorr[i])]
             if data.attrs['BatID'] == 0:
                 FrontLineValue = 0
-                # We check if the full frontline has a value, if not its noise
+                #We check if the full frontline has a value, if not its noise
                 for FrontLineIndex in range(4,14):
                     FrontLineValue += data[FrontLineIndex]
                 if FrontLineValue > 0:
@@ -572,6 +644,10 @@ class StartQT4(QtGui.QMainWindow):
 
             self.HDFFile = h5py.File(str(self.filepath))
             self.HDFFile.visit(self.saveEventPath)
+            ###############################################
+            ###############################################CHANGES!!
+            ###############################################
+            #self.day, self.month, self.year, self.file, self.eventno, self.pathcorr = self.getSpecificHDFInformation(self.pathEventList, 9)
             self.day, self.month, self.year, self.file, self.eventno, self.pathcorr = self.getHDFInformation(self.pathEventList)
             self.EventSize = len(self.day)
             self.currentEvent = 0
