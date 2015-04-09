@@ -269,8 +269,8 @@ class BinaryClassifier():
         print "Initilazing classifier"
         self.initClasissifer()
         #Set up Classicication Data, 4 input, output is a one dim. and 2 possible outcome or two possible classes
-        trndata = ClassificationDataSet(23, target=1, nb_classes=2)
-        tstdata = ClassificationDataSet(23, target=1, nb_classes=2)
+        trndata = ClassificationDataSet(13, target=1, nb_classes=2)
+        tstdata = ClassificationDataSet(13, target=1, nb_classes=2)
         SAMPLE_SIZE = 160
 
 
@@ -279,14 +279,16 @@ class BinaryClassifier():
 
         minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, fl11, fl12, fl13, fl14, fl15, fl16, fl17, fl18, fl19, fl20 = self.getTrainingData(SAMPLE_SIZE, myBat)
         for i in range (0, SAMPLE_SIZE):
-            trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], fl11[i], fl12[i], fl13[i], fl14[i], fl15[i], fl16[i], fl17[i], fl18[i], fl19[i], fl20[i] ], [myBat])
+            #trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], fl11[i], fl12[i], fl13[i], fl14[i], fl15[i], fl16[i], fl17[i], fl18[i], fl19[i], fl20[i] ], [myBat])
+            trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i] ], [myBat])
 
         print "Adding Noise Events"
         myBat = 0
 
         minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, fl11, fl12, fl13, fl14, fl15, fl16, fl17, fl18, fl19, fl20 = self.getTrainingData(SAMPLE_SIZE, myBat)
         for i in range (0, SAMPLE_SIZE):
-            trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], fl11[i], fl12[i], fl13[i], fl14[i], fl15[i], fl16[i], fl17[i], fl18[i], fl19[i], fl20[i] ], [myBat])
+            #trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], fl11[i], fl12[i], fl13[i], fl14[i], fl15[i], fl16[i], fl17[i], fl18[i], fl19[i], fl20[i] ], [myBat])
+            trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i] ], [myBat])
 
         print "Adding test data"
         minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, fl11, fl12, fl13, fl14, fl15, fl16, fl17, fl18, fl19, fl20, target = self.getTestData(2000)
@@ -296,7 +298,9 @@ class BinaryClassifier():
             if tempSave == 0:
                 print i
             myBat = self.convertID(target[i])
-            tstdata.addSample([minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], fl11[i], fl12[i], fl13[i], fl14[i], fl15[i], fl16[i], fl17[i], fl18[i], fl19[i], fl20[i]], [ myBat ])
+            #tstdata.addSample([minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], fl11[i], fl12[i], fl13[i], fl14[i], fl15[i], fl16[i], fl17[i], fl18[i], fl19[i], fl20[i]], [ myBat ])
+            tstdata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i] ], [myBat])
+
 
         trndata._convertToOneOfMany( )
         tstdata._convertToOneOfMany( )

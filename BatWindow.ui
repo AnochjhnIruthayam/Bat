@@ -18,7 +18,7 @@
    <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>10</x>
       <y>10</y>
       <width>1231</width>
       <height>981</height>
@@ -3915,13 +3915,79 @@
       <property name="geometry">
        <rect>
         <x>490</x>
-        <y>420</y>
+        <y>630</y>
         <width>201</width>
         <height>51</height>
        </rect>
       </property>
       <property name="text">
        <string>Run Classifier</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="button_classifier_run_binary">
+      <property name="geometry">
+       <rect>
+        <x>490</x>
+        <y>300</y>
+        <width>201</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Run Classifier</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_classifier_binary">
+      <property name="geometry">
+       <rect>
+        <x>490</x>
+        <y>240</y>
+        <width>211</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>First Stage Classifier</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_classifier_binary_2">
+      <property name="geometry">
+       <rect>
+        <x>470</x>
+        <y>580</y>
+        <width>241</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Second Stage Classifier</string>
+      </property>
+     </widget>
+     <widget class="Line" name="line_58">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>460</y>
+        <width>1201</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
       </property>
      </widget>
     </widget>

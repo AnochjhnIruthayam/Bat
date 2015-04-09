@@ -50,6 +50,7 @@ class StartQT4(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.button_browser_previous, QtCore.SIGNAL("clicked()"), self.buttonPreviousHandler)
         QtCore.QObject.connect(self.ui.comboBox_SelectSpecies, QtCore.SIGNAL("activated(QString)"), self.browserComboxSelectSpeciesHandler)
         QtCore.QObject.connect(self.ui.button_classifier_run, QtCore.SIGNAL("clicked()"), self.runClassifier)
+        QtCore.QObject.connect(self.ui.button_classifier_run_binary, QtCore.SIGNAL("clicked()"), self.runBinaryClassifier)
 
         #QtCore.QObject.connect(self.ui.progressBar)
         self.HDFFile = h5py
@@ -274,8 +275,10 @@ class StartQT4(QtGui.QMainWindow):
                         self.resetRelease()
 
     def runClassifier(self):
+        self.classifier.goClassifer()
+
+    def runBinaryClassifier(self):
         self.classifierBinary.goClassifer()
-        #self.classifier.goClassifer()
 
 
     def getHDFInformation(self, paths):
