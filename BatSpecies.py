@@ -12,3 +12,9 @@ class BatSpecies():
         self.OtherSpecies = 7
         self.Noise = 8
         self.SomethingElse = 9
+        self.Eptesicus_serotinusMulti = 10
+        self.Pipistrellus_pygmaeusMulti = 11
+        self.Myotis_daubeutoniiMulti = 12
+        self.Myotis_dasycnemeMulti = 13
+        self.Pipistrellus_nathusiiMulti = 14
+        self.Nyctalus_noctulaMulti = 15

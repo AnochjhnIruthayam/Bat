@@ -6,7 +6,7 @@ from PyQt4 import QtCore, QtGui
 from BatWindow import Ui_BatWindow
 import EventExtraction, os, getFunctions, time
 import h5py, re
-import Classifier2
+import Classifier2, ClassifierBinary
 
 def toTime(timePixel):
     imageLength = 5000.0
@@ -70,6 +70,7 @@ class StartQT4(QtGui.QMainWindow):
         self.ui.label_outputDirectory.setText(self.OutputDirectory)
         self.ui.label_inputDirectory.setText(self.InputDirectory)
         self.classifier = Classifier2.Classifier()
+        self.classifierBinary = ClassifierBinary.BinaryClassifier()
 
         if self.ui.checkBox_scaledZoom.isChecked():
             self.ZoomInParameter = 1
@@ -273,7 +274,8 @@ class StartQT4(QtGui.QMainWindow):
                         self.resetRelease()
 
     def runClassifier(self):
-        self.classifier.goClassifer()
+        self.classifierBinary.goClassifer()
+        #self.classifier.goClassifer()
 
 
     def getHDFInformation(self, paths):
@@ -460,13 +462,7 @@ class StartQT4(QtGui.QMainWindow):
         self.HDFFile.close()
 
 
-    #def fix(self):
-    #    print "Begin Hotfix..."
-    #    for i in range(self.currentEvent, self.EventSize):
-    #        data = self.HDFFile[str(self.pathcorr[i])]
-    #        if data.attrs['BatID'] == 7:
-    #            data.attrs['BatID'] = 8
-    #    print "Done"
+
 
     def scanForNextEvent2(self):
         self.previousEvent = self.currentEvent
@@ -545,6 +541,12 @@ class StartQT4(QtGui.QMainWindow):
         self.ui.comboBox_SelectSpecies.addItem("Myotis dasycneme")
         self.ui.comboBox_SelectSpecies.addItem("Pipistrellus nathusii")
         self.ui.comboBox_SelectSpecies.addItem("Nyctalus noctula")
+        self.ui.comboBox_SelectSpecies.addItem("Eptesicus serotinus (Multi)")
+        self.ui.comboBox_SelectSpecies.addItem("Pipistrellus pygmaeus (Multi)")
+        self.ui.comboBox_SelectSpecies.addItem("Myotis daubeutonii (Multi)")
+        self.ui.comboBox_SelectSpecies.addItem("Myotis dasycneme (Multi)")
+        self.ui.comboBox_SelectSpecies.addItem("Pipistrellus nathusii (Multi)")
+        self.ui.comboBox_SelectSpecies.addItem("Nyctalus noctula (Multi)")
         self.ui.comboBox_SelectSpecies.addItem("Other spicies")
         self.ui.comboBox_SelectSpecies.addItem("Noise")
         self.ui.comboBox_SelectSpecies.addItem("Something else")
@@ -564,6 +566,18 @@ class StartQT4(QtGui.QMainWindow):
             SelectedSpecies = 5
         if text == "Nyctalus noctula":
             SelectedSpecies = 6
+        if text == "Eptesicus serotinus (Multi)":
+            SelectedSpecies = 10
+        if text == "Pipistrellus pygmaeus (Multi)":
+            SelectedSpecies = 11
+        if text == "Myotis daubeutonii (Multi)":
+            SelectedSpecies = 12
+        if text == "Myotis dasycneme (Multi)":
+            SelectedSpecies = 13
+        if text == "Pipistrellus nathusii (Multi)":
+            SelectedSpecies = 14
+        if text == "Nyctalus noctula (Multi)":
+            SelectedSpecies = 15
         if text == "Other spicies":
             SelectedSpecies = 7
         if text == "Noise":
