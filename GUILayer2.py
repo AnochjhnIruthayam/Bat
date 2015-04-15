@@ -278,7 +278,12 @@ class StartQT4(QtGui.QMainWindow):
         self.classifier.goClassifer()
 
     def runBinaryClassifier(self):
-        self.classifierBinary.goClassifer()
+        self.classifierBinary.initClasissifer()
+        learningRate = [0.001, 0.001, 0.01, 0.01, 0.1, 0.1, 0.1]
+        momentum = [0.01, 0.001, 0.01, 0.001, 0.1, 0.01, 0.001]
+        for setting in range (0, len(learningRate)):
+            for i in range(0, 5):
+                self.classifierBinary.goClassifer(i, learningRate[setting], momentum[setting] )
 
 
     def getHDFInformation(self, paths):
