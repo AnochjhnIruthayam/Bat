@@ -275,7 +275,8 @@ class StartQT4(QtGui.QMainWindow):
                         self.resetRelease()
 
     def runClassifier(self):
-        self.classifier.goClassifer()
+        self.classifier.initClasissifer()
+        self.classifier.goClassifer(0, 0.001, 0.001)
 
     def runBinaryClassifier(self):
         self.classifierBinary.initClasissifer()
