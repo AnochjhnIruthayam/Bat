@@ -379,6 +379,7 @@ class BinaryClassifier():
         BatIDToAdd = [1, 2, 3, 5, 6, 10, 11, 12, 14]
         AmountPerSpecies = 30
         TraningDataAmount = 5000
+        toFile = False
 
         print "Adding Bat Events"
         myBat = 1
@@ -427,52 +428,108 @@ class BinaryClassifier():
         net = buildNetwork(trndata.indim, HiddenNeurons, trndata.outdim, bias=True, outclass=SoftmaxLayer)
         trainer = BackpropTrainer(net, dataset=trndata, momentum=momentum, learningrate=learningrate, verbose=True, weightdecay=weightdecay)
         print "Training data"
-        #filename = "InputN" + str(trndata.indim) + "HiddenN" + str(HiddenNeurons) + "OutputN" + str(trndata.outdim) + "Momentum"+ str(momentum) + "LearningRate" + str(learningrate) + "Weightdecay" + str(weightdecay)
-        filename = "ClassifierBinaryTest_" + str(iteration) +"_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
-        f = open(filename + ".txt", 'w')
-        value = "Added Bat Species: " + str(BatIDToAdd) + "\n"
-        f.write(value)
+        if toFile:
+            #filename = "InputN" + str(trndata.indim) + "HiddenN" + str(HiddenNeurons) + "OutputN" + str(trndata.outdim) + "Momentum"+ str(momentum) + "LearningRate" + str(learningrate) + "Weightdecay" + str(weightdecay)
+            filename = "ClassifierBinaryTest_" + str(iteration) +"_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
+            f = open(filename + ".txt", 'w')
+            value = "Added Bat Species: " + str(BatIDToAdd) + "\n"
+            f.write(value)
 
-        value = "Number of bat patterns: " + str(SAMPLE_SIZE) + "\n"
-        f.write(value)
+            value = "Number of bat patterns: " + str(SAMPLE_SIZE) + "\n"
+            f.write(value)
 
-        value = "Number of noise patterns: " + str(SAMPLE_SIZE) + "\n"
-        f.write(value)
+            value = "Number of noise patterns: " + str(SAMPLE_SIZE) + "\n"
+            f.write(value)
 
-        value = "Number of patterns per species: " + str(AmountPerSpecies) + "\n"
-        f.write(value)
+            value = "Number of patterns per species: " + str(AmountPerSpecies) + "\n"
+            f.write(value)
 
-        value = "Number of test data: " + str(TraningDataAmount) + "\n"
-        f.write(value)
+            value = "Number of test data: " + str(TraningDataAmount) + "\n"
+            f.write(value)
 
-        value = "Input, Hidden and output dimensions: " + str(trndata.indim) + ", " + str(HiddenNeurons) + ", " + str(trndata.outdim) + "\n"
-        f.write(value)
+            value = "Input, Hidden and output dimensions: " + str(trndata.indim) + ", " + str(HiddenNeurons) + ", " + str(trndata.outdim) + "\n"
+            f.write(value)
 
-        value = "Momentum: " + str(momentum) + "\n"
-        f.write(value)
+            value = "Momentum: " + str(momentum) + "\n"
+            f.write(value)
 
-        value = "Learning Rate: " + str(learningrate) + "\n"
-        f.write(value)
+            value = "Learning Rate: " + str(learningrate) + "\n"
+            f.write(value)
 
-        value = "Weight Decay: " + str(weightdecay) + "\n"
-        f.write(value)
+            value = "Weight Decay: " + str(weightdecay) + "\n"
+            f.write(value)
 
-        f.write("Input Activation function: Sigmoid function\n")
-        f.write("Hidden Activation function: Sigmoid function\n")
-        f.write("Output Activation function: Softmax function\n")
+            f.write("Input Activation function: Sigmoid function\n")
+            f.write("Hidden Activation function: Sigmoid function\n")
+            f.write("Output Activation function: Softmax function\n")
 
 
-        for i in range(0, 1000):
+        for i in range(0, 351):
             # Train one epoch
 
             trainer.trainEpochs(1)
-            averageError = trainer.testOnData(dataset=tstdata, verbose=False)
+            if toFile:
+                averageError = trainer.testOnData(dataset=tstdata, verbose=False)
 
             #"""procentError(out, true) return percentage of mismatch between out and target values (lists and arrays accepted) error= ((out - true)/true)*100"""
             trnresult = percentError(trainer.testOnClassData(), trndata['class'])
             tstresult = percentError(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
+
+            if trainer.totalepochs > 350:
+                self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
             #print("epoch: %4d" % trainer.totalepochs,"  train error: %5.2f%%" % trnresult,"  test error: %5.2f%%" % tstresult)
-            dataString = str(trainer.totalepochs) + ", " + str(averageError) + ", " + str(trnresult) + ", " + str(tstresult) + "\n"
-            f.write(dataString)
-        f.close()
+            if toFile:
+                dataString = str(trainer.totalepochs) + ", " + str(averageError) + ", " + str(trnresult) + ", " + str(tstresult) + "\n"
+                f.write(dataString)
+        if toFile:
+            f.close()
         print "Done training"
+
+
+    #Input: A list of the classifier output and the true target
+    #Method: calculates the correct ratio based on true and false negative and positive
+    #Output: A list of result: [TruePostive, TrueNegative, FalsePostive, FalseNegative, CorrectRatio, TrueBats, TrueNonBats]
+    def CorrectRatio(self, out, true):
+        TotalTest = len(out)
+        TruePostive = 0
+        TrueNegative = 0
+        FalsePostive = 0
+        FalseNegative = 0
+        TrueBats = 0
+        TrueNonBats = 0
+
+        for i in range(0,TotalTest):
+            if true[i] == 1 and out[i] == 1:
+                TruePostive += 1
+
+            if true[i] == 0 and out[i] == 0:
+                TrueNegative += 1
+
+            if true[i] == 1 and out[i] == 0:
+                FalsePostive += 1
+
+            if true[i] == 0 and out[i] == 1:
+                FalseNegative += 1
+
+            if true[i] == 1:
+                TrueBats += 1
+
+            if true[i] == 0:
+                TrueNonBats += 1
+
+        print "True Positive: " + str(TruePostive)
+        print "True Negative: " + str(TrueNegative)
+        print "False Positive: " + str(FalsePostive)
+        print "False Negative: " + str(FalseNegative)
+        print "True Bats: " + str(TrueBats)
+        print "True Non Bats: " + str(TrueNonBats)
+        CorrectRatio = float(TruePostive + TrueNegative) / float(TotalTest) * 100
+        print "Correct Ratio: " + str(CorrectRatio)
+        results = [TruePostive, TrueNegative, FalsePostive, FalseNegative, CorrectRatio, TrueBats, TrueNonBats]
+        return results
+
+
+
+
+
+
