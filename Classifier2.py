@@ -124,7 +124,7 @@ class Classifier():
                 # get data from path
                 data = self.HDFFile[path]
                 # as long as it is not other spice and something else;then add. Include all events and noise
-                if data.attrs["BatID"] != 7:
+                if data.attrs["BatID"] != 7 and data.attrs["BatID"] != 4 and data.attrs["BatID"] != 13 and data.attrs["BatID"] != 15:
                     BatID.append(data.attrs["BatID"])
                     pathcorr.append(path)
                     imgPath = temp[0] + "/" + temp[1] + "/" + temp[2] + "/" + temp[3] + "/" + temp[4] + "/" + "ArrayImgEvent"
@@ -384,30 +384,35 @@ class Classifier():
 
 
     def convertID(self, ID):
+
         if ID == 1:
             newID = 0
-        if ID == 2:
+        elif ID == 2:
             newID = 1
-        if ID == 3:
+        elif ID == 3:
             newID = 2
-        if ID == 5:
+        elif ID == 5:
             newID = 3
-        if ID == 6:
+        elif ID == 6:
             newID = 4
-        if ID == 10:
+        elif ID == 10:
             newID = 5
-        if ID == 11:
+        elif ID == 11:
             newID = 6
-        if ID == 12:
+        elif ID == 12:
             newID = 7
-        if ID == 14:
+        elif ID == 14:
             newID = 8
         #this is for noise
-        if ID == 8:
+        elif ID == 8:
             newID = 9
         #this is for something else
-        if ID == 9:
+        elif ID == 9:
             newID = 10
+        else:
+            print "Could not assign the ID " + str(ID) + " to newID"
+
+
         return  newID
 
     def goClassifer(self, iteration, learningrate, momentum):
@@ -470,8 +475,8 @@ class Classifier():
         print "Training data"
         if toFile:
             #filename = "InputN" + str(trndata.indim) + "HiddenN" + str(HiddenNeurons) + "OutputN" + str(trndata.outdim) + "Momentum"+ str(momentum) + "LearningRate" + str(learningrate) + "Weightdecay" + str(weightdecay)
-            filename = "ClassifierBinaryTest_" + str(iteration) +"_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
-            folderName = "ClassifierBinaryTest_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
+            filename = "ClassifierSpeciesTest_" + str(iteration) +"_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
+            folderName = "ClassifierSpeciesTest_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
             if not os.path.exists(folderName):
                 os.makedirs(folderName)
             f = open(folderName + "/"+ filename + ".txt", 'w')
@@ -520,13 +525,14 @@ class Classifier():
             tstresult = percentError(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
 
             if maxEpoch-1 == trainer.totalepochs:
-                results = self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
-                filename = "ClassifierBinaryTest_" + str(iteration) +"_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)+ "_CR"
-                folderName = "ClassifierBinaryTest_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
+                results, BatCount = self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
+                filename = "ClassifierSpeciesTest_" + str(iteration) +"_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)+ "_CR"
+                folderName = "ClassifierSpeciesTest_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
                 result_file = open(folderName + "/"+ filename + ".txt", 'w')
-                result_file.write("[TruePostive, TrueNegative, FalsePostive, FalseNegative, CorrectRatio, TrueBats, TrueNonBats]\n")
-                for result in results:
-                    result_file.write(str(result) + "\n")
+                result_file.write("[TruePositive, FalsePositive, CorrectRatio, BatCount]\n")
+                result_file.write("[Eptesicus sertinus (single call), pipstrellus pygmaeus (single call), myotis daubeutonii (single call), pipistrellus nathusii (single call), nycalus noctula (single call), Eptesicus sertinus (Multi Call), pipstrellus pygmaeus (Multi Call), myotis daubeutonii (Multi Call), pipistrellus nathusii (Multi Call), nycalus noctula (Multi Call)]\n")
+                result_file.write(str(results)+"\n")
+                result_file.write(str(BatCount))
                 result_file.close()
 
             print("epoch: %4d" % trainer.totalepochs,"  train error: %5.2f%%" % trnresult,"  test error: %5.2f%%" % tstresult)
@@ -539,42 +545,34 @@ class Classifier():
 
     #Input: A list of the classifier output and the true target
     #Method: calculates the correct ratio based on true and false negative and positive
-    #Output: A list of result: [TruePostive, TrueNegative, FalsePostive, FalseNegative, CorrectRatio, TrueBats, TrueNonBats]
+    #Output: A list of result: [TruePostive, FalsePostive, CorrectRatio], [BatCount]
     def CorrectRatio(self, out, true):
         TotalTest = len(out)
         TruePostive = 0
-        TrueNegative = 0
         FalsePostive = 0
-        FalseNegative = 0
         TrueBats = 0
         TrueNonBats = 0
 
+        BatCount = [0,0,0,0,0,0,0,0,0,0,0]
+
         for i in range(0,TotalTest):
-            if true[i] == 1 and out[i] == 1:
-                TruePostive += 1
+            for CBatID in range(0,11):
+                if out[i] == CBatID:
+                    BatCount[CBatID] += 1
+                    if true[i] == CBatID:
+                        TruePostive += 1
+                        break
+                    else:
+                        FalsePostive += 1
+                        break
 
-            if true[i] == 0 and out[i] == 0:
-                TrueNegative += 1
-
-            if true[i] == 1 and out[i] == 0:
-                FalsePostive += 1
-
-            if true[i] == 0 and out[i] == 1:
-                FalseNegative += 1
-
-            if true[i] == 1:
-                TrueBats += 1
-
-            if true[i] == 0:
-                TrueNonBats += 1
 
         print "True Positive: " + str(TruePostive)
-        print "True Negative: " + str(TrueNegative)
         print "False Positive: " + str(FalsePostive)
-        print "False Negative: " + str(FalseNegative)
         print "True Bats: " + str(TrueBats)
         print "True Non Bats: " + str(TrueNonBats)
-        CorrectRatio = float(TruePostive + TrueNegative) / float(TotalTest) * 100
+        CorrectRatio = float(TruePostive) / float(TotalTest) * 100
         print "Correct Ratio: " + str(CorrectRatio)
-        results = [TruePostive, TrueNegative, FalsePostive, FalseNegative, CorrectRatio, TrueBats, TrueNonBats]
-        return results
+        print BatCount
+        results = [TruePostive, FalsePostive, CorrectRatio]
+        return results, BatCount
