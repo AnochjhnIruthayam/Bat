@@ -25,7 +25,7 @@ def imageRecontructFromHDF5(ArrayDataImg):
 
     return image_3d
 
-def eventHDFLabel(eventName, minMiliSec_pixel, maxFreq_pixel, maxMiliSec_pixel, minFreq_pixel, savePath, eventNum, OutputDirectory, imgSpectrogram, imgMarkedSpectrogram, imgEvent, recordedAt):
+def eventHDFLabel(eventName, minMiliSec_pixel, maxFreq_pixel, maxMiliSec_pixel, minFreq_pixel, savePath, eventNum, OutputDirectory, imgSpectrogram, imgMarkedSpectrogram, imgEvent, recordedAt, projectName):
     SAVE_ITERATION = 10
     myHDFFile = OutputDirectory + "/BatData.hdf5"
     f = h5py.File(myHDFFile)
@@ -84,6 +84,8 @@ def eventHDFLabel(eventName, minMiliSec_pixel, maxFreq_pixel, maxMiliSec_pixel, 
         #day,month,year,hour,min,sec = ee.get_time_for_modified_files(currentfile)
         timeName = hour + ":" + min + ":" + sec
         DirectoryString = year + "/" + month + "/" + day + "/" + timeName + "_" + offset
+        DirectoryString = projectName + "/" + recordedAt + "/" + year + "/" + month + "/" + day + "/" + timeName + "_" + offset
+
         e = DirectoryString in f
 
         if not e:

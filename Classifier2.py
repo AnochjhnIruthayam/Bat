@@ -21,7 +21,6 @@ def tokFreq(freqPixel):
 
 class Classifier():
     def __init__(self):
-
         self.pathEventList = []
         self.HDFFile = h5py
         self.Bat = BS.BatSpecies()
@@ -42,11 +41,14 @@ class Classifier():
         BatID = []
         for path in paths:
             temp = re.split('/', path)
-            # if there are 5 elements in the array, means that this one has an event
-            if len(temp) == 6 and temp[5] == "FeatureDataEvent":
+            index = 7
+            length = 8
+            if len(temp) == length and temp[index] == "FeatureDataEvent":
                 data = self.HDFFile[path]
                 #Exclude certain classes/groups 4 because not enough data,
-                if data.attrs["BatID"] != 0 and data.attrs["BatID"] != 4 and data.attrs["BatID"] != 7 and data.attrs["BatID"] != 8 and data.attrs["BatID"] != 9 and data.attrs["BatID"] != 10 and data.attrs["BatID"] != 11 and data.attrs["BatID"] != 12 and data.attrs["BatID"] != 13 and data.attrs["BatID"] != 14 and data.attrs["BatID"] != 15:
+                #if data.attrs["BatID"] != 0 and data.attrs["BatID"] != 4 and data.attrs["BatID"] != 7 and data.attrs["BatID"] != 8 and data.attrs["BatID"] != 9 and data.attrs["BatID"] != 10 and data.attrs["BatID"] != 11 and data.attrs["BatID"] != 12 and data.attrs["BatID"] != 13 and data.attrs["BatID"] != 14 and data.attrs["BatID"] != 15:
+                # We are NOT including 0: not classified, 4: too low data, 13: too low data, 15: too low data, 7: opther species
+                if data.attrs["BatID"] != 0 and data.attrs["BatID"] != 4 and data.attrs["BatID"] != 13 and data.attrs["BatID"] != 15 and data.attrs["BatID"] != 7:
                     BatID.append(data.attrs["BatID"])
                     pathcorr.append(path)
                     imgPath = temp[0] + "/" + temp[1] + "/" + temp[2] + "/" + temp[3] + "/" + temp[4] + "/" + "ArrayImgEvent"
@@ -62,12 +64,13 @@ class Classifier():
         pathcorrImg = []
         for path in paths:
             temp = re.split('/', path)
-            # if there are 5 elements in the array, means that this one has an event
-            if len(temp) == 6 and temp[5] == "FeatureDataEvent":
+            index = 7
+            length = 8
+            if len(temp) == length and temp[index] == "FeatureDataEvent":
                 # get data from path
                 data = self.HDFFile[path]
                 # as long as it is not other spices, noise and something else;then add, include all events
-                if data.attrs["BatID"] != 7 and data.attrs["BatID"] != 8 and data.attrs["BatID"] != 9:
+                if data.attrs["BatID"] != 0 and data.attrs["BatID"] != 7 and data.attrs["BatID"] != 8 and data.attrs["BatID"] != 9:
                     pathcorr.append(path)
                     imgPath = temp[0] + "/" + temp[1] + "/" + temp[2] + "/" + temp[3] + "/" + temp[4] + "/" + "ArrayImgEvent"
                     pathcorrImg.append(imgPath)
@@ -79,8 +82,9 @@ class Classifier():
         pathcorrImg = []
         for path in paths:
             temp = re.split('/', path)
-            # if there are 5 elements in the array, means that this one has an event
-            if len(temp) == 6 and temp[5] == "FeatureDataEvent":
+            index = 7
+            length = 8
+            if len(temp) == length and temp[index] == "FeatureDataEvent":
                 #get data from path
                 data = self.HDFFile[path]
                 if data.attrs["BatID"] == BatID:
@@ -98,8 +102,9 @@ class Classifier():
         BatID = []
         for path in paths:
             temp = re.split('/', path)
-            # if there are 5 elements in the array, means that this one has an event
-            if len(temp) == 6 and temp[5] == "FeatureDataEvent":
+            index = 7
+            length = 8
+            if len(temp) == length and temp[index] == "FeatureDataEvent":
                 # get data from path
                 data = self.HDFFile[path]
                 # as long as it is not other spices, noise and something else;then add, include all events
@@ -119,12 +124,13 @@ class Classifier():
         BatID = []
         for path in paths:
             temp = re.split('/', path)
-            # if there are 5 elements in the array, means that this one has an event
-            if len(temp) == 6 and temp[5] == "FeatureDataEvent":
+            index = 7
+            length = 8
+            if len(temp) == length and temp[index] == "FeatureDataEvent":
                 # get data from path
                 data = self.HDFFile[path]
                 # as long as it is not other spice and something else;then add. Include all events and noise
-                if data.attrs["BatID"] != 7 and data.attrs["BatID"] != 4 and data.attrs["BatID"] != 13 and data.attrs["BatID"] != 15:
+                if data.attrs["BatID"] != 7 and data.attrs["BatID"] != 4 and data.attrs["BatID"] != 13 and data.attrs["BatID"] != 15:# and data.attrs["BatID"] != 9 and data.attrs["BatID"] != 8:
                     BatID.append(data.attrs["BatID"])
                     pathcorr.append(path)
                     imgPath = temp[0] + "/" + temp[1] + "/" + temp[2] + "/" + temp[3] + "/" + temp[4] + "/" + "ArrayImgEvent"
@@ -186,6 +192,7 @@ class Classifier():
 
         return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, target
 
+    #Output: returns list random picked test data (features)
     def getDistrubedTestData(self, amount):
         minFreq = []
         maxFreq = []
@@ -240,6 +247,7 @@ class Classifier():
 
         return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, target
 
+    #Adds all the needed species in one
     def getTrainingSpeciesDistributedData(self, BatIDToAdd, AmountPerSpecies):
         minFreq = []
         maxFreq = []
@@ -260,6 +268,7 @@ class Classifier():
             print "BatID: " + str(BatSpecies)
 
             minFreqTemp, maxFreqTemp, DurantionTemp, fl1Temp, fl2Temp, fl3Temp, fl4Temp, fl5Temp, fl6Temp, fl7Temp, fl8Temp, fl9Temp, fl10Temp= self.getTrainingDistributedData(AmountPerSpecies, BatSpecies)
+            #minFreqTemp, maxFreqTemp, DurantionTemp, fl1Temp, fl2Temp, fl3Temp, fl4Temp, fl5Temp, fl6Temp, fl7Temp, fl8Temp, fl9Temp, fl10Temp= self.getTrainingSequenceData(AmountPerSpecies, BatSpecies)
             for i in range(0,len(minFreqTemp)):
                 minFreq.append(minFreqTemp[i])
                 maxFreq.append(maxFreqTemp[i])
@@ -278,6 +287,7 @@ class Classifier():
 
         return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, target
 
+    #Output: returns list of traning feautures in a random order
     def getTrainingDistributedData(self, amount, BatID):
         minFreq = []
         maxFreq = []
@@ -298,6 +308,58 @@ class Classifier():
         randomPathIterator = random.sample(xrange(0,EventSize-1), amount)
         currentEvent = 0
         for i in randomPathIterator:
+            data = self.HDFFile[pathcorr[i]]
+            minFreq.append(tokFreq(data[0]))
+            maxFreq.append(tokFreq(data[1]))
+            Durantion.append(toTime(abs(data[2]-data[3])))
+            pix0 = data[4]
+            pix1 = data[5]
+            pix2 = data[6]
+            pix3 = data[7]
+            pix4 = data[8]
+            pix5 = data[9]
+            pix6 = data[10]
+            pix7 = data[11]
+            pix8 = data[12]
+            pix9 = data[13]
+            pix10 = data[14]
+
+            # Calculate the difference from previous point
+            fl1.append(toTime(pix1)-toTime(pix0))
+            fl2.append(toTime(pix2)-toTime(pix1))
+            fl3.append(toTime(pix3)-toTime(pix2))
+            fl4.append(toTime(pix4)-toTime(pix3))
+            fl5.append(toTime(pix5)-toTime(pix4))
+            fl6.append(toTime(pix6)-toTime(pix5))
+            fl7.append(toTime(pix7)-toTime(pix6))
+            fl8.append(toTime(pix8)-toTime(pix7))
+            fl9.append(toTime(pix9)-toTime(pix8))
+            fl10.append(toTime(pix10)-toTime(pix9))
+
+
+        return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10
+
+    #Output: returns list of traning feautures in a sequence
+    def getTrainingSequenceData(self, amount, BatID):
+        minFreq = []
+        maxFreq = []
+        Durantion = []
+        fl1 = []
+        fl2 = []
+        fl3 = []
+        fl4 = []
+        fl5 = []
+        fl6 = []
+        fl7 = []
+        fl8 = []
+        fl9 = []
+        fl10 = []
+
+        pathcorr, pathcorrImg = self.getSpecificHDFInformation(self.pathEventList, BatID)
+        EventSize = len(pathcorr)
+        #randomPathIterator = random.sample(xrange(0,EventSize-1), amount)
+        #currentEvent = 0
+        for i in range(0,amount):
             data = self.HDFFile[pathcorr[i]]
             minFreq.append(tokFreq(data[0]))
             maxFreq.append(tokFreq(data[1]))
@@ -416,6 +478,7 @@ class Classifier():
         return  newID
 
     def goClassifer(self, iteration, learningrate, momentum):
+        print "Iteration Count: " + str(iteration)
         #Set up Classicication Data, 4 input, output is a one dim. and 2 possible outcome or two possible classes
         trndata = ClassificationDataSet(13, nb_classes=11)
         tstdata = ClassificationDataSet(13, nb_classes=11)
@@ -442,7 +505,7 @@ class Classifier():
         print "Adding something else events"
         SomethingElseID = 9
         minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10 = self.getDistributedData(AmountPerSpecies, SomethingElseID)
-        SAMPLE_SIZE = len(minFreq)
+        AMPLE_SIZE = len(minFreq)
         for i in range (0, SAMPLE_SIZE):
             trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i] ], [self.convertID(SomethingElseID)])
 
@@ -475,8 +538,9 @@ class Classifier():
         print "Training data"
         if toFile:
             #filename = "InputN" + str(trndata.indim) + "HiddenN" + str(HiddenNeurons) + "OutputN" + str(trndata.outdim) + "Momentum"+ str(momentum) + "LearningRate" + str(learningrate) + "Weightdecay" + str(weightdecay)
+            root = "/home/anoch/Dropbox/SDU/10 Semester/MSc Project/Data Results/Master/BinarySpeciesTestMSE/"
             filename = "ClassifierSpeciesTest_" + str(iteration) +"_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
-            folderName = "ClassifierSpeciesTest_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
+            folderName = root + "ClassifierSpeciesTest_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
             if not os.path.exists(folderName):
                 os.makedirs(folderName)
             f = open(folderName + "/"+ filename + ".txt", 'w')
@@ -512,7 +576,7 @@ class Classifier():
             f.write("Hidden Activation function: Sigmoid function\n")
             f.write("Output Activation function: Softmax function\n")
 
-        maxEpoch = 2
+        maxEpoch = 1000
         for i in range(0,maxEpoch):
             # Train one epoch
             trainer.trainEpochs(1)
@@ -523,17 +587,17 @@ class Classifier():
             #"""procentError(out, true) return percentage of mismatch between out and target values (lists and arrays accepted) error= ((out - true)/true)*100"""
             trnresult = percentError(trainer.testOnClassData(), trndata['class'])
             tstresult = percentError(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
-
-            if maxEpoch-1 == trainer.totalepochs:
-                results, BatCount = self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
-                filename = "ClassifierSpeciesTest_" + str(iteration) +"_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)+ "_CR"
-                folderName = "ClassifierSpeciesTest_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
-                result_file = open(folderName + "/"+ filename + ".txt", 'w')
-                result_file.write("[TruePositive, FalsePositive, CorrectRatio, BatCount]\n")
-                result_file.write("[Eptesicus sertinus (single call), pipstrellus pygmaeus (single call), myotis daubeutonii (single call), pipistrellus nathusii (single call), nycalus noctula (single call), Eptesicus sertinus (Multi Call), pipstrellus pygmaeus (Multi Call), myotis daubeutonii (Multi Call), pipistrellus nathusii (Multi Call), nycalus noctula (Multi Call)]\n")
-                result_file.write(str(results)+"\n")
-                result_file.write(str(BatCount))
-                result_file.close()
+            if toFile:
+                if maxEpoch-1 == trainer.totalepochs:
+                    results, BatCount = self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
+                    filename = "ClassifierSpeciesTest_" + str(iteration) +"_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)+ "_CR"
+                    folderName = root + "ClassifierSpeciesTest_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
+                    result_file = open(folderName + "/"+ filename + ".txt", 'w')
+                    result_file.write("[TruePositive, FalsePositive, CorrectRatio, BatCount]\n")
+                    result_file.write("[Eptesicus sertinus (single call), pipstrellus pygmaeus (single call), myotis daubeutonii (single call), pipistrellus nathusii (single call), nycalus noctula (single call), Eptesicus sertinus (Multi Call), pipstrellus pygmaeus (Multi Call), myotis daubeutonii (Multi Call), pipistrellus nathusii (Multi Call), nycalus noctula (Multi Call)]\n")
+                    result_file.write(str(results)+"\n")
+                    result_file.write(str(BatCount))
+                    result_file.close()
 
             print("epoch: %4d" % trainer.totalepochs,"  train error: %5.2f%%" % trnresult,"  test error: %5.2f%%" % tstresult)
             if toFile:

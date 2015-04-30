@@ -6,7 +6,7 @@ from PyQt4 import QtCore, QtGui
 from BatWindow import Ui_BatWindow
 import EventExtraction, os, getFunctions, time
 import h5py, re
-import Classifier2, ClassifierBinary
+import Classifier2, ClassifierBinary, Classifier3, HDF5Handler, cv2
 
 def toTime(timePixel):
     imageLength = 5000.0
@@ -52,6 +52,10 @@ class StartQT4(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.button_classifier_run, QtCore.SIGNAL("clicked()"), self.runClassifier)
         QtCore.QObject.connect(self.ui.button_classifier_run_binary, QtCore.SIGNAL("clicked()"), self.runBinaryClassifier)
 
+        QtCore.QObject.connect(self.ui.button_loaddatabaseReconstruct, QtCore.SIGNAL("clicked()"), self.file_dialog2)
+        QtCore.QObject.connect(self.ui.pushButton_SetOutputDirectory_Reconstruct, QtCore.SIGNAL("clicked()"), self.setOutputDirectory)
+        QtCore.QObject.connect(self.ui.button_Recontructor, QtCore.SIGNAL("clicked()"), self.imageRecontructor)
+
         #QtCore.QObject.connect(self.ui.progressBar)
         self.HDFFile = h5py
         self.EventSize = 0
@@ -71,8 +75,9 @@ class StartQT4(QtGui.QMainWindow):
         self.ui.label_outputDirectory.setText(self.OutputDirectory)
         self.ui.label_inputDirectory.setText(self.InputDirectory)
         self.classifier = Classifier2.Classifier()
+        self.classifier3 = Classifier3.Classifier()
         self.classifierBinary = ClassifierBinary.BinaryClassifier()
-
+        self.ui.button_OtherSpecies.hide()
         if self.ui.checkBox_scaledZoom.isChecked():
             self.ZoomInParameter = 1
         else:
@@ -274,23 +279,38 @@ class StartQT4(QtGui.QMainWindow):
                     if QKeyEvent.key() == 77:
                         self.resetRelease()
 
+    def imageRecontructor(self):
+        if self.ui.tabWidget.currentIndex() == 3:
+            day, month, year, file, eventno, pathcorr = self.getHDFInformationRecontructImage(self.pathEventList, 1)
+            max = len(pathcorr)
+            for i in range(0, max):
+                Imgdata = self.HDFFile[pathcorr[i]]
+                image = HDF5Handler.imageRecontructFromHDF5(Imgdata)
+                cv2.imwrite(self.OutputDirectory + "/Spectrogram/" + file[i] + ".png", image)
+
     def runClassifier(self):
         self.classifier.initClasissifer()
-        self.classifier.goClassifer(0, 0.001, 0.001)
+        self.classifier.goClassifer(0, 0.001, 0.01)
+        #self.classifier3.goClassifer()
 
     def runBinaryClassifier(self):
+
+        learningRate    = [0.001, 0.001, 0.001, 0.01, 0.01, 0.01, 0.1, 0.1, 0.1]
+        momentum        = [0.001, 0.01, 0.1, 0.001, 0.01, 0.1, 0.001, 0.01, 0.1]
         self.classifierBinary.initClasissifer()
-        self.classifierBinary.goClassifer(0, 0.001, 0.001)
+        self.classifierBinary.goClassifer(0, 0.001, 0.100)
+        #self.classifierBinary.initClasissifer()
+        #for setting in range (2, len(learningRate)):
+        #    for i in range(0, 6):
+        #        self.classifierBinary.goClassifer(i, learningRate[setting], momentum[setting] )
         """
-        learningRate = [0.001, 0.001, 0.01, 0.01, 0.1, 0.1, 0.1]
-        momentum = [0.01, 0.001, 0.01, 0.001, 0.1, 0.01, 0.001]
-        for setting in range (0, len(learningRate)):
+        self.classifier.initClasissifer()
+        for setting in range (4, len(learningRate)):
             for i in range(0, 5):
-                self.classifierBinary.goClassifer(i, learningRate[setting], momentum[setting] )
+                self.classifier.goClassifer(i, learningRate[setting], momentum[setting] )
         """
 
-
-    def getHDFInformation(self, paths):
+    def getHDFInformationRecontructImage(self, paths, imgType):
         day = []
         month = []
         year = []
@@ -300,11 +320,23 @@ class StartQT4(QtGui.QMainWindow):
         for path in paths:
             temp = re.split('/', path)
             # if there are 5 elements in the array, means that this one has an event
-            if len(temp) == 6 and temp[5] == "FeatureDataEvent":
+            if imgType == 1:
+                lookFor = "ArrayImgSpectrogram"
+                index = 4
+                length = 5
+            if imgType == 2:
+                lookFor = "ArrayImgMarkedSpectrogram"
+                index = 4
+                length = 5
+            if imgType == 3:
+                lookFor = "ArrayImgEvent"
+                index = 5
+                length = 6
+            if len(temp) == length and temp[index] == lookFor:
                 #get data from path
-                year.append(temp[0])
-                month.append(temp[1])
-                day.append(temp[2])
+                year.append(temp[2])
+                month.append(temp[3])
+                day.append(temp[4])
                 data = self.HDFFile[path]
                 hour = str(data.attrs["Hour"])
                 minute = str(data.attrs["Minute"])
@@ -317,17 +349,61 @@ class StartQT4(QtGui.QMainWindow):
                     minute = "0" + minute
                 if len(second) == 1:
                     second = "0" + second
-                tempOffset = re.split('_', temp[3])
+                tempOffset = re.split('_', temp[5])
                 offset = tempOffset[1]
                 #if len(offset) != 20:
                 #    for i in range(0,20):
                 #        offset = "0" + offset
                 #        if len(offset) == 20:
                 #            break
-                filename = "date_" + temp[2] + "_" + temp[1] + "_" + temp[0] + "_time_" + hour + "_" + minute + "_" + second +"_ch_" + channel +  "_offset_" + offset
+                filename = "date_" + temp[4] + "_" + temp[3] + "_" + temp[2] + "_time_" + hour + "_" + minute + "_" + second +"_ch_" + channel +  "_offset_" + offset
                 file.append(filename)
                 #file.append(temp[3])
-                eventnoTemp = re.split('_',temp[4])
+                eventnoTemp = re.split('_',temp[6])
+                eventno.append(eventnoTemp[1])
+                pathcorr.append(path)
+
+        return day, month, year, file, eventno, pathcorr
+
+    def getHDFInformation(self, paths):
+        day = []
+        month = []
+        year = []
+        file = []
+        pathcorr = []
+        eventno = []
+        for path in paths:
+            temp = re.split('/', path)
+            index = 7
+            length = 8
+            if len(temp) == length and temp[index] == "FeatureDataEvent":
+                #get data from path
+                year.append(temp[2])
+                month.append(temp[3])
+                day.append(temp[4])
+                data = self.HDFFile[path]
+                hour = str(data.attrs["Hour"])
+                minute = str(data.attrs["Minute"])
+                second = str(data.attrs["Second"])
+                #offset = str(data.attrs["Offset"])
+                channel = str(data.attrs["Recording Channel"])
+                if len(hour) == 1:
+                    hour = "0" + hour
+                if len(minute) == 1:
+                    minute = "0" + minute
+                if len(second) == 1:
+                    second = "0" + second
+                tempOffset = re.split('_', temp[5])
+                offset = tempOffset[1]
+                #if len(offset) != 20:
+                #    for i in range(0,20):
+                #        offset = "0" + offset
+                #        if len(offset) == 20:
+                #            break
+                filename = "date_" + temp[4] + "_" + temp[3] + "_" + temp[2] + "_time_" + hour + "_" + minute + "_" + second +"_ch_" + channel +  "_offset_" + offset
+                file.append(filename)
+                #file.append(temp[3])
+                eventnoTemp = re.split('_',temp[6])
                 eventno.append(eventnoTemp[1])
                 pathcorr.append(path)
 
@@ -342,14 +418,15 @@ class StartQT4(QtGui.QMainWindow):
         eventno = []
         for path in paths:
             temp = re.split('/', path)
-            # if there are 5 elements in the array, means that this one has an event
-            if len(temp) == 6 and temp[5] == "FeatureDataEvent":
+            index = 7
+            length = 8
+            if len(temp) == length and temp[index] == "FeatureDataEvent":
                 #get data from path
                 data = self.HDFFile[path]
                 if data.attrs["BatID"] == BatID:
-                    year.append(temp[0])
-                    month.append(temp[1])
-                    day.append(temp[2])
+                    year.append(temp[2])
+                    month.append(temp[3])
+                    day.append(temp[4])
                     hour = str(data.attrs["Hour"])
                     minute = str(data.attrs["Minute"])
                     second = str(data.attrs["Second"])
@@ -361,17 +438,17 @@ class StartQT4(QtGui.QMainWindow):
                         minute = "0" + minute
                     if len(second) == 1:
                         second = "0" + second
-                    tempOffset = re.split('_', temp[3])
+                    tempOffset = re.split('_', temp[5])
                     offset = tempOffset[1]
                     #if len(offset) != 20:
                     #    for i in range(0,20):
                     #        offset = "0" + offset
                     #        if len(offset) == 20:
                     #            break
-                    filename = "date_" + temp[2] + "_" + temp[1] + "_" + temp[0] + "_time_" + hour + "_" + minute + "_" + second +"_ch_" + channel +  "_offset_" + offset
+                    filename = "date_" + temp[4] + "_" + temp[3] + "_" + temp[2] + "_time_" + hour + "_" + minute + "_" + second +"_ch_" + channel +  "_offset_" + offset
                     file.append(filename)
                     #file.append(temp[3])
-                    eventnoTemp = re.split('_',temp[4])
+                    eventnoTemp = re.split('_',temp[6])
                     eventno.append(eventnoTemp[1])
                     pathcorr.append(path)
 
@@ -379,7 +456,26 @@ class StartQT4(QtGui.QMainWindow):
 
     def setEventImage(self, event, eventno):
         root = self.OutputDirectory + "/SpectrogramMarked/"
-        path  = root + event + "/Event" + eventno + ".png"
+        pathTemp  = root + event + "/Event" + eventno + ".png"
+        from os.path import isfile
+        if isfile(pathTemp):
+            path = pathTemp
+        else:
+            #get one hour UP
+            TimeTemp = re.split('_', event)
+            hour = int(TimeTemp[5]) + 1
+            strHour = str(hour)
+            newEvent = TimeTemp[0] + "_" + TimeTemp[1] + "_" + TimeTemp[2] + "_" + TimeTemp[3] + "_" + TimeTemp[4] + "_" + strHour + "_" + TimeTemp[6] + "_" + TimeTemp[7] + "_" + TimeTemp[8] + "_" + TimeTemp[9] + "_" + TimeTemp[10] + "_" + TimeTemp[11]
+            pathTemp  = root + newEvent + "/Event" + eventno + ".png"
+            if isfile(pathTemp):
+                path = pathTemp
+            else:
+                # Get one hour DOWN
+                TimeTemp = re.split('_', event)
+                hour = int(TimeTemp[5]) - 1
+                strHour = str(hour)
+                newEvent = TimeTemp[0] + "_" + TimeTemp[1] + "_" + TimeTemp[2] + "_" + TimeTemp[3] + "_" + TimeTemp[4] + "_" + strHour + "_" + TimeTemp[6] + "_" + TimeTemp[7] + "_" + TimeTemp[8] + "_" + TimeTemp[9] + "_" + TimeTemp[10] + "_" + TimeTemp[11]
+                path  = root + newEvent + "/Event" + eventno + ".png"
         eventImage = QtGui.QPixmap(path)
         if self.ZoomInParameter == 1:
             scaledEventImage = eventImage.scaled(self.ui.label_imageshow.size(), QtCore.Qt.KeepAspectRatio)
@@ -626,7 +722,28 @@ class StartQT4(QtGui.QMainWindow):
 
     def setBrowserEventImage(self, event, eventno):
         root = self.OutputDirectory + "/SpectrogramMarked/"
-        path  = root + event + "/Event" + eventno + ".png"
+        pathTemp  = root + event + "/Event" + eventno + ".png"
+        from os.path import isfile
+        if isfile(pathTemp):
+            path = pathTemp
+        else:
+            #get one hour UP
+            TimeTemp = re.split('_', event)
+            hour = int(TimeTemp[5]) + 1
+            strHour = str(hour)
+            newEvent = TimeTemp[0] + "_" + TimeTemp[1] + "_" + TimeTemp[2] + "_" + TimeTemp[3] + "_" + TimeTemp[4] + "_" + strHour + "_" + TimeTemp[6] + "_" + TimeTemp[7] + "_" + TimeTemp[8] + "_" + TimeTemp[9] + "_" + TimeTemp[10] + "_" + TimeTemp[11]
+            pathTemp  = root + newEvent + "/Event" + eventno + ".png"
+            if isfile(pathTemp):
+                path = pathTemp
+            else:
+                # Get one hour DOWN
+                TimeTemp = re.split('_', event)
+                hour = int(TimeTemp[5]) - 1
+                strHour = str(hour)
+                newEvent = TimeTemp[0] + "_" + TimeTemp[1] + "_" + TimeTemp[2] + "_" + TimeTemp[3] + "_" + TimeTemp[4] + "_" + strHour + "_" + TimeTemp[6] + "_" + TimeTemp[7] + "_" + TimeTemp[8] + "_" + TimeTemp[9] + "_" + TimeTemp[10] + "_" + TimeTemp[11]
+                path  = root + newEvent + "/Event" + eventno + ".png"
+
+        eventImage = QtGui.QPixmap(path)
         eventImage = QtGui.QPixmap(path)
         self.ui.label_imageshow_browser.setPixmap(eventImage)
 
@@ -662,6 +779,17 @@ class StartQT4(QtGui.QMainWindow):
         self.ui.label_FrontLine_32.setText(str(data[13]))
         self.ui.label_FrontLine_33.setText(str(data[14]))
 
+    def file_dialog2(self):
+        filepath = QtGui.QFileDialog.getOpenFileName(self,"Open HDF5 File",'', "HDF5 Files (*.hdf5 *.h5)")
+
+        from os.path import isfile
+        if isfile(filepath):
+
+            self.HDFFile = h5py.File(str(filepath))
+            self.HDFFile.visit(self.saveEventPath)
+        else:
+            self.ui.textEdit_overview_Recontructor.setText("None selected")
+
     def file_dialog(self):
         self.filepath = QtGui.QFileDialog.getOpenFileName(self, "Open HDF5 File",'', "HDF5 Files (*.hdf5 *.h5)")
 
@@ -684,6 +812,7 @@ class StartQT4(QtGui.QMainWindow):
             self.ui.label_outputDirectory.setText(self.OutputDirectory)
             self.ui.label_database_name.setText(thisFile)
             self.ui.frame_BatButtons.show()
+            self.ui.button_OtherSpecies.hide()
             self.scanForNextEvent()
             self.updateEventInfomation()
         else:
@@ -722,6 +851,7 @@ class StartQT4(QtGui.QMainWindow):
         rootpath = self.OutputDirectory
 
         recordedAt = str(self.ui.lineEdit_recordedAt.text())
+        projectName = str(self.ui.lineEdit_projectName.text())
 
         SearchPath = rootpath + "/Spectrogram/"
         SavePath = rootpath + "/SpectrogramMarked/"
@@ -737,7 +867,7 @@ class StartQT4(QtGui.QMainWindow):
             for eventFile in sampleList:
                 self.ui.textEdit_overview.setText("Analyzing " + os.path.splitext((eventFile))[0] + "\n")
                 self.ui.label_FilesFoundProgress.setText(str(progressCount) + " out of " + str(maxSize))
-                EventExtraction.findEvent(self.OutputDirectory, eventFile, recordedAt)
+                EventExtraction.findEvent(self.OutputDirectory, eventFile, recordedAt, projectName)
                 progressCount += 1
                 self.ui.progressBar_analyse.setValue(progressCount)
             self.ui.textEdit_overview.setText("Event extraction done!")

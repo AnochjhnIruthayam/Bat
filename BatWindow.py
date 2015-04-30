@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'BatWindow.ui'
 #
-# Created: Thu Apr  9 19:30:25 2015
+# Created: Thu Apr 30 11:10:21 2015
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -140,6 +140,16 @@ class Ui_BatWindow(object):
         self.label_FilesFoundProgress = QtGui.QLabel(self.tab_analyze)
         self.label_FilesFoundProgress.setGeometry(QtCore.QRect(560, 430, 271, 17))
         self.label_FilesFoundProgress.setObjectName(_fromUtf8("label_FilesFoundProgress"))
+        self.label_ProjectName = QtGui.QLabel(self.tab_analyze)
+        self.label_ProjectName.setGeometry(QtCore.QRect(660, 790, 101, 20))
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        self.label_ProjectName.setFont(font)
+        self.label_ProjectName.setObjectName(_fromUtf8("label_ProjectName"))
+        self.lineEdit_projectName = QtGui.QLineEdit(self.tab_analyze)
+        self.lineEdit_projectName.setGeometry(QtCore.QRect(770, 790, 171, 27))
+        self.lineEdit_projectName.setObjectName(_fromUtf8("lineEdit_projectName"))
         self.tabWidget.addTab(self.tab_analyze, _fromUtf8(""))
         self.tab_label_species = QtGui.QWidget()
         self.tab_label_species.setObjectName(_fromUtf8("tab_label_species"))
@@ -495,10 +505,11 @@ class Ui_BatWindow(object):
         self.button_PipistrellusPygmaeus.setGeometry(QtCore.QRect(180, 120, 181, 41))
         self.button_PipistrellusPygmaeus.setObjectName(_fromUtf8("button_PipistrellusPygmaeus"))
         self.button_OtherSpecies = QtGui.QPushButton(self.frame_BatButtons)
+        self.button_OtherSpecies.setEnabled(True)
         self.button_OtherSpecies.setGeometry(QtCore.QRect(380, 190, 161, 41))
         self.button_OtherSpecies.setObjectName(_fromUtf8("button_OtherSpecies"))
         self.button_SomethingElse = QtGui.QPushButton(self.frame_BatButtons)
-        self.button_SomethingElse.setGeometry(QtCore.QRect(570, 190, 161, 41))
+        self.button_SomethingElse.setGeometry(QtCore.QRect(570, 260, 161, 41))
         self.button_SomethingElse.setObjectName(_fromUtf8("button_SomethingElse"))
         self.progressBar_eventLabel = QtGui.QProgressBar(self.tab_label_species)
         self.progressBar_eventLabel.setGeometry(QtCore.QRect(27, 570, 821, 23))
@@ -879,6 +890,7 @@ class Ui_BatWindow(object):
         self.button_loaddatabase_labelCall.setObjectName(_fromUtf8("button_loaddatabase_labelCall"))
         self.tabWidget.addTab(self.tab_label_call, _fromUtf8(""))
         self.tab_reconstructor = QtGui.QWidget()
+        self.tab_reconstructor.setEnabled(True)
         self.tab_reconstructor.setObjectName(_fromUtf8("tab_reconstructor"))
         self.label_Const_Recontructor = QtGui.QLabel(self.tab_reconstructor)
         self.label_Const_Recontructor.setGeometry(QtCore.QRect(20, 10, 1031, 61))
@@ -1297,7 +1309,7 @@ class Ui_BatWindow(object):
         BatWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(BatWindow)
-        self.tabWidget.setCurrentIndex(5)
+        self.tabWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(BatWindow)
 
     def retranslateUi(self, BatWindow):
@@ -1321,6 +1333,8 @@ class Ui_BatWindow(object):
         self.lineEdit_recordedAt.setText(_translate("BatWindow", "MMMI at SDU", None))
         self.label_ConstFilesFound.setText(_translate("BatWindow", "Progress:", None))
         self.label_FilesFoundProgress.setText(_translate("BatWindow", "0", None))
+        self.label_ProjectName.setText(_translate("BatWindow", "Project Name:", None))
+        self.lineEdit_projectName.setText(_translate("BatWindow", "BatProject", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_analyze), _translate("BatWindow", "Analyze", None))
         self.button_loaddatabase.setText(_translate("BatWindow", "Load Database", None))
         self.label_database_name.setText(_translate("BatWindow", "No Database Selected", None))

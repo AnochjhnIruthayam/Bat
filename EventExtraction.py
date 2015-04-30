@@ -147,9 +147,11 @@ def bestFit(imgEventPath):
         for mEventX in range (firstX, getWidth):
             if imgEvent.item(mEventY,mEventX) > threshold:
                 #mEvent condition check to remove noise by only looking at the first part of the divided image
+                #If X has nothing in the list and the scanner is over half of the image
                 if len(X) == 0 and mEventX < (getWidth/2):
                     tempX = mEventX
                     tempY = mEventY
+                #To make sure there are no large spaces between the pixels.
                 if abs(mEventX-tempX) < 5 and abs(mEventY-tempY) < 5:
                     #if firstTime == 1:
                         X.append(mEventX)
@@ -342,7 +344,7 @@ def get_time_for_modified_files(file):
 
     return day,month,year,hour,min,sec
 
-def findEvent(OutputDirectory, eventFile, recordedAt):
+def findEvent(OutputDirectory, eventFile, recordedAt, projectName):
     threshold = 5
     SavePath = OutputDirectory + "/SpectrogramMarked/"
     soundImgFilePath = OutputDirectory + "/Spectrogram/" + eventFile
@@ -384,7 +386,7 @@ def findEvent(OutputDirectory, eventFile, recordedAt):
     cv2.imwrite(SavePath + os.path.splitext((eventFile))[0] + "/SpectrogramAllMarked.png", imgMarkedSpectrogram)
     #If there are event, then label them
     if len(eventNum)> 0:
-        HDF5Handler.eventHDFLabel(os.path.splitext((eventFile))[0], topX, topY, endX, bottomY, SavePath, eventNum, OutputDirectory, imgSpectrogram, imgMarkedSpectrogram, imgEvent, recordedAt)
+        HDF5Handler.eventHDFLabel(os.path.splitext((eventFile))[0], topX, topY, endX, bottomY, SavePath, eventNum, OutputDirectory, imgSpectrogram, imgMarkedSpectrogram, imgEvent, recordedAt, projectName)
     #plt.imshow(imgColor)
     #plt.xticks([]), plt.yticks([])
    # plt.show()

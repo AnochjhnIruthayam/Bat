@@ -8,9 +8,10 @@ from pybrain.datasets import ClassificationDataSet
 import BatSpecies as BS
 from pybrain.supervised.trainers import BackpropTrainer
 from pybrain.structure import SoftmaxLayer
+from pybrain.structure import SigmoidLayer
 from pybrain.tools.shortcuts import buildNetwork
 from pybrain.utilities import percentError
-import random
+import random, os
 
 # Classifier with the HDF5 interface
 
@@ -44,7 +45,9 @@ class BinaryClassifier():
             for path in paths:
                 temp = re.split('/', path)
                 # if there are 5 elements in the array, means that this one has an event
-                if len(temp) == 6 and temp[5] == "FeatureDataEvent":
+                index = 7
+                length = 8
+                if len(temp) == length and temp[index] == "FeatureDataEvent":
                     #get data from path
                     data = self.HDFFile[path]
                     if data.attrs["BatID"] == BatID:
@@ -62,7 +65,9 @@ class BinaryClassifier():
         for path in paths:
             temp = re.split('/', path)
             # if there are 5 elements in the array, means that this one has an event
-            if len(temp) == 6 and temp[5] == "FeatureDataEvent":
+            index = 7
+            length = 8
+            if len(temp) == length and temp[index] == "FeatureDataEvent":
                 # get data from path
                 data = self.HDFFile[path]
                 # as long as it is not other spices, noise and something else;then add, include all events
@@ -81,8 +86,9 @@ class BinaryClassifier():
         BatID = []
         for path in paths:
             temp = re.split('/', path)
-            # if there are 5 elements in the array, means that this one has an event
-            if len(temp) == 6 and temp[5] == "FeatureDataEvent":
+            index = 7
+            length = 8
+            if len(temp) == length and temp[index] == "FeatureDataEvent":
                 # get data from path
                 data = self.HDFFile[path]
                 # as long as it is not other spices, noise and something else;then add, include all events
@@ -102,8 +108,9 @@ class BinaryClassifier():
         BatID = []
         for path in paths:
             temp = re.split('/', path)
-            # if there are 5 elements in the array, means that this one has an event
-            if len(temp) == 6 and temp[5] == "FeatureDataEvent":
+            index = 7
+            length = 8
+            if len(temp) == length and temp[index] == "FeatureDataEvent":
                 # get data from path
                 data = self.HDFFile[path]
                 # as long as it is not other spice and something else;then add. Include all events and noise
@@ -115,7 +122,11 @@ class BinaryClassifier():
 
         return pathcorr, BatID, pathcorrImg
 
-    def getTestData(self, amount):
+    def getHDF5Size(self):
+        pathcorr, BatID, pathcorrImg = self.getAllEventHDFInformation(self.pathEventList)
+        return len(pathcorr)
+
+    def getTestRandomDistributedData(self, amount):
         minFreq = []
         maxFreq = []
         Durantion = []
@@ -129,17 +140,7 @@ class BinaryClassifier():
         fl8 = []
         fl9 = []
         fl10 = []
-        fl10 = []
-        fl11 = []
-        fl12 = []
-        fl13 = []
-        fl14 = []
-        fl15 = []
-        fl16 = []
-        fl17 = []
-        fl18 = []
-        fl19 = []
-        fl20 = []
+
         target = []
 
         pathcorr, BatID, pathcorrImg = self.getAllEventHDFInformation(self.pathEventList)
@@ -175,21 +176,65 @@ class BinaryClassifier():
             fl9.append(toTime(pix9)-toTime(pix8))
             fl10.append(toTime(pix10)-toTime(pix9))
 
-            fl11.append(toTime(pix1)-toTime(pix0))
-            fl12.append(toTime(pix2)-toTime(pix0))
-            fl13.append(toTime(pix3)-toTime(pix0))
-            fl14.append(toTime(pix4)-toTime(pix0))
-            fl15.append(toTime(pix5)-toTime(pix0))
-            fl16.append(toTime(pix6)-toTime(pix0))
-            fl17.append(toTime(pix7)-toTime(pix0))
-            fl18.append(toTime(pix8)-toTime(pix0))
-            fl19.append(toTime(pix9)-toTime(pix0))
-            fl20.append(toTime(pix10)-toTime(pix0))
+            target.append(BatID[i])
+
+
+        return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, target
+
+
+    def getTestData(self, amount):
+        minFreq = []
+        maxFreq = []
+        Durantion = []
+        fl1 = []
+        fl2 = []
+        fl3 = []
+        fl4 = []
+        fl5 = []
+        fl6 = []
+        fl7 = []
+        fl8 = []
+        fl9 = []
+        fl10 = []
+        target = []
+
+        pathcorr, BatID, pathcorrImg = self.getAllEventHDFInformation(self.pathEventList)
+        EventSize = len(BatID)
+        currentEvent = 0
+        for i in range(0, amount):
+            data = self.HDFFile[pathcorr[i]]
+            minFreq.append(tokFreq(data[0]))
+            maxFreq.append(tokFreq(data[1]))
+            Durantion.append(toTime(abs(data[2]-data[3])))
+            pix0 = data[4]
+            pix1 = data[5]
+            pix2 = data[6]
+            pix3 = data[7]
+            pix4 = data[8]
+            pix5 = data[9]
+            pix6 = data[10]
+            pix7 = data[11]
+            pix8 = data[12]
+            pix9 = data[13]
+            pix10 = data[14]
+
+            # Calculate the difference from previous point
+            fl1.append(toTime(pix1)-toTime(pix0))
+            fl2.append(toTime(pix2)-toTime(pix1))
+            fl3.append(toTime(pix3)-toTime(pix2))
+            fl4.append(toTime(pix4)-toTime(pix3))
+            fl5.append(toTime(pix5)-toTime(pix4))
+            fl6.append(toTime(pix6)-toTime(pix5))
+            fl7.append(toTime(pix7)-toTime(pix6))
+            fl8.append(toTime(pix8)-toTime(pix7))
+            fl9.append(toTime(pix9)-toTime(pix8))
+            fl10.append(toTime(pix10)-toTime(pix9))
+
 
             target.append(BatID[i])
 
 
-        return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, fl11, fl12, fl13, fl14, fl15, fl16, fl17, fl18, fl19, fl20, target
+        return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, target
 
     def getTrainingSpeciesDistributedData(self, BatIDToAdd, AmountPerSpecies):
         minFreq = []
@@ -294,17 +339,7 @@ class BinaryClassifier():
         fl8 = []
         fl9 = []
         fl10 = []
-        fl11 = []
-        fl12 = []
-        fl13 = []
-        fl14 = []
-        fl15 = []
-        fl16 = []
-        fl17 = []
-        fl18 = []
-        fl19 = []
-        fl20 = []
-        randomPathIterator = []
+
         if dataID == 0:
             pathcorr, pathcorrImg = self.getNoiseEventHDFInformation(self.pathEventList)
         if dataID == 1:
@@ -344,19 +379,8 @@ class BinaryClassifier():
             fl9.append(toTime(pix9)-toTime(pix8))
             fl10.append(toTime(pix10)-toTime(pix9))
 
-            fl11.append(toTime(pix1)-toTime(pix0))
-            fl12.append(toTime(pix2)-toTime(pix0))
-            fl13.append(toTime(pix3)-toTime(pix0))
-            fl14.append(toTime(pix4)-toTime(pix0))
-            fl15.append(toTime(pix5)-toTime(pix0))
-            fl16.append(toTime(pix6)-toTime(pix0))
-            fl17.append(toTime(pix7)-toTime(pix0))
-            fl18.append(toTime(pix8)-toTime(pix0))
-            fl19.append(toTime(pix9)-toTime(pix0))
-            fl20.append(toTime(pix10)-toTime(pix0))
 
-
-        return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, fl11, fl12, fl13, fl14, fl15, fl16, fl17, fl18, fl19, fl20
+        return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10
 
     ## Input: Target ID
     ## Converts the Target ID to a number which can be interpreted by the ANN
@@ -378,7 +402,7 @@ class BinaryClassifier():
         tstdata = ClassificationDataSet(13, target=1, nb_classes=2)
         BatIDToAdd = [1, 2, 3, 5, 6, 10, 11, 12, 14]
         AmountPerSpecies = 30
-        TraningDataAmount = 5000
+        TraningDataAmount = self.getHDF5Size()
         toFile = False
 
         print "Adding Bat Events"
@@ -393,12 +417,13 @@ class BinaryClassifier():
         SAMPLE_SIZE = len(trndata)
         print "Adding Noise Events"
         myBat = 0
-
-        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, fl11, fl12, fl13, fl14, fl15, fl16, fl17, fl18, fl19, fl20 = self.getTrainingData(SAMPLE_SIZE, myBat)
+        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10 = self.getTrainingData(SAMPLE_SIZE, myBat)
         for i in range (0, SAMPLE_SIZE):
             trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i] ], [myBat])
+
+
         print "Adding test data"
-        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, fl11, fl12, fl13, fl14, fl15, fl16, fl17, fl18, fl19, fl20, target = self.getTestData(TraningDataAmount)
+        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, target = self.getTestData(TraningDataAmount)
         maxSize = len(minFreq)
         for i in range (0, maxSize):
             tempSave = i % 1000
@@ -425,13 +450,19 @@ class BinaryClassifier():
         #learningrate = 0.01
         #momentum = 0.1
         weightdecay = 0
-        net = buildNetwork(trndata.indim, HiddenNeurons, trndata.outdim, bias=True, outclass=SoftmaxLayer)
+        #net = buildNetwork(trndata.indim, HiddenNeurons, trndata.outdim, bias=True, outclass=SoftmaxLayer)
+        net = buildNetwork(trndata.indim, HiddenNeurons, trndata.outdim, bias=True, outclass=SigmoidLayer)
         trainer = BackpropTrainer(net, dataset=trndata, momentum=momentum, learningrate=learningrate, verbose=True, weightdecay=weightdecay)
         print "Training data"
+        root = "/home/anoch/Dropbox/SDU/10 Semester/MSc Project/Data Results/Master/BinarySpeciesTestMSE/"
         if toFile:
             #filename = "InputN" + str(trndata.indim) + "HiddenN" + str(HiddenNeurons) + "OutputN" + str(trndata.outdim) + "Momentum"+ str(momentum) + "LearningRate" + str(learningrate) + "Weightdecay" + str(weightdecay)
-            filename = "ClassifierBinaryTest_" + str(iteration) +"_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
-            f = open(filename + ".txt", 'w')
+            baseFileName = "ClassifierBinaryTestFULLTEST"
+            filename = baseFileName + "_" + str(iteration) +"_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
+            folderName = root + "ClassifierBinaryTest_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
+            if not os.path.exists(folderName):
+                os.makedirs(folderName)
+            f = open(folderName + "/"+ filename + ".txt", 'w')
             value = "Added Bat Species: " + str(BatIDToAdd) + "\n"
             f.write(value)
 
@@ -463,11 +494,11 @@ class BinaryClassifier():
             f.write("Hidden Activation function: Sigmoid function\n")
             f.write("Output Activation function: Softmax function\n")
 
-
-        for i in range(0, 351):
+        maxEpoch = 1
+        for i in range(0, maxEpoch):
             # Train one epoch
 
-            trainer.trainEpochs(1)
+            trainer.trainEpochs(1000)
             if toFile:
                 averageError = trainer.testOnData(dataset=tstdata, verbose=False)
 
@@ -475,9 +506,16 @@ class BinaryClassifier():
             trnresult = percentError(trainer.testOnClassData(), trndata['class'])
             tstresult = percentError(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
 
-            if trainer.totalepochs > 350:
-                self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
-            #print("epoch: %4d" % trainer.totalepochs,"  train error: %5.2f%%" % trnresult,"  test error: %5.2f%%" % tstresult)
+            if maxEpoch-1 == trainer.totalepochs:
+                results = self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
+                filename = "ClassifierBinaryTest_" + str(iteration) +"_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)+ "_CR"
+                folderName = root + "ClassifierBinaryTest_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
+                result_file = open(folderName + "/"+ filename + ".txt", 'w')
+                result_file.write("[TruePostive, TrueNegative, FalsePostive, FalseNegative, CorrectRatio, TrueBats, TrueNonBats]\n")
+                result_file.write(str(results))
+                result_file.close()
+            print("epoch: %4d" % trainer.totalepochs,"  train error: %5.2f%%" % trnresult,"  test error: %5.2f%%" % tstresult)
+            self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
             if toFile:
                 dataString = str(trainer.totalepochs) + ", " + str(averageError) + ", " + str(trnresult) + ", " + str(tstresult) + "\n"
                 f.write(dataString)
@@ -527,7 +565,6 @@ class BinaryClassifier():
         print "Correct Ratio: " + str(CorrectRatio)
         results = [TruePostive, TrueNegative, FalsePostive, FalseNegative, CorrectRatio, TrueBats, TrueNonBats]
         return results
-
 
 
 
