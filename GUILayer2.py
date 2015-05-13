@@ -6,7 +6,7 @@ from PyQt4 import QtCore, QtGui
 from BatWindow import Ui_BatWindow
 import EventExtraction, os, getFunctions, time
 import h5py, re
-import Classifier2, ClassifierBinary, Classifier3, HDF5Handler, cv2
+import Classifier2, ClassifierBinary, Classifier3, HDF5Handler, cv2, ClassifierBinaryExperiments
 
 def toTime(timePixel):
     imageLength = 5000.0
@@ -77,6 +77,7 @@ class StartQT4(QtGui.QMainWindow):
         self.classifier = Classifier2.Classifier()
         self.classifier3 = Classifier3.Classifier()
         self.classifierBinary = ClassifierBinary.BinaryClassifier()
+        self.CBE = ClassifierBinaryExperiments.BinaryClassifier()
         self.ui.button_OtherSpecies.hide()
         if self.ui.checkBox_scaledZoom.isChecked():
             self.ZoomInParameter = 1
@@ -289,25 +290,25 @@ class StartQT4(QtGui.QMainWindow):
                 cv2.imwrite(self.OutputDirectory + "/Spectrogram/" + file[i] + ".png", image)
 
     def runClassifier(self):
-        self.classifier.initClasissifer()
-        self.classifier.goClassifer(0, 0.001, 0.01)
-        #self.classifier3.goClassifer()
+        #self.classifier.initClasissifer()
+        #self.classifier.goClassifer(0, 0.001, 0.01)
+        self.classifier3.initClasissifer()
+        self.classifier3.goClassifer(0, 0.001, 0.100, False)
 
     def runBinaryClassifier(self):
 
         learningRate    = [0.001, 0.001, 0.001, 0.01, 0.01, 0.01, 0.1, 0.1, 0.1]
         momentum        = [0.001, 0.01, 0.1, 0.001, 0.01, 0.1, 0.001, 0.01, 0.1]
-        self.classifierBinary.initClasissifer()
-        self.classifierBinary.goClassifer(0, 0.001, 0.100)
+        self.CBE.initClasissifer()
+        for i in range (0, 5):
+            self.CBE.goClassifer(i, 0.001, 0.100, True)
         #self.classifierBinary.initClasissifer()
-        #for setting in range (2, len(learningRate)):
-        #    for i in range(0, 6):
-        #        self.classifierBinary.goClassifer(i, learningRate[setting], momentum[setting] )
+        #self.classifierBinary.goClassifer(i, 0.001, 0.100, True)
         """
-        self.classifier.initClasissifer()
-        for setting in range (4, len(learningRate)):
+        self.classifierBinary.initClasissifer()
+        for setting in range (0, len(learningRate)):
             for i in range(0, 5):
-                self.classifier.goClassifer(i, learningRate[setting], momentum[setting] )
+                self.classifierBinary.goClassifer(i, learningRate[setting], momentum[setting], True)
         """
 
     def getHDFInformationRecontructImage(self, paths, imgType):

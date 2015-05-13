@@ -10,6 +10,7 @@ from pybrain.supervised.trainers import BackpropTrainer
 from pybrain.structure import SoftmaxLayer
 from pybrain.structure import SigmoidLayer
 from pybrain.tools.shortcuts import buildNetwork
+from collections import deque # to make a FIFO buffer
 from pybrain.utilities import percentError
 import random, os
 
@@ -28,6 +29,7 @@ class BinaryClassifier():
     def __init__(self):
 
         self.pathEventList = []
+        self.TrainingSetEventList = []
         self.HDFFile = h5py
         self.Bat = BS.BatSpecies()
 
@@ -38,6 +40,20 @@ class BinaryClassifier():
         print "Initilazing classifier"
         self.HDFFile = h5py.File("/home/anoch/Documents/BatOutput/BatData.hdf5")
         self.HDFFile.visit(self.saveEventPath)
+
+    def RemoveTrainingDataFromTestData(self, TrainingSetEventList, TestDataEventList):
+        EventPath = []
+        for TestSetPath in TestDataEventList:
+            FlagAccepted = 0
+            for TrainingSetPath in TrainingSetEventList:
+                if TrainingSetPath != TestSetPath:
+                    FlagAccepted = 1
+                else:
+                    FlagAccepted = 0
+                    break
+            if FlagAccepted == 1:
+                EventPath.append(TestSetPath)
+        return EventPath
 
     def getSpecificHDFInformation(self, paths, BatID):
             pathcorr = []
@@ -122,8 +138,8 @@ class BinaryClassifier():
 
         return pathcorr, BatID, pathcorrImg
 
-    def getHDF5Size(self):
-        pathcorr, BatID, pathcorrImg = self.getAllEventHDFInformation(self.pathEventList)
+    def getHDF5Size(self, list):
+        pathcorr, BatID, pathcorrImg = self.getAllEventHDFInformation(list)
         return len(pathcorr)
 
     def getTestRandomDistributedData(self, amount):
@@ -182,7 +198,7 @@ class BinaryClassifier():
         return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, target
 
 
-    def getTestData(self, amount):
+    def getTestData(self, amount, EventPath):
         minFreq = []
         maxFreq = []
         Durantion = []
@@ -198,7 +214,8 @@ class BinaryClassifier():
         fl10 = []
         target = []
 
-        pathcorr, BatID, pathcorrImg = self.getAllEventHDFInformation(self.pathEventList)
+
+        pathcorr, BatID, pathcorrImg = self.getAllEventHDFInformation(EventPath)
         EventSize = len(BatID)
         currentEvent = 0
         for i in range(0, amount):
@@ -293,6 +310,8 @@ class BinaryClassifier():
         randomPathIterator = random.sample(xrange(0,EventSize-1), amount)
         currentEvent = 0
         for i in randomPathIterator:
+            #Save in a trainingset, the list of trainingset path. Used to exclude these from testdata
+            self.TrainingSetEventList.append(pathcorr[i])
             data = self.HDFFile[pathcorr[i]]
             minFreq.append(tokFreq(data[0]))
             maxFreq.append(tokFreq(data[1]))
@@ -350,7 +369,8 @@ class BinaryClassifier():
         randomPathIterator = random.sample(xrange(0,EventSize-1), amount)
         for i in randomPathIterator:
 
-
+            #Save in a trainingset, the list of trainingset path. Used to exclude these from testdata
+            self.TrainingSetEventList.append(pathcorr[i])
             data = self.HDFFile[pathcorr[i]]
             minFreq.append(tokFreq(data[0]))
             maxFreq.append(tokFreq(data[1]))
@@ -395,15 +415,16 @@ class BinaryClassifier():
 
 
 
-    def goClassifer(self, iteration, learningrate, momentum):
+    def goClassifer(self, iteration, learningrate, momentum, toFile):
+        #Clear list
+        self.TrainingSetEventList[:] = []
         print "Iteration Count: " + str(iteration)
         #Set up Classicication Data, 4 input, output is a one dim. and 2 possible outcome or two possible classes
         trndata = ClassificationDataSet(13, target=1, nb_classes=2)
         tstdata = ClassificationDataSet(13, target=1, nb_classes=2)
         BatIDToAdd = [1, 2, 3, 5, 6, 10, 11, 12, 14]
         AmountPerSpecies = 30
-        TraningDataAmount = self.getHDF5Size()
-        toFile = False
+
 
         print "Adding Bat Events"
         myBat = 1
@@ -421,9 +442,10 @@ class BinaryClassifier():
         for i in range (0, SAMPLE_SIZE):
             trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i] ], [myBat])
 
-
+        EventPath = self.RemoveTrainingDataFromTestData(self.TrainingSetEventList, self.pathEventList)
+        TraningDataAmount = 5000
         print "Adding test data"
-        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, target = self.getTestData(TraningDataAmount)
+        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, target = self.getTestData(TraningDataAmount, EventPath)
         maxSize = len(minFreq)
         for i in range (0, maxSize):
             tempSave = i % 1000
@@ -457,7 +479,7 @@ class BinaryClassifier():
         root = "/home/anoch/Dropbox/SDU/10 Semester/MSc Project/Data Results/Master/BinarySpeciesTestMSE/"
         if toFile:
             #filename = "InputN" + str(trndata.indim) + "HiddenN" + str(HiddenNeurons) + "OutputN" + str(trndata.outdim) + "Momentum"+ str(momentum) + "LearningRate" + str(learningrate) + "Weightdecay" + str(weightdecay)
-            baseFileName = "ClassifierBinaryTestFULLTEST"
+            baseFileName = "ClassifierBinaryTest"
             filename = baseFileName + "_" + str(iteration) +"_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
             folderName = root + "ClassifierBinaryTest_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
             if not os.path.exists(folderName):
@@ -492,35 +514,58 @@ class BinaryClassifier():
 
             f.write("Input Activation function: Sigmoid function\n")
             f.write("Hidden Activation function: Sigmoid function\n")
-            f.write("Output Activation function: Softmax function\n")
-
-        maxEpoch = 1
+            f.write("Output Activation function: Sigmoid function\n")
+        #FIFO Buffer
+        fifo = deque()
+        #Set maximum whole epochs for pr 10 epochs
+        maxEpoch = 100
         for i in range(0, maxEpoch):
             # Train one epoch
 
-            trainer.trainEpochs(1000)
-            if toFile:
-                averageError = trainer.testOnData(dataset=tstdata, verbose=False)
-
-            #"""procentError(out, true) return percentage of mismatch between out and target values (lists and arrays accepted) error= ((out - true)/true)*100"""
+            trainer.trainEpochs(10)
             trnresult = percentError(trainer.testOnClassData(), trndata['class'])
             tstresult = percentError(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
+            #self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
 
-            if maxEpoch-1 == trainer.totalepochs:
-                results = self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
-                filename = "ClassifierBinaryTest_" + str(iteration) +"_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)+ "_CR"
-                folderName = root + "ClassifierBinaryTest_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
-                result_file = open(folderName + "/"+ filename + ".txt", 'w')
-                result_file.write("[TruePostive, TrueNegative, FalsePostive, FalseNegative, CorrectRatio, TrueBats, TrueNonBats]\n")
-                result_file.write(str(results))
-                result_file.close()
+            averageError = trainer.testOnData(dataset=tstdata, verbose=False)
+
+            # Use to save trained data!
+            #from pybrain.utilities import Serializable
+            #filehandling = Serializable()
+            #filehandling.save()
+
+            #FIFO BUFFER
+            #fifo.append(averageError)
+            #if len(fifo) == 6:
+            #    fifo.popleft()
+            #    currentError = sum(fifo)/5
+            #if currentError < 0.05:
+            #    print "Traning Done!"
+            #    break
+
+
+            #"""procentError(out, true) return percentage of mismatch between out and target values (lists and arrays accepted) error= ((out - true)/true)*100"""
+            #trnresult = percentError(trainer.testOnClassData(), trndata['class'])
+            #tstresult = percentError(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
+            #self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
+
             print("epoch: %4d" % trainer.totalepochs,"  train error: %5.2f%%" % trnresult,"  test error: %5.2f%%" % tstresult)
-            self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
+
             if toFile:
                 dataString = str(trainer.totalepochs) + ", " + str(averageError) + ", " + str(trnresult) + ", " + str(tstresult) + "\n"
                 f.write(dataString)
+
+        if toFile:
+            results = self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
+            filename = "ClassifierBinaryTest_" + str(iteration) +"_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)+ "_CR"
+            folderName = root + "ClassifierBinaryTest_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
+            result_file = open(folderName + "/"+ filename + ".txt", 'w')
+            result_file.write("[TruePostive, TrueNegative, FalsePostive, FalseNegative, CorrectRatio, TrueBats, TrueNonBats]\n")
+            result_file.write(str(results))
+            result_file.close()
         if toFile:
             f.close()
+        self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
         print "Done training"
 
 
@@ -544,10 +589,10 @@ class BinaryClassifier():
                 TrueNegative += 1
 
             if true[i] == 1 and out[i] == 0:
-                FalsePostive += 1
+                FalseNegative += 1
 
             if true[i] == 0 and out[i] == 1:
-                FalseNegative += 1
+                FalsePostive += 1
 
             if true[i] == 1:
                 TrueBats += 1
@@ -565,6 +610,12 @@ class BinaryClassifier():
         print "Correct Ratio: " + str(CorrectRatio)
         results = [TruePostive, TrueNegative, FalsePostive, FalseNegative, CorrectRatio, TrueBats, TrueNonBats]
         return results
+
+    def sendResultsToMultipleClassifier(self):
+        hej = 0
+        #1. get/load trained net, and test all on the whole dataset. Mark result in ClassifierOutput attribute
+        #2. Make list of possible candidates by looking at Classifieroutput (should have a valid BatID )
+        #3. return list
 
 
 
