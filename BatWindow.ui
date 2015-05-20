@@ -31,7 +31,7 @@
      <enum>QTabWidget::Rounded</enum>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>5</number>
     </property>
     <property name="elideMode">
      <enum>Qt::ElideNone</enum>
@@ -3949,11 +3949,11 @@
      <attribute name="title">
       <string>Classifier</string>
      </attribute>
-     <widget class="QPushButton" name="button_classifier_run">
+     <widget class="QPushButton" name="button_classifierSecondStage_run">
       <property name="geometry">
        <rect>
         <x>490</x>
-        <y>630</y>
+        <y>430</y>
         <width>201</width>
         <height>51</height>
        </rect>
@@ -3962,11 +3962,11 @@
        <string>Run Classifier</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="button_classifier_run_binary">
+     <widget class="QPushButton" name="button_classifierFirstStage_run">
       <property name="geometry">
        <rect>
         <x>490</x>
-        <y>300</y>
+        <y>170</y>
         <width>201</width>
         <height>51</height>
        </rect>
@@ -3979,7 +3979,7 @@
       <property name="geometry">
        <rect>
         <x>490</x>
-        <y>240</y>
+        <y>110</y>
         <width>211</width>
         <height>31</height>
        </rect>
@@ -3999,7 +3999,7 @@
       <property name="geometry">
        <rect>
         <x>470</x>
-        <y>580</y>
+        <y>380</y>
         <width>241</width>
         <height>31</height>
        </rect>
@@ -4019,13 +4019,59 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>460</y>
+        <y>260</y>
         <width>1201</width>
         <height>16</height>
        </rect>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+     <widget class="Line" name="line_59">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>530</y>
+        <width>1201</width>
+        <height>16</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_classifier_thirdstage">
+      <property name="geometry">
+       <rect>
+        <x>480</x>
+        <y>620</y>
+        <width>241</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Third Stage Classifier</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="button_classifierThirdStage_run">
+      <property name="geometry">
+       <rect>
+        <x>490</x>
+        <y>670</y>
+        <width>201</width>
+        <height>51</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Run Classifier</string>
       </property>
      </widget>
     </widget>

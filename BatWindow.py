@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'BatWindow.ui'
 #
-# Created: Thu Apr 30 11:10:21 2015
+# Created: Wed May 20 16:26:31 2015
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -1278,14 +1278,14 @@ class Ui_BatWindow(object):
         self.tabWidget.addTab(self.tab_browser, _fromUtf8(""))
         self.tab = QtGui.QWidget()
         self.tab.setObjectName(_fromUtf8("tab"))
-        self.button_classifier_run = QtGui.QPushButton(self.tab)
-        self.button_classifier_run.setGeometry(QtCore.QRect(490, 630, 201, 51))
-        self.button_classifier_run.setObjectName(_fromUtf8("button_classifier_run"))
-        self.button_classifier_run_binary = QtGui.QPushButton(self.tab)
-        self.button_classifier_run_binary.setGeometry(QtCore.QRect(490, 300, 201, 51))
-        self.button_classifier_run_binary.setObjectName(_fromUtf8("button_classifier_run_binary"))
+        self.button_classifierSecondStage_run = QtGui.QPushButton(self.tab)
+        self.button_classifierSecondStage_run.setGeometry(QtCore.QRect(490, 430, 201, 51))
+        self.button_classifierSecondStage_run.setObjectName(_fromUtf8("button_classifierSecondStage_run"))
+        self.button_classifierFirstStage_run = QtGui.QPushButton(self.tab)
+        self.button_classifierFirstStage_run.setGeometry(QtCore.QRect(490, 170, 201, 51))
+        self.button_classifierFirstStage_run.setObjectName(_fromUtf8("button_classifierFirstStage_run"))
         self.label_classifier_binary = QtGui.QLabel(self.tab)
-        self.label_classifier_binary.setGeometry(QtCore.QRect(490, 240, 211, 31))
+        self.label_classifier_binary.setGeometry(QtCore.QRect(490, 110, 211, 31))
         font = QtGui.QFont()
         font.setPointSize(16)
         font.setBold(True)
@@ -1293,7 +1293,7 @@ class Ui_BatWindow(object):
         self.label_classifier_binary.setFont(font)
         self.label_classifier_binary.setObjectName(_fromUtf8("label_classifier_binary"))
         self.label_classifier_binary_2 = QtGui.QLabel(self.tab)
-        self.label_classifier_binary_2.setGeometry(QtCore.QRect(470, 580, 241, 31))
+        self.label_classifier_binary_2.setGeometry(QtCore.QRect(470, 380, 241, 31))
         font = QtGui.QFont()
         font.setPointSize(16)
         font.setBold(True)
@@ -1301,15 +1301,31 @@ class Ui_BatWindow(object):
         self.label_classifier_binary_2.setFont(font)
         self.label_classifier_binary_2.setObjectName(_fromUtf8("label_classifier_binary_2"))
         self.line_58 = QtGui.QFrame(self.tab)
-        self.line_58.setGeometry(QtCore.QRect(10, 460, 1201, 16))
+        self.line_58.setGeometry(QtCore.QRect(10, 260, 1201, 16))
         self.line_58.setFrameShape(QtGui.QFrame.HLine)
         self.line_58.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_58.setObjectName(_fromUtf8("line_58"))
+        self.line_59 = QtGui.QFrame(self.tab)
+        self.line_59.setGeometry(QtCore.QRect(10, 530, 1201, 16))
+        self.line_59.setFrameShape(QtGui.QFrame.HLine)
+        self.line_59.setFrameShadow(QtGui.QFrame.Sunken)
+        self.line_59.setObjectName(_fromUtf8("line_59"))
+        self.label_classifier_thirdstage = QtGui.QLabel(self.tab)
+        self.label_classifier_thirdstage.setGeometry(QtCore.QRect(480, 620, 241, 31))
+        font = QtGui.QFont()
+        font.setPointSize(16)
+        font.setBold(True)
+        font.setWeight(75)
+        self.label_classifier_thirdstage.setFont(font)
+        self.label_classifier_thirdstage.setObjectName(_fromUtf8("label_classifier_thirdstage"))
+        self.button_classifierThirdStage_run = QtGui.QPushButton(self.tab)
+        self.button_classifierThirdStage_run.setGeometry(QtCore.QRect(490, 670, 201, 51))
+        self.button_classifierThirdStage_run.setObjectName(_fromUtf8("button_classifierThirdStage_run"))
         self.tabWidget.addTab(self.tab, _fromUtf8(""))
         BatWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(BatWindow)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(5)
         QtCore.QMetaObject.connectSlotsByName(BatWindow)
 
     def retranslateUi(self, BatWindow):
@@ -1500,9 +1516,11 @@ class Ui_BatWindow(object):
         self.button_loaddatabase_browser.setText(_translate("BatWindow", "Load Database", None))
         self.label_browser_currentstatus.setText(_translate("BatWindow", "N/A", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_browser), _translate("BatWindow", "Browser", None))
-        self.button_classifier_run.setText(_translate("BatWindow", "Run Classifier", None))
-        self.button_classifier_run_binary.setText(_translate("BatWindow", "Run Classifier", None))
+        self.button_classifierSecondStage_run.setText(_translate("BatWindow", "Run Classifier", None))
+        self.button_classifierFirstStage_run.setText(_translate("BatWindow", "Run Classifier", None))
         self.label_classifier_binary.setText(_translate("BatWindow", "First Stage Classifier", None))
         self.label_classifier_binary_2.setText(_translate("BatWindow", "Second Stage Classifier", None))
+        self.label_classifier_thirdstage.setText(_translate("BatWindow", "Third Stage Classifier", None))
+        self.button_classifierThirdStage_run.setText(_translate("BatWindow", "Run Classifier", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("BatWindow", "Classifier", None))
 

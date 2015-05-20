@@ -6,7 +6,7 @@ from PyQt4 import QtCore, QtGui
 from BatWindow import Ui_BatWindow
 import EventExtraction, os, getFunctions, time
 import h5py, re
-import Classifier2, ClassifierBinary, Classifier3, HDF5Handler, cv2, ClassifierBinaryExperiments
+import Classifier2, ClassifierBinary, ClassifierThirdStage, ClassifierSecondStage, HDF5Handler, cv2, ClassifierFirstStage
 
 def toTime(timePixel):
     imageLength = 5000.0
@@ -49,8 +49,9 @@ class StartQT4(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.button_browser_Next, QtCore.SIGNAL("clicked()"), self.buttonNextHandler)
         QtCore.QObject.connect(self.ui.button_browser_previous, QtCore.SIGNAL("clicked()"), self.buttonPreviousHandler)
         QtCore.QObject.connect(self.ui.comboBox_SelectSpecies, QtCore.SIGNAL("activated(QString)"), self.browserComboxSelectSpeciesHandler)
-        QtCore.QObject.connect(self.ui.button_classifier_run, QtCore.SIGNAL("clicked()"), self.runClassifier)
-        QtCore.QObject.connect(self.ui.button_classifier_run_binary, QtCore.SIGNAL("clicked()"), self.runBinaryClassifier)
+        QtCore.QObject.connect(self.ui.button_classifierFirstStage_run, QtCore.SIGNAL("clicked()"), self.runFirstStageClassifier)
+        QtCore.QObject.connect(self.ui.button_classifierSecondStage_run, QtCore.SIGNAL("clicked()"), self.runSecondStageClassifier)
+        QtCore.QObject.connect(self.ui.button_classifierThirdStage_run, QtCore.SIGNAL("clicked()"), self.runThirdStageClassifier)
 
         QtCore.QObject.connect(self.ui.button_loaddatabaseReconstruct, QtCore.SIGNAL("clicked()"), self.file_dialog2)
         QtCore.QObject.connect(self.ui.pushButton_SetOutputDirectory_Reconstruct, QtCore.SIGNAL("clicked()"), self.setOutputDirectory)
@@ -75,9 +76,10 @@ class StartQT4(QtGui.QMainWindow):
         self.ui.label_outputDirectory.setText(self.OutputDirectory)
         self.ui.label_inputDirectory.setText(self.InputDirectory)
         self.classifier = Classifier2.Classifier()
-        self.classifier3 = Classifier3.Classifier()
+        self.third_stage_classifier = ClassifierThirdStage.Classifier()
+        self.second_stage_classifier = ClassifierSecondStage.Classifier()
         self.classifierBinary = ClassifierBinary.BinaryClassifier()
-        self.CBE = ClassifierBinaryExperiments.BinaryClassifier()
+        self.first_stage_classifier = ClassifierFirstStage.BinaryClassifier()
         self.ui.button_OtherSpecies.hide()
         if self.ui.checkBox_scaledZoom.isChecked():
             self.ZoomInParameter = 1
@@ -289,27 +291,32 @@ class StartQT4(QtGui.QMainWindow):
                 image = HDF5Handler.imageRecontructFromHDF5(Imgdata)
                 cv2.imwrite(self.OutputDirectory + "/Spectrogram/" + file[i] + ".png", image)
 
-    def runClassifier(self):
-        #self.classifier.initClasissifer()
-        #self.classifier.goClassifer(0, 0.001, 0.01)
-        self.classifier3.initClasissifer()
-        self.classifier3.goClassifer(0, 0.001, 0.100, False)
 
-    def runBinaryClassifier(self):
+    def runFirstStageClassifier(self):
 
         learningRate    = [0.001, 0.001, 0.001, 0.01, 0.01, 0.01, 0.1, 0.1, 0.1]
         momentum        = [0.001, 0.01, 0.1, 0.001, 0.01, 0.1, 0.001, 0.01, 0.1]
-        self.CBE.initClasissifer()
-        for i in range (0, 5):
-            self.CBE.goClassifer(i, 0.001, 0.100, True)
-        #self.classifierBinary.initClasissifer()
-        #self.classifierBinary.goClassifer(i, 0.001, 0.100, True)
-        """
-        self.classifierBinary.initClasissifer()
+        self.first_stage_classifier.initClasissifer()
         for setting in range (0, len(learningRate)):
-            for i in range(0, 5):
-                self.classifierBinary.goClassifer(i, learningRate[setting], momentum[setting], True)
-        """
+            for i in range (0, 5):
+                self.first_stage_classifier.goClassifer(i, learningRate[setting], momentum[setting], True)
+
+    def runSecondStageClassifier(self):
+        learningRate    = [0.001, 0.001, 0.001, 0.01, 0.01, 0.01, 0.1, 0.1, 0.1]
+        momentum        = [0.001, 0.01, 0.1, 0.001, 0.01, 0.1, 0.001, 0.01, 0.1]
+        self.second_stage_classifier.initClasissifer()
+        for setting in range (0, len(learningRate)):
+            for i in range(0,5):
+                self.second_stage_classifier.goClassifer(i, learningRate[setting], momentum[setting], True)
+
+
+    def runThirdStageClassifier(self):
+        learningRate    = [0.001, 0.001, 0.001, 0.01, 0.01, 0.01, 0.1, 0.1, 0.1]
+        momentum        = [0.001, 0.01, 0.1, 0.001, 0.01, 0.1, 0.001, 0.01, 0.1]
+        self.third_stage_classifier.initClasissifer()
+        for setting in range (0, len(learningRate)):
+            for i in range(0,5):
+                self.third_stage_classifier.goClassifer(i, learningRate[setting], momentum[setting], True)
 
     def getHDFInformationRecontructImage(self, paths, imgType):
         day = []
