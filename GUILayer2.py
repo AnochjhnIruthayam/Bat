@@ -304,6 +304,12 @@ class StartQT4(QtGui.QMainWindow):
     def runSecondStageClassifier(self):
         learningRate    = [0.001, 0.001, 0.001, 0.01, 0.01, 0.01, 0.1, 0.1, 0.1]
         momentum        = [0.001, 0.01, 0.1, 0.001, 0.01, 0.1, 0.001, 0.01, 0.1]
+
+        self.classifier.initClasissifer()
+        for setting2 in range (0, len(learningRate)):
+            for k in range(0,5):
+                self.classifier.goClassifer(k, learningRate[setting2], momentum[setting2], True)
+
         self.second_stage_classifier.initClasissifer()
         for setting in range (0, len(learningRate)):
             for i in range(0,5):
@@ -314,9 +320,11 @@ class StartQT4(QtGui.QMainWindow):
         learningRate    = [0.001, 0.001, 0.001, 0.01, 0.01, 0.01, 0.1, 0.1, 0.1]
         momentum        = [0.001, 0.01, 0.1, 0.001, 0.01, 0.1, 0.001, 0.01, 0.1]
         self.third_stage_classifier.initClasissifer()
-        for setting in range (0, len(learningRate)):
-            for i in range(0,5):
-                self.third_stage_classifier.goClassifer(i, learningRate[setting], momentum[setting], True)
+        for i in range(0,5):
+            self.third_stage_classifier.goClassifer(i, 0.001, 0.010, True)
+        #for setting in range (0, len(learningRate)):
+        #    for i in range(0,5):
+        #        self.third_stage_classifier.goClassifer(i, learningRate[setting], momentum[setting], True)
 
     def getHDFInformationRecontructImage(self, paths, imgType):
         day = []

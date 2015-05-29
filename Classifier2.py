@@ -7,6 +7,8 @@ from pybrain.structure import SoftmaxLayer
 from pybrain.tools.shortcuts import buildNetwork
 from pybrain.utilities import percentError
 import random, os
+#from pybrain.tools.customxml.networkwriter import NetworkWriter #To save a network
+#from pybrain.tools.customxml.networkreader import NetworkReader #To load a network
 
 # Classifier with the HDF5 interface
 
@@ -22,6 +24,7 @@ def tokFreq(freqPixel):
 class Classifier():
     def __init__(self):
         self.pathEventList = []
+        self.TrainingSetEventList = []
         self.HDFFile = h5py
         self.Bat = BS.BatSpecies()
 
@@ -33,6 +36,31 @@ class Classifier():
         self.HDFFile = h5py.File("/home/anoch/Documents/BatOutput/BatData.hdf5")
         self.HDFFile.visit(self.saveEventPath)
 
+    def RemoveTrainingDataFromTestData(self, TrainingSetEventList, TestDataEventList):
+        EventPath = []
+        for TestSetPath in TestDataEventList:
+            FlagAccepted = 0
+            for TrainingSetPath in TrainingSetEventList:
+                if TrainingSetPath != TestSetPath:
+                    FlagAccepted = 1
+                else:
+                    FlagAccepted = 0
+                    break
+            if FlagAccepted == 1:
+                EventPath.append(TestSetPath)
+        return EventPath
+
+    def pixelCount(self, img):
+        height, length = img.shape
+        pixelValue = 0
+        count = 0
+        for x in range(0, length):
+            for y in range(0, height):
+                if img[y][x] > 1:
+                    pixelValue += img[y][x]
+                    count += 1
+        averagePixel = float(pixelValue)/float(count)
+        return averagePixel
 
 
     def getHDFInformation(self, paths):
@@ -51,7 +79,7 @@ class Classifier():
                 if data.attrs["BatID"] != 0 and data.attrs["BatID"] != 4 and data.attrs["BatID"] != 13 and data.attrs["BatID"] != 15 and data.attrs["BatID"] != 7:
                     BatID.append(data.attrs["BatID"])
                     pathcorr.append(path)
-                    imgPath = temp[0] + "/" + temp[1] + "/" + temp[2] + "/" + temp[3] + "/" + temp[4] + "/" + "ArrayImgEvent"
+                    imgPath = temp[0] + "/" + temp[1] + "/" + temp[2] + "/" + temp[3] + "/" + temp[4] + "/" + temp[5] + "/" + temp[6] + "/" + "ArrayImgEvent"
                     pathcorrImg.append(imgPath)
 
 
@@ -72,7 +100,7 @@ class Classifier():
                 # as long as it is not other spices, noise and something else;then add, include all events
                 if data.attrs["BatID"] != 0 and data.attrs["BatID"] != 7 and data.attrs["BatID"] != 8 and data.attrs["BatID"] != 9:
                     pathcorr.append(path)
-                    imgPath = temp[0] + "/" + temp[1] + "/" + temp[2] + "/" + temp[3] + "/" + temp[4] + "/" + "ArrayImgEvent"
+                    imgPath = temp[0] + "/" + temp[1] + "/" + temp[2] + "/" + temp[3] + "/" + temp[4] + "/" + temp[5] + "/" + temp[6] + "/" + "ArrayImgEvent"
                     pathcorrImg.append(imgPath)
 
         return pathcorr, pathcorrImg
@@ -89,7 +117,7 @@ class Classifier():
                 data = self.HDFFile[path]
                 if data.attrs["BatID"] == BatID:
                     pathcorr.append(path)
-                    imgPath = temp[0] + "/" + temp[1] + "/" + temp[2] + "/" + temp[3] + "/" + temp[4] + "/" + "ArrayImgEvent"
+                    imgPath = temp[0] + "/" + temp[1] + "/" + temp[2] + "/" + temp[3] + "/" + temp[4] + "/" + temp[5] + "/" + temp[6] + "/" + "ArrayImgEvent"
                     pathcorrImg.append(imgPath)
 
         return pathcorr, pathcorrImg
@@ -111,7 +139,7 @@ class Classifier():
                 if data.attrs["BatID"] == 8:
                     #BatID.append(data.attrs["BatID"])
                     pathcorr.append(path)
-                    imgPath = temp[0] + "/" + temp[1] + "/" + temp[2] + "/" + temp[3] + "/" + temp[4] + "/" + "ArrayImgEvent"
+                    imgPath = temp[0] + "/" + temp[1] + "/" + temp[2] + "/" + temp[3] + "/" + temp[4] + "/" + temp[5] + "/" + temp[6] + "/" + "ArrayImgEvent"
                     pathcorrImg.append(imgPath)
 
         return pathcorr, pathcorrImg
@@ -133,10 +161,50 @@ class Classifier():
                 if data.attrs["BatID"] != 7 and data.attrs["BatID"] != 4 and data.attrs["BatID"] != 13 and data.attrs["BatID"] != 15:# and data.attrs["BatID"] != 9 and data.attrs["BatID"] != 8:
                     BatID.append(data.attrs["BatID"])
                     pathcorr.append(path)
-                    imgPath = temp[0] + "/" + temp[1] + "/" + temp[2] + "/" + temp[3] + "/" + temp[4] + "/" + "ArrayImgEvent"
+                    imgPath = temp[0] + "/" + temp[1] + "/" + temp[2] + "/" + temp[3] + "/" + temp[4] + "/" + temp[5] + "/" + temp[6] + "/" + "ArrayImgEvent"
                     pathcorrImg.append(imgPath)
 
         return pathcorr, BatID, pathcorrImg
+
+    def getHDFInfoFromIDList(self, paths, BatIDList):
+        pathcorr = []
+        pathcorrImg = []
+        BatID = []
+        for path in paths:
+            temp = re.split('/', path)
+            index = 7
+            length = 8
+            if len(temp) == length and temp[index] == "FeatureDataEvent":
+                # get data from path
+                data = self.HDFFile[path]
+                # as long as it is not other spice and something else;then add. Include all events and noise
+                for ID in BatIDList:
+                    if ID == data.attrs["BatID"]:
+                        BatID.append(data.attrs["BatID"])
+                        pathcorr.append(path)
+                        imgPath = temp[0] + "/" + temp[1] + "/" + temp[2] + "/" + temp[3] + "/" + temp[4] + "/" + temp[5] + "/" + temp[6] + "/" + "ArrayImgEvent"
+                        pathcorrImg.append(imgPath)
+
+        return pathcorr, BatID, pathcorrImg
+
+    ## Scans for all available events
+    ## Returns: path where the event data is, target result, path where the event image data is
+    def getHDFInformationToAddPixelInfo(self, paths):
+        pathcorrImg = []
+        BatID = []
+        for path in paths:
+            temp = re.split('/', path)
+            index = 7
+            length = 8
+            if len(temp) == length and temp[index] == "FeatureDataEvent":
+                # get data from path
+                #data = self.HDFFile[path]
+                # as long as it is not other spices, noise and something else;then add, include all events
+                #BatID.append(data.attrs["BatID"])
+                imgPath = temp[0] + "/" + temp[1] + "/" + temp[2] + "/" + temp[3] + "/" + temp[4] + "/" + temp[5] + "/" + temp[6] + "/" + "ArrayImgEvent"
+                pathcorrImg.append(imgPath)
+
+        return pathcorrImg
 
     def getTestData(self, amount):
         minFreq = []
@@ -193,7 +261,9 @@ class Classifier():
         return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, target
 
     #Output: returns list random picked test data (features)
-    def getDistrubedTestData(self, amount):
+    def getDistrubedTestData(self, amount, BatIDToAdd):
+        BatIDToAdd.append(8)
+        BatIDToAdd.append(9)
         minFreq = []
         maxFreq = []
         Durantion = []
@@ -208,13 +278,18 @@ class Classifier():
         fl9 = []
         fl10 = []
         target = []
-
-        pathcorr, BatID, pathcorrImg = self.getAllEventHDFInformation(self.pathEventList)
+        pixelAverage = []
+        EventPath = self.RemoveTrainingDataFromTestData(self.TrainingSetEventList, self.pathEventList)
+        pathcorr, BatID, pathcorrImg = self.getHDFInfoFromIDList(EventPath, BatIDToAdd)
         EventSize = len(BatID)
         currentEvent = 0
+        if EventSize < amount:
+            amount = EventSize-1
         randomPathIterator = random.sample(xrange(0,EventSize-1), amount)
         for i in randomPathIterator:
             data = self.HDFFile[pathcorr[i]]
+            img = self.HDFFile[pathcorrImg[i]]
+            pixelAverage.append(img.attrs["AveragePixelValue"])
             minFreq.append(tokFreq(data[0]))
             maxFreq.append(tokFreq(data[1]))
             Durantion.append(toTime(abs(data[2]-data[3])))
@@ -245,7 +320,7 @@ class Classifier():
             target.append(BatID[i])
 
 
-        return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, target
+        return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage, target
 
     #Adds all the needed species in one
     def getTrainingSpeciesDistributedData(self, BatIDToAdd, AmountPerSpecies):
@@ -262,12 +337,13 @@ class Classifier():
         fl8 = []
         fl9 = []
         fl10 = []
+        pixelAverage = []
         target = []
 
         for BatSpecies in BatIDToAdd:
             print "BatID: " + str(BatSpecies)
 
-            minFreqTemp, maxFreqTemp, DurantionTemp, fl1Temp, fl2Temp, fl3Temp, fl4Temp, fl5Temp, fl6Temp, fl7Temp, fl8Temp, fl9Temp, fl10Temp= self.getTrainingDistributedData(AmountPerSpecies, BatSpecies)
+            minFreqTemp, maxFreqTemp, DurantionTemp, fl1Temp, fl2Temp, fl3Temp, fl4Temp, fl5Temp, fl6Temp, fl7Temp, fl8Temp, fl9Temp, fl10Temp, pixelAverageTemp = self.getTrainingDistributedData(AmountPerSpecies, BatSpecies)
             #minFreqTemp, maxFreqTemp, DurantionTemp, fl1Temp, fl2Temp, fl3Temp, fl4Temp, fl5Temp, fl6Temp, fl7Temp, fl8Temp, fl9Temp, fl10Temp= self.getTrainingSequenceData(AmountPerSpecies, BatSpecies)
             for i in range(0,len(minFreqTemp)):
                 minFreq.append(minFreqTemp[i])
@@ -283,9 +359,10 @@ class Classifier():
                 fl8.append(fl8Temp[i])
                 fl9.append(fl9Temp[i])
                 fl10.append(fl10Temp[i])
+                pixelAverage.append(pixelAverageTemp[i])
                 target.append(BatSpecies)
 
-        return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, target
+        return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage, target
 
     #Output: returns list of traning feautures in a random order
     def getTrainingDistributedData(self, amount, BatID):
@@ -302,13 +379,16 @@ class Classifier():
         fl8 = []
         fl9 = []
         fl10 = []
-
+        pixelAverage = []
         pathcorr, pathcorrImg = self.getSpecificHDFInformation(self.pathEventList, BatID)
         EventSize = len(pathcorr)
         randomPathIterator = random.sample(xrange(0,EventSize-1), amount)
         currentEvent = 0
         for i in randomPathIterator:
             data = self.HDFFile[pathcorr[i]]
+            img = self.HDFFile[pathcorrImg[i]]
+            pixelAverage.append(img.attrs["AveragePixelValue"])
+            self.TrainingSetEventList.append(pathcorr[i])
             minFreq.append(tokFreq(data[0]))
             maxFreq.append(tokFreq(data[1]))
             Durantion.append(toTime(abs(data[2]-data[3])))
@@ -337,7 +417,7 @@ class Classifier():
             fl10.append(toTime(pix10)-toTime(pix9))
 
 
-        return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10
+        return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage
 
     #Output: returns list of traning feautures in a sequence
     def getTrainingSequenceData(self, amount, BatID):
@@ -405,6 +485,7 @@ class Classifier():
         fl8 = []
         fl9 = []
         fl10 = []
+        pixelAverage = []
 
         pathcorr, pathcorrImg = self.getSpecificHDFInformation(self.pathEventList, ID)
 
@@ -414,6 +495,9 @@ class Classifier():
         randomPathIterator = random.sample(xrange(0,EventSize-1), amount)
         for i in randomPathIterator:
             data = self.HDFFile[pathcorr[i]]
+            img = self.HDFFile[pathcorrImg[i]]
+            pixelAverage.append(img.attrs["AveragePixelValue"])
+            self.TrainingSetEventList.append(pathcorr[i])
             minFreq.append(tokFreq(data[0]))
             maxFreq.append(tokFreq(data[1]))
             Durantion.append(toTime(abs(data[2]-data[3])))
@@ -442,7 +526,7 @@ class Classifier():
             fl10.append(toTime(pix10)-toTime(pix9))
 
 
-        return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10
+        return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage
 
 
     def convertID(self, ID):
@@ -477,44 +561,149 @@ class Classifier():
 
         return  newID
 
-    def goClassifer(self, iteration, learningrate, momentum):
+
+    def convertIDSingle(self, ID):
+
+        if ID == 1:
+            newID = 0
+        elif ID == 2:
+            newID = 1
+        elif ID == 3:
+            newID = 2
+        elif ID == 5:
+            newID = 3
+        elif ID == 6:
+            newID = 4
+        #this is for noise
+        elif ID == 8:
+            newID = 5
+        #this is for something else
+        elif ID == 9:
+            newID = 6
+        else:
+            print "Could not assign the ID " + str(ID) + " to newID"
+
+
+        return  newID
+
+
+    #assign 0 to noise, 1 to single call, 2 to multiple calls
+    def convertIDMultiSingle(self, ID):
+
+        if ID == 1:
+            newID = 1
+        elif ID == 2:
+            newID = 1
+        elif ID == 3:
+            newID = 1
+        elif ID == 5:
+            newID = 1
+        elif ID == 6:
+            newID = 1
+        elif ID == 10:
+            newID = 2
+        elif ID == 11:
+            newID = 2
+        elif ID == 12:
+            newID = 2
+        elif ID == 14:
+            newID = 2
+        #this is for noise
+        elif ID == 8:
+            newID = 0
+        else:
+            print "Could not assign the ID " + str(ID) + " to newID"
+
+
+        return  newID
+
+    def convertID2(self, ID):
+
+        if ID == 1:
+            newID = 0
+        elif ID == 2:
+            newID = 1
+        elif ID == 3:
+            newID = 2
+        elif ID == 5:
+            newID = 3
+        elif ID == 6:
+            newID = 4
+        #this is for noise
+        elif ID == 8:
+            newID = 5
+        elif ID == 9:
+            newID = 6
+
+        else:
+            print "Could not assign the ID " + str(ID) + " to newID"
+
+
+        return  newID
+
+    def pixelFix(self):
+        pathcorrImg = self.getHDFInformationToAddPixelInfo(self.pathEventList)
+        TotalEvents = len(pathcorrImg)
+        for i in range (0, TotalEvents):
+            print "Calculating Average pixel for event " + str(i) + " out of " + str(TotalEvents)
+            img = self.HDFFile[pathcorrImg[i]]
+            averagePixelValue = self.pixelCount(img)
+            img.attrs["AveragePixelValue"] = averagePixelValue
+
+    def printy(self, s):
+        from scipy import mean
+        if ((s._num_updates * s.batch_size < 100
+             and s._num_updates % (20 / s.batch_size) == 0)
+            or s._num_updates % (100 / s.batch_size) == 0):
+            print s._num_updates * s.batch_size, #s.bestParameters,
+            s.provider.nextSamples(4)
+            print mean(s.provider.currentLosses(s.bestParameters))
+            #s.provider.nextSamples(1)
+
+    def goClassifer(self, iteration, learningrate, momentum, toFile):
+        self.TrainingSetEventList[:] = []
         print "Iteration Count: " + str(iteration)
         #Set up Classicication Data, 4 input, output is a one dim. and 2 possible outcome or two possible classes
-        trndata = ClassificationDataSet(13, nb_classes=11)
-        tstdata = ClassificationDataSet(13, nb_classes=11)
+        trndata = ClassificationDataSet(14, nb_classes=11)
+        tstdata = ClassificationDataSet(14, nb_classes=11)
         SAMPLE_SIZE = 100
         AmountPerSpecies = 100
-        BatIDToAdd = [1, 2, 3, 5, 6, 10, 11, 12, 14]
+        BatIDToAdd = [1, 2, 3, 5, 6, 10, 11, 12, 14] # 9 different ID's
         TraningDataAmount = 5000
-        toFile = True
 
+
+        # Adding Training Data
+        print "Adding Training Data"
         print "Adding Bat Species Events"
-        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, target = self.getTrainingSpeciesDistributedData(BatIDToAdd, AmountPerSpecies)
+        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage, target = self.getTrainingSpeciesDistributedData(BatIDToAdd, AmountPerSpecies)
 
         SAMPLE_SIZE = len(minFreq)
         for i in range (0, SAMPLE_SIZE):
-            trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i] ], [self.convertID(target[i])])
+            trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], pixelAverage[i] ], self.convertID(target[i]))
+
 
         print "Adding noise events"
         NoiseID = 8
-        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10 = self.getDistributedData(AmountPerSpecies, NoiseID)
+        NoiseAmount = AmountPerSpecies
+        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage = self.getDistributedData(NoiseAmount, NoiseID)
         SAMPLE_SIZE = len(minFreq)
         for i in range (0, SAMPLE_SIZE):
-            trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i] ], [self.convertID(NoiseID)])
+            trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], pixelAverage[i] ], self.convertID(NoiseID))
 
-        print "Adding something else events"
+        print "Adding Something else events"
         SomethingElseID = 9
-        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10 = self.getDistributedData(AmountPerSpecies, SomethingElseID)
-        AMPLE_SIZE = len(minFreq)
+        NoiseAmount = AmountPerSpecies
+        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage = self.getDistributedData(NoiseAmount, SomethingElseID)
+        SAMPLE_SIZE = len(minFreq)
         for i in range (0, SAMPLE_SIZE):
-            trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i] ], [self.convertID(SomethingElseID)])
+            trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], pixelAverage[i] ], self.convertID(SomethingElseID))
 
 
         print "Adding test data"
-        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, target = self.getDistrubedTestData(TraningDataAmount)
+        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage, target = self.getDistrubedTestData(TraningDataAmount, BatIDToAdd)
         maxSize = len(minFreq)
         for i in range (0, maxSize):
-            tstdata.addSample([minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i]], [ self.convertID(target[i]) ])
+            tstdata.addSample([minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], pixelAverage[i]], [ self.convertID(target[i]) ])
 
         trndata._convertToOneOfMany( )
         tstdata._convertToOneOfMany( )
@@ -522,36 +711,29 @@ class Classifier():
         print "Input and output dimensions: ", trndata.indim, trndata.outdim
         print "Learning Rate: " + str(learningrate)
         print "Momentum: " + str(momentum)
-        #print "First sample (input, target, class):"
-        #print trndata['input'][0], trndata['target'][0], trndata['class'][0]
-        #print "200th sample (input, target, class):"
-        #print trndata['input'][100], trndata['target'][100], trndata['class'][100]
-
 
         #set up the Feed Forward Network
         HiddenNeurons = 10
-        #learningrate = 0.01
-        #momentum = 0.1
         weightdecay = 0
         net = buildNetwork(trndata.indim, HiddenNeurons, trndata.outdim, bias=True, outclass=SoftmaxLayer)
-        trainer = BackpropTrainer(net, dataset=trndata, momentum=momentum, learningrate=learningrate, verbose=True, weightdecay=weightdecay)
+        trainer = BackpropTrainer(net, dataset=trndata, momentum=momentum, learningrate=learningrate, verbose=False, weightdecay=weightdecay)
         print "Training data"
         if toFile:
             #filename = "InputN" + str(trndata.indim) + "HiddenN" + str(HiddenNeurons) + "OutputN" + str(trndata.outdim) + "Momentum"+ str(momentum) + "LearningRate" + str(learningrate) + "Weightdecay" + str(weightdecay)
-            root = "/home/anoch/Dropbox/SDU/10 Semester/MSc Project/Data Results/Master/BinarySpeciesTestMSE/"
-            filename = "ClassifierSpeciesTest_" + str(iteration) +"_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
-            folderName = root + "ClassifierSpeciesTest_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
+            root = "/home/anoch/Dropbox/SDU/10 Semester/MSc Project/Data Results/Master/BinarySpeciesFullTest/"
+            filename = "ClassifierFullTest_" + str(iteration) +"_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
+            folderName = root + "ClassifierSSingleMultiTest_LR_"+str(learningrate) + "_M_"+str(momentum)
             if not os.path.exists(folderName):
                 os.makedirs(folderName)
             f = open(folderName + "/"+ filename + ".txt", 'w')
 
-            value = "Added Bat Species: " + str(BatIDToAdd) + "\n"
+            value = "Added  Bat Species: " + str(BatIDToAdd) + "\n"
             f.write(value)
 
-            value = "Number of bat patterns: " + str(len(trndata)) + "\n"
+            value = "Number of traning patterns: " + str(len(trndata)) + "\n"
             f.write(value)
 
-            value = "Number of noise patterns: " + str(AmountPerSpecies) + "\n"
+            value = "Number of noise patterns: " + str(NoiseAmount) + "\n"
             f.write(value)
 
             value = "Number of patterns per species: " + str(AmountPerSpecies) + "\n"
@@ -572,32 +754,24 @@ class Classifier():
             value = "Weight Decay: " + str(weightdecay) + "\n"
             f.write(value)
 
-            f.write("Input Activation function: Sigmoid function\n")
+            f.write("Input Activation function: Linear function\n")
             f.write("Hidden Activation function: Sigmoid function\n")
             f.write("Output Activation function: Softmax function\n")
 
-        maxEpoch = 1000
+        maxEpoch = 100
         for i in range(0,maxEpoch):
             # Train one epoch
-            trainer.trainEpochs(1)
-            if toFile:
-                averageError = trainer.testOnData(dataset=tstdata, verbose=False)
+            trainer.trainEpochs(10)
+            averageError = trainer.testOnData(dataset=tstdata, verbose=False)
 
+            #averageCEE = self.CrossEntropyErrorAveraged(net, tstdata)
+            #print "Average Cross Entropy Error: " + str(averageCEE)
+            #print "Mean Square Error: " + str(averageError)
 
             #"""procentError(out, true) return percentage of mismatch between out and target values (lists and arrays accepted) error= ((out - true)/true)*100"""
             trnresult = percentError(trainer.testOnClassData(), trndata['class'])
             tstresult = percentError(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
-            if toFile:
-                if maxEpoch-1 == trainer.totalepochs:
-                    results, BatCount = self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
-                    filename = "ClassifierSpeciesTest_" + str(iteration) +"_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)+ "_CR"
-                    folderName = root + "ClassifierSpeciesTest_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
-                    result_file = open(folderName + "/"+ filename + ".txt", 'w')
-                    result_file.write("[TruePositive, FalsePositive, CorrectRatio, BatCount]\n")
-                    result_file.write("[Eptesicus sertinus (single call), pipstrellus pygmaeus (single call), myotis daubeutonii (single call), pipistrellus nathusii (single call), nycalus noctula (single call), Eptesicus sertinus (Multi Call), pipstrellus pygmaeus (Multi Call), myotis daubeutonii (Multi Call), pipistrellus nathusii (Multi Call), nycalus noctula (Multi Call)]\n")
-                    result_file.write(str(results)+"\n")
-                    result_file.write(str(BatCount))
-                    result_file.close()
+
 
             print("epoch: %4d" % trainer.totalepochs,"  train error: %5.2f%%" % trnresult,"  test error: %5.2f%%" % tstresult)
             if toFile:
@@ -605,20 +779,40 @@ class Classifier():
                 f.write(dataString)
         if toFile:
             f.close()
+            ConfusionMatrix, BatTarget = self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
+            filename = filename+ "_CR"
+            result_file = open(folderName + "/"+ filename + ".txt", 'w')
+            result_file.write("[Species, Noise, Something else]")
+            result_file.write(str(BatTarget) + "\n")
+            result_file.write(str(ConfusionMatrix))
+            result_file.close()
+        self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
         print "Done training"
 
     #Input: A list of the classifier output and the true target
     #Method: calculates the correct ratio based on true and false negative and positive
     #Output: A list of result: [TruePostive, FalsePostive, CorrectRatio], [BatCount]
     def CorrectRatio(self, out, true):
+
+        import numpy as np
+        #initilaze with zero
+        ConfusionMatrix = np.zeros((11,11))
+        #int64 datatype
+        ConfusionMatrix = np.array(ConfusionMatrix, dtype=np.int64)
         TotalTest = len(out)
-        TruePostive = 0
-        FalsePostive = 0
-        TrueBats = 0
-        TrueNonBats = 0
+        BatTarget = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-        BatCount = [0,0,0,0,0,0,0,0,0,0,0]
+        for i in true:
+            BatTarget[i] += 1
 
+        out = np.array(out).flatten()
+        true = np.array(true).flatten()
+        for i in range(0,TotalTest):
+            classifierOut = out[i]
+            targetOut = true[i]
+            ConfusionMatrix[targetOut][classifierOut] += 1
+
+        """
         for i in range(0,TotalTest):
             for CBatID in range(0,11):
                 if out[i] == CBatID:
@@ -629,14 +823,36 @@ class Classifier():
                     else:
                         FalsePostive += 1
                         break
+        """
+        print BatTarget
+        print "\n"
+        print ConfusionMatrix
+        return ConfusionMatrix, BatTarget
 
 
-        print "True Positive: " + str(TruePostive)
-        print "False Positive: " + str(FalsePostive)
-        print "True Bats: " + str(TrueBats)
-        print "True Non Bats: " + str(TrueNonBats)
-        CorrectRatio = float(TruePostive) / float(TotalTest) * 100
-        print "Correct Ratio: " + str(CorrectRatio)
-        print BatCount
-        results = [TruePostive, FalsePostive, CorrectRatio]
-        return results, BatCount
+    def CrossEntropyErrorAveraged(self, net, dataset):
+        import math
+        import numpy as np
+        outputList = []
+        targetList = []
+        #Load dataset
+        for seq in dataset._provideSequences():
+            for input, target in seq:
+                #compute net output for given input
+                outputList.append(net.activate(input))
+                #Load target
+                targetList.append(target)
+        # Flattern the array to get one stream of data
+        outputList = np.array(outputList).flatten()
+        targetList = np.array(targetList).flatten()
+        #initilize error to zero
+        error = 0
+        for i in range (0, len(outputList)):
+            #avoid zero division
+            if targetList[i] != 0 and outputList[i] != 0:
+                #Cross entropy error for two classes
+                error += float(targetList[i]) * math.log(float(outputList[i])/float(targetList[i]))
+        #Return the averaged error
+        return (error*-1)/len(outputList)
+
+

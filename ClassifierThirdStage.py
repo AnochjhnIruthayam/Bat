@@ -262,8 +262,8 @@ class Classifier():
 
     #Output: returns list random picked test data (features)
     def getDistrubedTestData(self, amount, BatIDToAdd):
-        BatIDToAdd.append(8)
-        BatIDToAdd.append(9)
+        #BatIDToAdd.append(8)
+        #BatIDToAdd.append(9)
         minFreq = []
         maxFreq = []
         Durantion = []
@@ -529,7 +529,7 @@ class Classifier():
         return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage
 
 
-    def convertID(self, ID):
+    def convertIDAll(self, ID):
 
         if ID == 1:
             newID = 0
@@ -667,13 +667,14 @@ class Classifier():
         self.TrainingSetEventList[:] = []
         print "Iteration Count: " + str(iteration)
         #Set up Classicication Data, 4 input, output is a one dim. and 2 possible outcome or two possible classes
-        trndata = ClassificationDataSet(14, nb_classes=7)
-        tstdata = ClassificationDataSet(14, nb_classes=7)
+        trndata = ClassificationDataSet(14, nb_classes=5)
+        tstdata = ClassificationDataSet(14, nb_classes=5)
         SAMPLE_SIZE = 100
         AmountPerSpecies = 100
         SingleBatIDToAdd = [1, 2, 3, 5, 6] # for single
         MultiBatIDToAdd = [10, 11, 12, 14]# for multi
         AddBatIDToAdd = [1, 2, 3, 5, 6]
+        AddSingleMulti = [1, 2, 3, 5, 6,10, 11, 12, 14]
         TraningDataAmount = 5000
 
         print "Adding Bat Single Species Events"
@@ -692,19 +693,19 @@ class Classifier():
         #    trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], pixelAverage[i] ], [2])
 
 
-        print "Adding noise events"
-        NoiseID = 8
-        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage = self.getDistributedData(AmountPerSpecies, NoiseID)
-        SAMPLE_SIZE = len(minFreq)
-        for i in range (0, SAMPLE_SIZE):
-            trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], pixelAverage[i] ], [self.convertIDSingle(NoiseID)]) #self.convertID(NoiseID)
+        #print "Adding noise events"
+        #NoiseID = 8
+        #minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage = self.getDistributedData(AmountPerSpecies, NoiseID)
+        #SAMPLE_SIZE = len(minFreq)
+        #for i in range (0, SAMPLE_SIZE):
+        #    trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], pixelAverage[i] ], [self.convertIDSingle(NoiseID)]) #self.convertID(NoiseID)
 
-        print "Adding something else events"
-        SomethingElseID = 9
-        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage = self.getDistributedData(AmountPerSpecies, SomethingElseID)
-        SAMPLE_SIZE = len(minFreq)
-        for i in range (0, SAMPLE_SIZE):
-            trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], pixelAverage[i] ], [self.convertIDSingle(SomethingElseID)])
+        #print "Adding something else events"
+        #SomethingElseID = 9
+        #minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage = self.getDistributedData(AmountPerSpecies, SomethingElseID)
+        #SAMPLE_SIZE = len(minFreq)
+        #for i in range (0, SAMPLE_SIZE):
+        #    trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], pixelAverage[i] ], [self.convertIDSingle(SomethingElseID)])
 
         # Try to put all multievent in the something else event
         #print "Adding something else events"
@@ -717,7 +718,7 @@ class Classifier():
 
 
         print "Adding test data"
-        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage, target = self.getDistrubedTestData(TraningDataAmount, AddBatIDToAdd)
+        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage, target = self.getDistrubedTestData(TraningDataAmount, SingleBatIDToAdd)
         maxSize = len(minFreq)
         for i in range (0, maxSize):
             tstdata.addSample([minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], pixelAverage[i]], [ self.convertIDSingle (target[i]) ])
@@ -793,7 +794,7 @@ class Classifier():
             f.write("Hidden Activation function: Sigmoid function\n")
             f.write("Output Activation function: Softmax function\n")
 
-        maxEpoch = 100
+        maxEpoch = 200
         for i in range(0,maxEpoch):
             # Train one epoch
             trainer.trainEpochs(10)
@@ -813,13 +814,15 @@ class Classifier():
                 dataString = str(trainer.totalepochs) + ", " + str(averageError) + ", " + str(trnresult) + ", " + str(tstresult) + "\n"
                 f.write(dataString)
         if toFile:
+            import numpy as np
             f.close()
             ConfusionMatrix, BatTarget = self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
             filename = filename+ "_CR"
             result_file = open(folderName + "/"+ filename + ".txt", 'w')
-            result_file.write("[Species, Noise, Something else]")
+            result_file.write("[Species]")
             result_file.write(str(BatTarget))
             result_file.write(str(ConfusionMatrix))
+            np.savetxt(folderName + "/"+ filename+".csv", ConfusionMatrix, delimiter=",")
             result_file.close()
         self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
         print "Done training"
@@ -831,15 +834,11 @@ class Classifier():
 
         import numpy as np
         #initilaze with zero
-        ConfusionMatrix = np.zeros((7,7))
+        ConfusionMatrix = np.zeros((5,5))
         #int64 datatype
         ConfusionMatrix = np.array(ConfusionMatrix, dtype=np.int64)
         TotalTest = len(out)
-        TruePostive = 0
-        FalsePostive = 0
-        TrueBats = 0
-        TrueNonBats = 0
-        BatTarget = [0, 0, 0, 0, 0, 0, 0]
+        BatTarget = [0, 0, 0, 0, 0]
 
         for i in true:
             BatTarget[i] += 1
@@ -851,18 +850,6 @@ class Classifier():
             targetOut = true[i]
             ConfusionMatrix[targetOut][classifierOut] += 1
 
-        """
-        for i in range(0,TotalTest):
-            for CBatID in range(0,11):
-                if out[i] == CBatID:
-                    BatCount[CBatID] += 1
-                    if true[i] == CBatID:
-                        TruePostive += 1
-                        break
-                    else:
-                        FalsePostive += 1
-                        break
-        """
         print BatTarget
         print "\n"
         print ConfusionMatrix

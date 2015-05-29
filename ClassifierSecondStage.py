@@ -263,7 +263,6 @@ class Classifier():
     #Output: returns list random picked test data (features)
     def getDistrubedTestData(self, amount, BatIDToAdd):
         BatIDToAdd.append(8)
-        BatIDToAdd.append(9)
         minFreq = []
         maxFreq = []
         Durantion = []
@@ -588,7 +587,7 @@ class Classifier():
 
 
     #assign 0 to noise, 1 to single call, 2 to multiple calls
-    def convertIDlow(self, ID):
+    def convertIDMultiSingle(self, ID):
 
         if ID == 1:
             newID = 1
@@ -611,9 +610,6 @@ class Classifier():
         #this is for noise
         elif ID == 8:
             newID = 0
-        #this is for something else
-        elif ID == 9:
-            newID = 10
         else:
             print "Could not assign the ID " + str(ID) + " to newID"
 
@@ -669,8 +665,8 @@ class Classifier():
         #Set up Classicication Data, 4 input, output is a one dim. and 2 possible outcome or two possible classes
         trndata = ClassificationDataSet(14, nb_classes=3)
         tstdata = ClassificationDataSet(14, nb_classes=3)
-        SAMPLE_SIZE = 100
-        AmountPerSpecies = 100
+        SAMPLE_SIZE = 30
+        AmountPerSpecies = 30
         SingleBatIDToAdd = [1, 2, 3, 5, 6] # for single
         MultiBatIDToAdd = [10, 11, 12, 14]# for multi
         AddBatIDToAdd = [1, 2, 3, 5, 6, 10, 11, 12, 14]
@@ -696,7 +692,8 @@ class Classifier():
 
         print "Adding noise events"
         NoiseID = 8
-        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage = self.getDistributedData(AmountPerSpecies, NoiseID)
+        NoiseAmount = (len(SingleBatIDToAdd)*AmountPerSpecies)
+        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage = self.getDistributedData(NoiseAmount, NoiseID)
         SAMPLE_SIZE = len(minFreq)
         for i in range (0, SAMPLE_SIZE):
             trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], pixelAverage[i] ], [0]) #self.convertID(NoiseID)
@@ -706,7 +703,7 @@ class Classifier():
         minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage, target = self.getDistrubedTestData(TraningDataAmount, AddBatIDToAdd)
         maxSize = len(minFreq)
         for i in range (0, maxSize):
-            tstdata.addSample([minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], pixelAverage[i]], [ self.convertIDSingle (target[i]) ])
+            tstdata.addSample([minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], pixelAverage[i]], [ self.convertIDMultiSingle(target[i]) ])
 
         trndata._convertToOneOfMany( )
         tstdata._convertToOneOfMany( )
@@ -742,19 +739,22 @@ class Classifier():
         if toFile:
             #filename = "InputN" + str(trndata.indim) + "HiddenN" + str(HiddenNeurons) + "OutputN" + str(trndata.outdim) + "Momentum"+ str(momentum) + "LearningRate" + str(learningrate) + "Weightdecay" + str(weightdecay)
             root = "/home/anoch/Dropbox/SDU/10 Semester/MSc Project/Data Results/Master/BinarySpeciesTestMSE/"
-            filename = "ClassifierSpeciesTest_" + str(iteration) +"_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
-            folderName = root + "ClassifierSpeciesTest_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
+            filename = "ClassifierSingleMultiTest_" + str(iteration) +"_MSE_LR_"+str(learningrate) + "_M_"+str(momentum)
+            folderName = root + "ClassifierSSingleMultiTest_LR_"+str(learningrate) + "_M_"+str(momentum)
             if not os.path.exists(folderName):
                 os.makedirs(folderName)
             f = open(folderName + "/"+ filename + ".txt", 'w')
 
-            value = "Added Bat Species: " + str(AddBatIDToAdd) + "\n"
+            value = "Added Single Bat Species: " + str(SingleBatIDToAdd) + "\n"
             f.write(value)
 
-            value = "Number of bat patterns: " + str(len(trndata)) + "\n"
+            value = "Added Multi Bat Species: " + str(MultiBatIDToAdd) + "\n"
             f.write(value)
 
-            value = "Number of noise patterns: " + str(AmountPerSpecies) + "\n"
+            value = "Number of traning patterns: " + str(len(trndata)) + "\n"
+            f.write(value)
+
+            value = "Number of noise patterns: " + str(NoiseAmount) + "\n"
             f.write(value)
 
             value = "Number of patterns per species: " + str(AmountPerSpecies) + "\n"
@@ -804,7 +804,7 @@ class Classifier():
             filename = filename+ "_CR"
             result_file = open(folderName + "/"+ filename + ".txt", 'w')
             result_file.write("[Species, Noise, Something else]")
-            result_file.write(str(BatTarget))
+            result_file.write(str(BatTarget) + "\n")
             result_file.write(str(ConfusionMatrix))
             result_file.close()
         self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
