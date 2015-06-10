@@ -344,7 +344,7 @@ def get_time_for_modified_files(file):
 
     return day,month,year,hour,min,sec
 
-def findEvent(OutputDirectory, eventFile, recordedAt, projectName):
+def findEvent(OutputDirectory, eventFile, recordedAt, projectName, InputDirectory):
     threshold = 5
     SavePath = OutputDirectory + "/SpectrogramMarked/"
     soundImgFilePath = OutputDirectory + "/Spectrogram/" + eventFile
@@ -386,7 +386,7 @@ def findEvent(OutputDirectory, eventFile, recordedAt, projectName):
     cv2.imwrite(SavePath + os.path.splitext((eventFile))[0] + "/SpectrogramAllMarked.png", imgMarkedSpectrogram)
     #If there are event, then label them
     if len(eventNum)> 0:
-        HDF5Handler.eventHDFLabel(os.path.splitext((eventFile))[0], topX, topY, endX, bottomY, SavePath, eventNum, OutputDirectory, imgSpectrogram, imgMarkedSpectrogram, imgEvent, recordedAt, projectName)
+        HDF5Handler.eventHDFLabel(os.path.splitext((eventFile))[0], topX, topY, endX, bottomY, SavePath, eventNum, OutputDirectory, imgSpectrogram, imgMarkedSpectrogram, imgEvent, recordedAt, projectName, InputDirectory)
     #plt.imshow(imgColor)
     #plt.xticks([]), plt.yticks([])
    # plt.show()

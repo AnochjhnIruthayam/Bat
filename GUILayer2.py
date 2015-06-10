@@ -6,7 +6,7 @@ from PyQt4 import QtCore, QtGui
 from BatWindow import Ui_BatWindow
 import EventExtraction, os, getFunctions, time
 import h5py, re
-import Classifier2, ClassifierBinary, ClassifierThirdStage, ClassifierSecondStage, HDF5Handler, cv2, ClassifierFirstStage
+import ClassifierThirdStage, ClassifierSecondStage, HDF5Handler, cv2, ClassifierFirstStage
 
 def toTime(timePixel):
     imageLength = 5000.0
@@ -24,6 +24,7 @@ class StartQT4(QtGui.QMainWindow):
         self.ui.setupUi(self)
         self.ui.frame_BatButtons.hide()
         self.pathEventList = []
+
         QtCore.QObject.connect(self.ui.pushButton_SetInputDirectory, QtCore.SIGNAL("clicked()"), self.setInputDirectory)
         QtCore.QObject.connect(self.ui.pushButton_SetOutputDirectory, QtCore.SIGNAL("clicked()"), self.setOutputDirectory)
         QtCore.QObject.connect(self.ui.button_start, QtCore.SIGNAL("clicked()"), self.run_analyser)
@@ -49,9 +50,13 @@ class StartQT4(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.button_browser_Next, QtCore.SIGNAL("clicked()"), self.buttonNextHandler)
         QtCore.QObject.connect(self.ui.button_browser_previous, QtCore.SIGNAL("clicked()"), self.buttonPreviousHandler)
         QtCore.QObject.connect(self.ui.comboBox_SelectSpecies, QtCore.SIGNAL("activated(QString)"), self.browserComboxSelectSpeciesHandler)
+        #Connect train classifier buttons
+        QtCore.QObject.connect(self.ui.button_classifierFirstStage_train, QtCore.SIGNAL("clicked()"), self.trainFirstStageClassifier)
+        QtCore.QObject.connect(self.ui.button_classifierSecondStage_train, QtCore.SIGNAL("clicked()"), self.trainSecondStageClassifier)
+        QtCore.QObject.connect(self.ui.button_classifierThirdStage_train, QtCore.SIGNAL("clicked()"), self.trainThirdStageClassifier)
+
+        #Connect run classifier buttons
         QtCore.QObject.connect(self.ui.button_classifierFirstStage_run, QtCore.SIGNAL("clicked()"), self.runFirstStageClassifier)
-        QtCore.QObject.connect(self.ui.button_classifierSecondStage_run, QtCore.SIGNAL("clicked()"), self.runSecondStageClassifier)
-        QtCore.QObject.connect(self.ui.button_classifierThirdStage_run, QtCore.SIGNAL("clicked()"), self.runThirdStageClassifier)
 
         QtCore.QObject.connect(self.ui.button_loaddatabaseReconstruct, QtCore.SIGNAL("clicked()"), self.file_dialog2)
         QtCore.QObject.connect(self.ui.pushButton_SetOutputDirectory_Reconstruct, QtCore.SIGNAL("clicked()"), self.setOutputDirectory)
@@ -75,11 +80,18 @@ class StartQT4(QtGui.QMainWindow):
         self.InputDirectory = "/home/anoch/Documents/BatSamplesInput"
         self.ui.label_outputDirectory.setText(self.OutputDirectory)
         self.ui.label_inputDirectory.setText(self.InputDirectory)
-        self.classifier = Classifier2.Classifier()
         self.third_stage_classifier = ClassifierThirdStage.Classifier()
         self.second_stage_classifier = ClassifierSecondStage.Classifier()
-        self.classifierBinary = ClassifierBinary.BinaryClassifier()
+
         self.first_stage_classifier = ClassifierFirstStage.BinaryClassifier()
+        self.second_stage_classifier = ClassifierSecondStage.Classifier()
+        self.third_stage_classifier = ClassifierThirdStage.Classifier()
+
+        self.first_stage_classifier_run = ClassifierFirstStage.BinaryClassifier()
+        self.second_stage_classifier_run = ClassifierSecondStage.Classifier()
+        self.third_stage_classifier_run = ClassifierThirdStage.Classifier()
+
+
         self.ui.button_OtherSpecies.hide()
         if self.ui.checkBox_scaledZoom.isChecked():
             self.ZoomInParameter = 1
@@ -292,39 +304,68 @@ class StartQT4(QtGui.QMainWindow):
                 cv2.imwrite(self.OutputDirectory + "/Spectrogram/" + file[i] + ".png", image)
 
 
-    def runFirstStageClassifier(self):
-
+    def trainFirstStageClassifier(self):
+        self.ui.textEdit_classifier_overview.setText("Initilazing database")
+        self.first_stage_classifier.initClasissifer()
+        self.ui.textEdit_classifier_overview.setText("Training network...")
+        self.first_stage_classifier.goClassifer(0, 0.001, 0.1, False)
+        self.ui.textEdit_classifier_overview.setText("Training network... Done")
+        ## Testing Purpose ##
+        """
         learningRate    = [0.001, 0.001, 0.001, 0.01, 0.01, 0.01, 0.1, 0.1, 0.1]
         momentum        = [0.001, 0.01, 0.1, 0.001, 0.01, 0.1, 0.001, 0.01, 0.1]
-        self.first_stage_classifier.initClasissifer()
         for setting in range (0, len(learningRate)):
             for i in range (0, 5):
                 self.first_stage_classifier.goClassifer(i, learningRate[setting], momentum[setting], True)
-
-    def runSecondStageClassifier(self):
+        """
+    def trainSecondStageClassifier(self):
+        self.ui.textEdit_classifier_overview.setText("Initilazing database")
+        self.second_stage_classifier.initClasissifer()
+        self.ui.textEdit_classifier_overview.setText("Training network...")
+        self.second_stage_classifier.goClassifer(0,0.001,0.001,False)
+        self.ui.textEdit_classifier_overview.setText("Training network... Done")
+        """
         learningRate    = [0.001, 0.001, 0.001, 0.01, 0.01, 0.01, 0.1, 0.1, 0.1]
         momentum        = [0.001, 0.01, 0.1, 0.001, 0.01, 0.1, 0.001, 0.01, 0.1]
-
-        self.classifier.initClasissifer()
-        for setting2 in range (0, len(learningRate)):
-            for k in range(0,5):
-                self.classifier.goClassifer(k, learningRate[setting2], momentum[setting2], True)
-
-        self.second_stage_classifier.initClasissifer()
         for setting in range (0, len(learningRate)):
             for i in range(0,5):
                 self.second_stage_classifier.goClassifer(i, learningRate[setting], momentum[setting], True)
+        """
 
-
-    def runThirdStageClassifier(self):
+    def trainThirdStageClassifier(self):
+        self.ui.textEdit_classifier_overview.setText("Initilazing database")
+        self.third_stage_classifier.initClasissifer()
+        self.ui.textEdit_classifier_overview.setText("Training network...")
+        self.third_stage_classifier.goClassifer(0, 0.001, 0.010, False)
+        self.ui.textEdit_classifier_overview.setText("Training network... Done")
+        """
         learningRate    = [0.001, 0.001, 0.001, 0.01, 0.01, 0.01, 0.1, 0.1, 0.1]
         momentum        = [0.001, 0.01, 0.1, 0.001, 0.01, 0.1, 0.001, 0.01, 0.1]
-        self.third_stage_classifier.initClasissifer()
-        for i in range(0,5):
-            self.third_stage_classifier.goClassifer(i, 0.001, 0.010, True)
-        #for setting in range (0, len(learningRate)):
-        #    for i in range(0,5):
-        #        self.third_stage_classifier.goClassifer(i, learningRate[setting], momentum[setting], True)
+        for setting in range (0, len(learningRate)):
+            for i in range(0,5):
+                self.third_stage_classifier.goClassifer(i, learningRate[setting], momentum[setting], True)
+        """
+
+    def runFirstStageClassifier(self):
+        #self.ui.textEdit_classifier_overview.setText("Initilazing database")
+        self.first_stage_classifier_run.initClasissifer()
+        #self.ui.textEdit_classifier_overview.setText("Running network on data...")
+        TruePostive, TrueNegative, FalsePostive, FalseNegative, CorrectRatio, TrueBats, TrueNonBats = self.first_stage_classifier_run.runClassifier()
+        cursor = QtGui.QTextCursor(self.ui.textEdit_classifier_overview.document())
+
+        cursor.insertText("True Positive: " + str(TruePostive) + "\n")
+        cursor.insertText("True Negative: " + str(TrueNegative) + "\n")
+        cursor.insertText("False Positive: " + str(FalsePostive) + "\n")
+        cursor.insertText("False Negative: " + str(FalseNegative) + "\n")
+        cursor.insertText("True Bats: " + str(TrueBats) + "\n")
+        cursor.insertText("True Non Bats: " + str(TrueNonBats) + "\n")
+        cursor.insertText("Correct Ratio: " + str(CorrectRatio)  + "\n")
+
+    def runSecondStageClassifier(self):
+        self.second_stage_classifier_run.initClasissifer()
+
+    def runThirdStageClassifier(self):
+        self.third_stage_classifier_run.initClasissifer()
 
     def getHDFInformationRecontructImage(self, paths, imgType):
         day = []
@@ -883,7 +924,7 @@ class StartQT4(QtGui.QMainWindow):
             for eventFile in sampleList:
                 self.ui.textEdit_overview.setText("Analyzing " + os.path.splitext((eventFile))[0] + "\n")
                 self.ui.label_FilesFoundProgress.setText(str(progressCount) + " out of " + str(maxSize))
-                EventExtraction.findEvent(self.OutputDirectory, eventFile, recordedAt, projectName)
+                EventExtraction.findEvent(self.OutputDirectory, eventFile, recordedAt, projectName, self.InputDirectory)
                 progressCount += 1
                 self.ui.progressBar_analyse.setValue(progressCount)
             self.ui.textEdit_overview.setText("Event extraction done!")

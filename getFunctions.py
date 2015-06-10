@@ -70,27 +70,3 @@ def get_all_bat_event(rootpath):
     #print list_event_dir
     return list_event, list_event_dir
 
-
-#Get a desired number of a desired output
-def getSample(sampleAmount, desired_target):
-    import Classifier as c
-    listEvent_dir = []
-    listEvent_No = []
-    sampleCount = 0
-    rootpath = "/home/anoch/Documents/BatSamples/"
-    event, list_event_dir = get_all_bat_event(rootpath)
-    for i in range(0, len(list_event_dir)):
-        eventNo= ''.join(x for x in event[i] if x.isdigit())
-        #get output data
-        target = c.ANN_outout(list_event_dir[i], eventNo)
-        if target == desired_target:
-            listEvent_dir.append(list_event_dir[i])
-            listEvent_No.append(eventNo)
-            sampleCount = sampleCount + 1
-        elif target == desired_target:
-            listEvent_dir.append(list_event_dir[i])
-            listEvent_No.append(eventNo)
-            sampleCount = sampleCount + 1
-        if sampleAmount < sampleCount:
-            break
-    return listEvent_dir, listEvent_No

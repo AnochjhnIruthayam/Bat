@@ -17,6 +17,11 @@ def imageToHDF5_path(path):
 def imageToHDF5_img(readImg):
     return np.vstack(itertools.imap(np.uint8, readImg))
 
+def loadSoundFile(soundFile):
+    f = open(soundFile, "r")
+    soundArray = np.fromfile(f, dtype=np.int16)
+    return soundArray
+
 
 def imageRecontructFromHDF5(ArrayDataImg):
     image_2d = np.vstack(itertools.imap(np.uint8, ArrayDataImg))
@@ -25,7 +30,7 @@ def imageRecontructFromHDF5(ArrayDataImg):
 
     return image_3d
 
-def eventHDFLabel(eventName, minMiliSec_pixel, maxFreq_pixel, maxMiliSec_pixel, minFreq_pixel, savePath, eventNum, OutputDirectory, imgSpectrogram, imgMarkedSpectrogram, imgEvent, recordedAt, projectName):
+def eventHDFLabel(eventName, minMiliSec_pixel, maxFreq_pixel, maxMiliSec_pixel, minFreq_pixel, savePath, eventNum, OutputDirectory, imgSpectrogram, imgMarkedSpectrogram, imgEvent, recordedAt, projectName, InputDirectory):
     SAVE_ITERATION = 10
     myHDFFile = OutputDirectory + "/BatData.hdf5"
     f = h5py.File(myHDFFile)
@@ -112,6 +117,16 @@ def eventHDFLabel(eventName, minMiliSec_pixel, maxFreq_pixel, maxMiliSec_pixel, 
             out["ArrayImgMarkedSpectrogram"].attrs["Interlace"] = 0
             out["ArrayImgMarkedSpectrogram"].attrs["Grayscale"] = "TRUE"
             out["ArrayImgMarkedSpectrogram"].attrs["Alpha"] = "FALSE"
+
+            # Get .s16 file and save it to dataset
+            #Reconstruct orginial .s16 filename
+            filename = InputDirectory + "/sr_500000_ch_4_offset_" + offset + ".s16"
+            #Convert binary file to array
+            ArraySound = loadSoundFile(filename)
+            ds_sound = out.create_dataset("SensorData", ArraySound.shape, dtype=ArraySound.dtype, compression="gzip")
+            ds_sound[:] = ArraySound
+            out["SensorData"].attrs["Sampling Frequency"] = 500000
+            out["SensorData"].attrs["Number of Channels"] = 4
 
 
         SubDirectory = DirectoryString + "/Event_" + str(i)

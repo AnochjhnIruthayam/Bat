@@ -7,7 +7,7 @@ from pybrain.structure import SoftmaxLayer
 from pybrain.tools.shortcuts import buildNetwork
 from pybrain.utilities import percentError
 import random, os
-#from pybrain.tools.customxml.networkwriter import NetworkWriter #To save a network
+from pybrain.tools.customxml.networkwriter import NetworkWriter #To save a network
 #from pybrain.tools.customxml.networkreader import NetworkReader #To load a network
 
 # Classifier with the HDF5 interface
@@ -798,6 +798,7 @@ class Classifier():
             if toFile:
                 dataString = str(trainer.totalepochs) + ", " + str(averageError) + ", " + str(trnresult) + ", " + str(tstresult) + "\n"
                 f.write(dataString)
+        NetworkWriter.writeToFile(net,"SecondStageClassifier.xml")
         if toFile:
             f.close()
             ConfusionMatrix, BatTarget = self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])

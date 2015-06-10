@@ -14,12 +14,19 @@
   <property name="windowTitle">
    <string>Bat GUI Analyzer</string>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>Images/bat-icon.png</normaloff>Images/bat-icon.png</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QTabWidget" name="tabWidget">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>10</y>
+      <x>20</x>
+      <y>0</y>
       <width>1231</width>
       <height>981</height>
      </rect>
@@ -3949,129 +3956,305 @@
      <attribute name="title">
       <string>Classifier</string>
      </attribute>
-     <widget class="QPushButton" name="button_classifierSecondStage_run">
+     <widget class="QPushButton" name="button_classifier_database">
       <property name="geometry">
        <rect>
-        <x>490</x>
-        <y>430</y>
-        <width>201</width>
-        <height>51</height>
+        <x>20</x>
+        <y>20</y>
+        <width>161</width>
+        <height>41</height>
        </rect>
       </property>
       <property name="text">
-       <string>Run Classifier</string>
+       <string>Load Database</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="button_classifierFirstStage_run">
+     <widget class="QGroupBox" name="groupBox_IndClassifiers">
       <property name="geometry">
        <rect>
-        <x>490</x>
-        <y>170</y>
-        <width>201</width>
-        <height>51</height>
+        <x>530</x>
+        <y>90</y>
+        <width>671</width>
+        <height>791</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+      <widget class="QLabel" name="label_classifier_binary">
+       <property name="geometry">
+        <rect>
+         <x>220</x>
+         <y>30</y>
+         <width>211</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>16</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>First Stage Classifier</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="button_classifierFirstStage_run">
+       <property name="geometry">
+        <rect>
+         <x>410</x>
+         <y>190</y>
+         <width>201</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Run First Stage Classifier</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="button_classifierFirstStage_train">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>190</y>
+         <width>201</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Train Classifier</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="button_classifierThirdStage_train">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>710</y>
+         <width>201</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Train Classifier</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="button_classifierThirdStage_run">
+       <property name="geometry">
+        <rect>
+         <x>410</x>
+         <y>710</y>
+         <width>201</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Run Third Stage Classifier</string>
+       </property>
+      </widget>
+      <widget class="Line" name="line_58">
+       <property name="geometry">
+        <rect>
+         <x>-20</x>
+         <y>300</y>
+         <width>671</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_classifier_binary_2">
+       <property name="geometry">
+        <rect>
+         <x>200</x>
+         <y>340</y>
+         <width>241</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>16</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Second Stage Classifier</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_classifier_thirdstage">
+       <property name="geometry">
+        <rect>
+         <x>210</x>
+         <y>610</y>
+         <width>241</width>
+         <height>31</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>16</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Third Stage Classifier</string>
+       </property>
+      </widget>
+      <widget class="Line" name="line_59">
+       <property name="geometry">
+        <rect>
+         <x>-20</x>
+         <y>560</y>
+         <width>671</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="button_classifierSecondStage_run">
+       <property name="geometry">
+        <rect>
+         <x>410</x>
+         <y>470</y>
+         <width>201</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Run Second Stage Classifier</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="button_classifierSecondStage_train">
+       <property name="geometry">
+        <rect>
+         <x>30</x>
+         <y>470</y>
+         <width>201</width>
+         <height>51</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Train  Classifier</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QLabel" name="label_classifier_databaseDirectory">
+      <property name="geometry">
+       <rect>
+        <x>190</x>
+        <y>29</y>
+        <width>1031</width>
+        <height>31</height>
        </rect>
       </property>
       <property name="text">
-       <string>Run Classifier</string>
+       <string>None Selected</string>
       </property>
      </widget>
-     <widget class="QLabel" name="label_classifier_binary">
+     <widget class="Line" name="line_60">
       <property name="geometry">
        <rect>
-        <x>490</x>
+        <x>500</x>
         <y>110</y>
-        <width>211</width>
-        <height>31</height>
+        <width>20</width>
+        <height>821</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+     </widget>
+     <widget class="QTextEdit" name="textEdit_classifier_overview">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>560</y>
+        <width>471</width>
+        <height>371</height>
        </rect>
       </property>
       <property name="font">
        <font>
-        <pointsize>16</pointsize>
+        <pointsize>12</pointsize>
         <weight>75</weight>
         <bold>true</bold>
        </font>
       </property>
-      <property name="text">
-       <string>First Stage Classifier</string>
+      <property name="lineWrapMode">
+       <enum>QTextEdit::WidgetWidth</enum>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
       </property>
      </widget>
-     <widget class="QLabel" name="label_classifier_binary_2">
+     <widget class="QLabel" name="label_classifier_status">
       <property name="geometry">
        <rect>
-        <x>470</x>
-        <y>380</y>
-        <width>241</width>
-        <height>31</height>
+        <x>20</x>
+        <y>540</y>
+        <width>66</width>
+        <height>17</height>
        </rect>
       </property>
-      <property name="font">
-       <font>
-        <pointsize>16</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
       <property name="text">
-       <string>Second Stage Classifier</string>
+       <string>Status</string>
       </property>
      </widget>
-     <widget class="Line" name="line_58">
+     <widget class="Line" name="line_61">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>260</y>
-        <width>1201</width>
-        <height>16</height>
+        <x>20</x>
+        <y>80</y>
+        <width>1181</width>
+        <height>20</height>
        </rect>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
      </widget>
-     <widget class="Line" name="line_59">
+     <widget class="QPushButton" name="button_classiferConnected_run">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>530</y>
-        <width>1201</width>
-        <height>16</height>
-       </rect>
-      </property>
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-     </widget>
-     <widget class="QLabel" name="label_classifier_thirdstage">
-      <property name="geometry">
-       <rect>
-        <x>480</x>
-        <y>620</y>
-        <width>241</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>16</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="text">
-       <string>Third Stage Classifier</string>
-      </property>
-     </widget>
-     <widget class="QPushButton" name="button_classifierThirdStage_run">
-      <property name="geometry">
-       <rect>
-        <x>490</x>
-        <y>670</y>
+        <x>140</x>
+        <y>190</y>
         <width>201</width>
         <height>51</height>
        </rect>
       </property>
       <property name="text">
-       <string>Run Classifier</string>
+       <string>Run Connected Classifiers</string>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_classifier_connected">
+      <property name="geometry">
+       <rect>
+        <x>130</x>
+        <y>130</y>
+        <width>221</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <pointsize>16</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Connected Classifiers</string>
       </property>
      </widget>
     </widget>

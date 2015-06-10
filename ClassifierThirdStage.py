@@ -7,8 +7,8 @@ from pybrain.structure import SoftmaxLayer
 from pybrain.tools.shortcuts import buildNetwork
 from pybrain.utilities import percentError
 import random, os
-#from pybrain.tools.customxml.networkwriter import NetworkWriter #To save a network
-#from pybrain.tools.customxml.networkreader import NetworkReader #To load a network
+from pybrain.tools.customxml.networkwriter import NetworkWriter #To save a network
+from pybrain.tools.customxml.networkreader import NetworkReader #To load a network
 
 # Classifier with the HDF5 interface
 
@@ -322,6 +322,70 @@ class Classifier():
 
         return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage, target
 
+    #Output: returns list random picked test data (features)
+    def getDistrubedTestDataRUNVERSION(self, amount, BatIDToAdd):
+        #BatIDToAdd.append(8)
+        #BatIDToAdd.append(9)
+        minFreq = []
+        maxFreq = []
+        Durantion = []
+        fl1 = []
+        fl2 = []
+        fl3 = []
+        fl4 = []
+        fl5 = []
+        fl6 = []
+        fl7 = []
+        fl8 = []
+        fl9 = []
+        fl10 = []
+        target = []
+        pixelAverage = []
+        path = []
+        EventPath = self.RemoveTrainingDataFromTestData(self.TrainingSetEventList, self.pathEventList)
+        pathcorr, BatID, pathcorrImg = self.getHDFInfoFromIDList(EventPath, BatIDToAdd)
+        EventSize = len(BatID)
+        currentEvent = 0
+        if EventSize < amount:
+            amount = EventSize-1
+        randomPathIterator = random.sample(xrange(0,EventSize-1), amount)
+        for i in randomPathIterator:
+            data = self.HDFFile[pathcorr[i]]
+            img = self.HDFFile[pathcorrImg[i]]
+            pixelAverage.append(img.attrs["AveragePixelValue"])
+            minFreq.append(tokFreq(data[0]))
+            maxFreq.append(tokFreq(data[1]))
+            Durantion.append(toTime(abs(data[2]-data[3])))
+            pix0 = data[4]
+            pix1 = data[5]
+            pix2 = data[6]
+            pix3 = data[7]
+            pix4 = data[8]
+            pix5 = data[9]
+            pix6 = data[10]
+            pix7 = data[11]
+            pix8 = data[12]
+            pix9 = data[13]
+            pix10 = data[14]
+            path.append(pathcorr[i])
+            # Calculate the difference from previous point
+            fl1.append(toTime(pix1)-toTime(pix0))
+            fl2.append(toTime(pix2)-toTime(pix1))
+            fl3.append(toTime(pix3)-toTime(pix2))
+            fl4.append(toTime(pix4)-toTime(pix3))
+            fl5.append(toTime(pix5)-toTime(pix4))
+            fl6.append(toTime(pix6)-toTime(pix5))
+            fl7.append(toTime(pix7)-toTime(pix6))
+            fl8.append(toTime(pix8)-toTime(pix7))
+            fl9.append(toTime(pix9)-toTime(pix8))
+            fl10.append(toTime(pix10)-toTime(pix9))
+
+            target.append(BatID[i])
+
+
+        return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage, target, path
+
+
     #Adds all the needed species in one
     def getTrainingSpeciesDistributedData(self, BatIDToAdd, AmountPerSpecies):
         minFreq = []
@@ -618,7 +682,7 @@ class Classifier():
             print "Could not assign the ID " + str(ID) + " to newID"
 
 
-        return  newID
+        return newID
 
     def convertID2(self, ID):
 
@@ -642,7 +706,7 @@ class Classifier():
             print "Could not assign the ID " + str(ID) + " to newID"
 
 
-        return  newID
+        return newID
 
     def pixelFix(self):
         pathcorrImg = self.getHDFInformationToAddPixelInfo(self.pathEventList)
@@ -662,6 +726,26 @@ class Classifier():
             s.provider.nextSamples(4)
             print mean(s.provider.currentLosses(s.bestParameters))
             #s.provider.nextSamples(1)
+
+    def readAndRun(self, filename):
+        SingleBatIDToAdd = [1, 2, 3, 5, 6] # for single
+        Correct = 0
+        print "Loading..."
+        net = NetworkReader.readFrom(filename)
+        print "Loading... Finished!"
+        print "Loading database..."
+        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage, target, path = self.getDistrubedTestData(TraningDataAmount, SingleBatIDToAdd)
+        SAMPLE_SIZE = len(minFreq)
+        for i in range(0, SAMPLE_SIZE):
+            ClassifierOutput= net.activate([minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], pixelAverage[i]])
+            #MAPPING FROM BATID TO TSC value:
+            TSC_value = self.BatIDtoTSC(ClassifierOutput)
+            # Metadata Setup, get path and write: TSC = value
+            ds = self.HDFFile[path[i]]
+            ds.attrs["TSC"] = TSC_value
+
+
+
 
     def goClassifer(self, iteration, learningrate, momentum, toFile):
         self.TrainingSetEventList[:] = []
@@ -794,7 +878,7 @@ class Classifier():
             f.write("Hidden Activation function: Sigmoid function\n")
             f.write("Output Activation function: Softmax function\n")
 
-        maxEpoch = 200
+        maxEpoch = 100
         for i in range(0,maxEpoch):
             # Train one epoch
             trainer.trainEpochs(10)
@@ -808,11 +892,11 @@ class Classifier():
             trnresult = percentError(trainer.testOnClassData(), trndata['class'])
             tstresult = percentError(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
 
-
             print("epoch: %4d" % trainer.totalepochs,"  train error: %5.2f%%" % trnresult,"  test error: %5.2f%%" % tstresult)
             if toFile:
                 dataString = str(trainer.totalepochs) + ", " + str(averageError) + ", " + str(trnresult) + ", " + str(tstresult) + "\n"
                 f.write(dataString)
+        NetworkWriter.writeToFile(net, "ThirdStageClassifier.xml")
         if toFile:
             import numpy as np
             f.close()

@@ -12,6 +12,9 @@ from pybrain.structure import SigmoidLayer
 from pybrain.tools.shortcuts import buildNetwork
 from pybrain.utilities import percentError
 import random, os
+from pybrain.tools.customxml.networkwriter import NetworkWriter #To save a network
+from pybrain.tools.customxml.networkreader import NetworkReader #To load a network
+import numpy as np
 
 # Classifier with the HDF5 interface
 
@@ -36,7 +39,7 @@ class BinaryClassifier():
         self.pathEventList.append(name)
 
     def initClasissifer(self):
-        print "Initilazing classifier"
+        print "Initilazing HDF5 database"
         self.HDFFile = h5py.File("/home/anoch/Documents/BatOutput/BatData.hdf5")
         self.HDFFile.visit(self.saveEventPath)
 
@@ -134,6 +137,27 @@ class BinaryClassifier():
                     pathcorr.append(path)
                     imgPath = temp[0] + "/" + temp[1] + "/" + temp[2] + "/" + temp[3] + "/" + temp[4] + "/" + "ArrayImgEvent"
                     pathcorrImg.append(imgPath)
+
+        return pathcorr, BatID, pathcorrImg
+
+    def getHDFInfoFromIDList(self, paths, BatIDList):
+        pathcorr = []
+        pathcorrImg = []
+        BatID = []
+        for path in paths:
+            temp = re.split('/', path)
+            index = 7
+            length = 8
+            if len(temp) == length and temp[index] == "FeatureDataEvent":
+                # get data from path
+                data = self.HDFFile[path]
+                # as long as it is not other spice and something else;then add. Include all events and noise
+                for ID in BatIDList:
+                    if ID == data.attrs["BatID"]:
+                        BatID.append(data.attrs["BatID"])
+                        pathcorr.append(path)
+                        imgPath = temp[0] + "/" + temp[1] + "/" + temp[2] + "/" + temp[3] + "/" + temp[4] + "/" + temp[5] + "/" + temp[6] + "/" + "ArrayImgEvent"
+                        pathcorrImg.append(imgPath)
 
         return pathcorr, BatID, pathcorrImg
 
@@ -251,6 +275,70 @@ class BinaryClassifier():
 
 
         return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, target
+
+
+        #Output: returns list random picked test data (features)
+    def getDistrubedTestDataRUNVERSION(self, BatIDToAdd):
+        #BatIDToAdd.append(8)
+        #BatIDToAdd.append(9)
+        minFreq = []
+        maxFreq = []
+        Durantion = []
+        fl1 = []
+        fl2 = []
+        fl3 = []
+        fl4 = []
+        fl5 = []
+        fl6 = []
+        fl7 = []
+        fl8 = []
+        fl9 = []
+        fl10 = []
+        target = []
+        pixelAverage = []
+        path = []
+        #EventPath = self.RemoveTrainingDataFromTestData(self.TrainingSetEventList, self.pathEventList)
+        pathcorr, BatID, pathcorrImg = self.getHDFInfoFromIDList(self.pathEventList, BatIDToAdd)
+        EventSize = len(BatID)
+        currentEvent = 0
+        #if EventSize < amount:
+        #    amount = EventSize-1
+        randomPathIterator = random.sample(xrange(0,EventSize-1), EventSize-1)
+        for i in randomPathIterator:
+            data = self.HDFFile[pathcorr[i]]
+            img = self.HDFFile[pathcorrImg[i]]
+            pixelAverage.append(img.attrs["AveragePixelValue"])
+            minFreq.append(tokFreq(data[0]))
+            maxFreq.append(tokFreq(data[1]))
+            Durantion.append(toTime(abs(data[2]-data[3])))
+            pix0 = data[4]
+            pix1 = data[5]
+            pix2 = data[6]
+            pix3 = data[7]
+            pix4 = data[8]
+            pix5 = data[9]
+            pix6 = data[10]
+            pix7 = data[11]
+            pix8 = data[12]
+            pix9 = data[13]
+            pix10 = data[14]
+            path.append(pathcorr[i])
+            # Calculate the difference from previous point
+            fl1.append(toTime(pix1)-toTime(pix0))
+            fl2.append(toTime(pix2)-toTime(pix1))
+            fl3.append(toTime(pix3)-toTime(pix2))
+            fl4.append(toTime(pix4)-toTime(pix3))
+            fl5.append(toTime(pix5)-toTime(pix4))
+            fl6.append(toTime(pix6)-toTime(pix5))
+            fl7.append(toTime(pix7)-toTime(pix6))
+            fl8.append(toTime(pix8)-toTime(pix7))
+            fl9.append(toTime(pix9)-toTime(pix8))
+            fl10.append(toTime(pix10)-toTime(pix9))
+
+            target.append(BatID[i])
+
+
+        return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage, target, path
 
     def getTrainingSpeciesDistributedData(self, BatIDToAdd, AmountPerSpecies):
         minFreq = []
@@ -412,6 +500,30 @@ class BinaryClassifier():
         return  newID
 
 
+    def runClassifier(self):
+        out = []
+        true = []
+        BatIDToAdd = [1, 2, 3, 5, 6, 10, 11, 12, 14, 8, 9] #1-14 are bats; 8 is noise; 9 is something else
+        print "Loading Network.."
+        net = NetworkReader.readFrom("FirstStageClassifier.xml")
+        print "Loading database..."
+        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage, target, path = self.getDistrubedTestDataRUNVERSION(BatIDToAdd)
+        SAMPLE_SIZE = len(minFreq)
+        for i in range(0, SAMPLE_SIZE):
+            ClassifierOutput = net.activate([minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i]])
+            ClassifierOutputID = np.argmax(ClassifierOutput)
+            currentTarget = self.convertID(target[i])
+            out.append(ClassifierOutputID)
+            true.append(currentTarget)
+            #MAPPING FROM BATID TO TSC value:
+            FSC_value = ClassifierOutputID
+            # Metadata Setup, get path and write: TSC = value
+            ds = self.HDFFile[path[i]]
+            ds.attrs["FSC"] = FSC_value
+        # Close HDF5 file to save to disk. This is also done to make sure the next stage classifier can open the file
+        self.HDFFile.close()
+        return self.CorrectRatio(out,true)
+
 
 
     def goClassifer(self, iteration, learningrate, momentum, toFile):
@@ -528,10 +640,10 @@ class BinaryClassifier():
             trnresult = percentError(trainer.testOnClassData(), trndata['class'])
             tstresult = percentError(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
             averageErrorMSE = trainer.testOnData(dataset=tstdata, verbose=False)
-            averageErrorCE = self.CrossEntropyErrorAveraged(net, tstdata)
+            #averageErrorCE = self.CrossEntropyErrorAveraged(net, tstdata)
 
-            print "CE: " + str(averageErrorCE)
-            print "MSE: " + str(averageErrorMSE)
+            #print "CE: " + str(averageErrorCE)
+            #print "MSE: " + str(averageErrorMSE)
 
             #fifo.append(averageError)
             #if len(fifo) == 6:
@@ -556,9 +668,9 @@ class BinaryClassifier():
             print("epoch: %4d" % trainer.totalepochs,"  train error: %5.2f%%" % trnresult,"  test error: %5.2f%%" % tstresult)
 
             if toFile:
-                dataString = str(averageErrorCE) + ", " + str(averageErrorMSE) + ", " + str(trnresult) + ", " + str(tstresult) + "\n"
+                dataString = str(trainer.totalepochs) + ", " + str(averageErrorMSE) + ", " + str(trnresult) + ", " + str(tstresult) + "\n"
                 f.write(dataString)
-
+        NetworkWriter.writeToFile(net, "FirstStageClassifier.xml")
         if toFile:
             results = self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
             filename = filename + "_CR"
@@ -615,6 +727,8 @@ class BinaryClassifier():
         print "Correct Ratio: " + str(CorrectRatio)
         results = [TruePostive, TrueNegative, FalsePostive, FalseNegative, CorrectRatio, TrueBats, TrueNonBats]
         return results
+
+
 
     def CrossEntropyErrorAveraged(self, net, dataset):
         import math
