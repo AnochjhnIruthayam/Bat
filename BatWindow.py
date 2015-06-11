@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'BatWindow.ui'
 #
-# Created: Wed Jun 10 13:53:32 2015
+# Created: Wed Jun 10 18:05:17 2015
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!

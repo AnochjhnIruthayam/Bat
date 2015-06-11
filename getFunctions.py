@@ -21,7 +21,13 @@ def getFileListDepthScan(path, extension):
 ###################################3
 
 
+def toTime(timePixel):
+    imageLength = 5000.0
+    return (1000.0/imageLength)*timePixel
 
+def tokFreq(freqPixel):
+    imageWidth = 1025.0
+    return (250.0/imageWidth)*(imageWidth-freqPixel)
 
 
 

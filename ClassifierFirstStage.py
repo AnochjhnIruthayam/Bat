@@ -299,12 +299,11 @@ class BinaryClassifier():
         path = []
         #EventPath = self.RemoveTrainingDataFromTestData(self.TrainingSetEventList, self.pathEventList)
         pathcorr, BatID, pathcorrImg = self.getHDFInfoFromIDList(self.pathEventList, BatIDToAdd)
-        EventSize = len(BatID)
+        EventSize = len(pathcorr)
         currentEvent = 0
         #if EventSize < amount:
         #    amount = EventSize-1
-        randomPathIterator = random.sample(xrange(0,EventSize-1), EventSize-1)
-        for i in randomPathIterator:
+        for i in range(0,EventSize):
             data = self.HDFFile[pathcorr[i]]
             img = self.HDFFile[pathcorrImg[i]]
             pixelAverage.append(img.attrs["AveragePixelValue"])
@@ -506,7 +505,7 @@ class BinaryClassifier():
         BatIDToAdd = [1, 2, 3, 5, 6, 10, 11, 12, 14, 8, 9] #1-14 are bats; 8 is noise; 9 is something else
         print "Loading Network.."
         net = NetworkReader.readFrom("FirstStageClassifier.xml")
-        print "Loading database..."
+        print "Loading feature data..."
         minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage, target, path = self.getDistrubedTestDataRUNVERSION(BatIDToAdd)
         SAMPLE_SIZE = len(minFreq)
         for i in range(0, SAMPLE_SIZE):
@@ -520,6 +519,8 @@ class BinaryClassifier():
             # Metadata Setup, get path and write: TSC = value
             ds = self.HDFFile[path[i]]
             ds.attrs["FSC"] = FSC_value
+            ds.attrs["SSC"] = -1
+            ds.attrs["TSC"] = -1
         # Close HDF5 file to save to disk. This is also done to make sure the next stage classifier can open the file
         self.HDFFile.close()
         return self.CorrectRatio(out,true)

@@ -6,7 +6,7 @@ from PyQt4 import QtCore, QtGui
 from BatWindow import Ui_BatWindow
 import EventExtraction, os, getFunctions, time
 import h5py, re
-import ClassifierThirdStage, ClassifierSecondStage, HDF5Handler, cv2, ClassifierFirstStage
+import ClassifierThirdStage, ClassifierSecondStage, HDF5Handler, cv2, ClassifierFirstStage, ClassifierConnected
 
 def toTime(timePixel):
     imageLength = 5000.0
@@ -57,6 +57,9 @@ class StartQT4(QtGui.QMainWindow):
 
         #Connect run classifier buttons
         QtCore.QObject.connect(self.ui.button_classifierFirstStage_run, QtCore.SIGNAL("clicked()"), self.runFirstStageClassifier)
+        QtCore.QObject.connect(self.ui.button_classifierSecondStage_run, QtCore.SIGNAL("clicked()"), self.runSecondStageClassifier)
+        QtCore.QObject.connect(self.ui.button_classifierThirdStage_run, QtCore.SIGNAL("clicked()"), self.runThirdStageClassifier)
+        QtCore.QObject.connect(self.ui.button_classiferConnected_run, QtCore.SIGNAL("clicked()"), self.runConnectedClassifiers)
 
         QtCore.QObject.connect(self.ui.button_loaddatabaseReconstruct, QtCore.SIGNAL("clicked()"), self.file_dialog2)
         QtCore.QObject.connect(self.ui.pushButton_SetOutputDirectory_Reconstruct, QtCore.SIGNAL("clicked()"), self.setOutputDirectory)
@@ -90,6 +93,8 @@ class StartQT4(QtGui.QMainWindow):
         self.first_stage_classifier_run = ClassifierFirstStage.BinaryClassifier()
         self.second_stage_classifier_run = ClassifierSecondStage.Classifier()
         self.third_stage_classifier_run = ClassifierThirdStage.Classifier()
+
+        self.connected_classifier_run = ClassifierConnected.ClassifierConnected()
 
 
         self.ui.button_OtherSpecies.hide()
@@ -363,9 +368,24 @@ class StartQT4(QtGui.QMainWindow):
 
     def runSecondStageClassifier(self):
         self.second_stage_classifier_run.initClasissifer()
+        ConfusionMatrix, BatTarget = self.second_stage_classifier_run.runClassifier()
+        cursor = QtGui.QTextCursor(self.ui.textEdit_classifier_overview.document())
+
+        cursor.insertText("Confusion Matrix\n" + str(ConfusionMatrix) + "\nTarget\n" + str(BatTarget))
 
     def runThirdStageClassifier(self):
         self.third_stage_classifier_run.initClasissifer()
+        ConfusionMatrix, BatTarget = self.third_stage_classifier_run.runClassifier()
+
+        cursor = QtGui.QTextCursor(self.ui.textEdit_classifier_overview.document())
+
+        cursor.insertText("Confusion Matrix\n" + str(ConfusionMatrix) + "\nTarget\n" + str(BatTarget))
+
+    def runConnectedClassifiers(self):
+        self.connected_classifier_run.initClasissifer()
+        ConfusionMatrix, BatTarget = self.connected_classifier_run.runClassifiers()
+        cursor = QtGui.QTextCursor(self.ui.textEdit_classifier_overview.document())
+        cursor.insertText("Confusion Matrix\n" + str(ConfusionMatrix) + "\nTarget\n" + str(BatTarget))
 
     def getHDFInformationRecontructImage(self, paths, imgType):
         day = []

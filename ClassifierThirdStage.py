@@ -2,6 +2,7 @@ __author__ = 'Anochjhn Iruthayam'
 import h5py, pybrain, re
 from pybrain.datasets import ClassificationDataSet
 import BatSpecies as BS
+import numpy as np
 from pybrain.supervised.trainers import BackpropTrainer
 from pybrain.structure import SoftmaxLayer
 from pybrain.tools.shortcuts import buildNetwork
@@ -32,7 +33,7 @@ class Classifier():
         self.pathEventList.append(name)
 
     def initClasissifer(self):
-        print "Initilazing classifier"
+        print "Initilazing HDF5 database"
         self.HDFFile = h5py.File("/home/anoch/Documents/BatOutput/BatData.hdf5")
         self.HDFFile.visit(self.saveEventPath)
 
@@ -206,6 +207,88 @@ class Classifier():
 
         return pathcorrImg
 
+    def getHDFSSC(self, paths):
+        pathcorr = []
+        pathcorrImg = []
+        BatID = []
+        SSC_VALUE = 1
+        for path in paths:
+            temp = re.split('/', path)
+            index = 7
+            length = 8
+            if len(temp) == length and temp[index] == "FeatureDataEvent":
+                # get data from path
+                data = self.HDFFile[path]
+                # If the first stage classisfier results is 1, then continue. Also exclude some bat calls
+                if 4 != data.attrs["BatID"] and 7 != data.attrs["BatID"] and 13 != data.attrs["BatID"] and 15 != data.attrs["BatID"]:
+                    if SSC_VALUE == data.attrs["SSC"]:
+                        BatID.append(data.attrs["BatID"])
+                        pathcorr.append(path)
+                        imgPath = temp[0] + "/" + temp[1] + "/" + temp[2] + "/" + temp[3] + "/" + temp[4] + "/" + temp[5] + "/" + temp[6] + "/" + "ArrayImgEvent"
+                        pathcorrImg.append(imgPath)
+
+        return pathcorr, BatID, pathcorrImg
+
+
+    #Output: returns list random picked test data (features)
+    def getDistrubedTestDataRUNVERSION(self):
+        minFreq = []
+        maxFreq = []
+        Durantion = []
+        fl1 = []
+        fl2 = []
+        fl3 = []
+        fl4 = []
+        fl5 = []
+        fl6 = []
+        fl7 = []
+        fl8 = []
+        fl9 = []
+        fl10 = []
+        target = []
+        pixelAverage = []
+        path = []
+        #EventPath = self.RemoveTrainingDataFromTestData(self.TrainingSetEventList, self.pathEventList)
+        pathcorr, BatID, pathcorrImg = self.getHDFSSC(self.pathEventList)
+        EventSize = len(pathcorr)
+        currentEvent = 0
+        #if EventSize < amount:
+        #    amount = EventSize-1
+        for i in range(0, EventSize):
+            data = self.HDFFile[pathcorr[i]]
+            img = self.HDFFile[pathcorrImg[i]]
+            pixelAverage.append(img.attrs["AveragePixelValue"])
+            minFreq.append(tokFreq(data[0]))
+            maxFreq.append(tokFreq(data[1]))
+            Durantion.append(toTime(abs(data[2]-data[3])))
+            pix0 = data[4]
+            pix1 = data[5]
+            pix2 = data[6]
+            pix3 = data[7]
+            pix4 = data[8]
+            pix5 = data[9]
+            pix6 = data[10]
+            pix7 = data[11]
+            pix8 = data[12]
+            pix9 = data[13]
+            pix10 = data[14]
+            path.append(pathcorr[i])
+            # Calculate the difference from previous point
+            fl1.append(toTime(pix1)-toTime(pix0))
+            fl2.append(toTime(pix2)-toTime(pix1))
+            fl3.append(toTime(pix3)-toTime(pix2))
+            fl4.append(toTime(pix4)-toTime(pix3))
+            fl5.append(toTime(pix5)-toTime(pix4))
+            fl6.append(toTime(pix6)-toTime(pix5))
+            fl7.append(toTime(pix7)-toTime(pix6))
+            fl8.append(toTime(pix8)-toTime(pix7))
+            fl9.append(toTime(pix9)-toTime(pix8))
+            fl10.append(toTime(pix10)-toTime(pix9))
+
+            target.append(BatID[i])
+        return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage, target, path
+
+
     def getTestData(self, amount):
         minFreq = []
         maxFreq = []
@@ -262,7 +345,7 @@ class Classifier():
 
     #Output: returns list random picked test data (features)
     def getDistrubedTestData(self, amount, BatIDToAdd):
-        #BatIDToAdd.append(8)
+        BatIDToAdd.append(8)
         #BatIDToAdd.append(9)
         minFreq = []
         maxFreq = []
@@ -322,68 +405,7 @@ class Classifier():
 
         return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage, target
 
-    #Output: returns list random picked test data (features)
-    def getDistrubedTestDataRUNVERSION(self, amount, BatIDToAdd):
-        #BatIDToAdd.append(8)
-        #BatIDToAdd.append(9)
-        minFreq = []
-        maxFreq = []
-        Durantion = []
-        fl1 = []
-        fl2 = []
-        fl3 = []
-        fl4 = []
-        fl5 = []
-        fl6 = []
-        fl7 = []
-        fl8 = []
-        fl9 = []
-        fl10 = []
-        target = []
-        pixelAverage = []
-        path = []
-        EventPath = self.RemoveTrainingDataFromTestData(self.TrainingSetEventList, self.pathEventList)
-        pathcorr, BatID, pathcorrImg = self.getHDFInfoFromIDList(EventPath, BatIDToAdd)
-        EventSize = len(BatID)
-        currentEvent = 0
-        if EventSize < amount:
-            amount = EventSize-1
-        randomPathIterator = random.sample(xrange(0,EventSize-1), amount)
-        for i in randomPathIterator:
-            data = self.HDFFile[pathcorr[i]]
-            img = self.HDFFile[pathcorrImg[i]]
-            pixelAverage.append(img.attrs["AveragePixelValue"])
-            minFreq.append(tokFreq(data[0]))
-            maxFreq.append(tokFreq(data[1]))
-            Durantion.append(toTime(abs(data[2]-data[3])))
-            pix0 = data[4]
-            pix1 = data[5]
-            pix2 = data[6]
-            pix3 = data[7]
-            pix4 = data[8]
-            pix5 = data[9]
-            pix6 = data[10]
-            pix7 = data[11]
-            pix8 = data[12]
-            pix9 = data[13]
-            pix10 = data[14]
-            path.append(pathcorr[i])
-            # Calculate the difference from previous point
-            fl1.append(toTime(pix1)-toTime(pix0))
-            fl2.append(toTime(pix2)-toTime(pix1))
-            fl3.append(toTime(pix3)-toTime(pix2))
-            fl4.append(toTime(pix4)-toTime(pix3))
-            fl5.append(toTime(pix5)-toTime(pix4))
-            fl6.append(toTime(pix6)-toTime(pix5))
-            fl7.append(toTime(pix7)-toTime(pix6))
-            fl8.append(toTime(pix8)-toTime(pix7))
-            fl9.append(toTime(pix9)-toTime(pix8))
-            fl10.append(toTime(pix10)-toTime(pix9))
 
-            target.append(BatID[i])
-
-
-        return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage, target, path
 
 
     #Adds all the needed species in one
@@ -536,6 +558,7 @@ class Classifier():
         return minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10
 
     def getDistributedData(self, amount, ID):
+
         minFreq = []
         maxFreq = []
         Durantion = []
@@ -641,14 +664,23 @@ class Classifier():
         #this is for noise
         elif ID == 8:
             newID = 5
-        #this is for something else
+
+        #this is for something else. Classify multiple calls as something else
+        elif ID == 10:
+            newID = 6
+        elif ID == 11:
+            newID = 6
+        elif ID == 12:
+            newID = 6
+        elif ID == 14:
+            newID = 6
         elif ID == 9:
             newID = 6
         else:
             print "Could not assign the ID " + str(ID) + " to newID"
 
 
-        return  newID
+        return newID
 
 
     #assign 0 to noise, 1 to single call, 2 to multiple calls
@@ -727,23 +759,32 @@ class Classifier():
             print mean(s.provider.currentLosses(s.bestParameters))
             #s.provider.nextSamples(1)
 
-    def readAndRun(self, filename):
-        SingleBatIDToAdd = [1, 2, 3, 5, 6] # for single
+    def runClassifier(self):
+        out = []
+        true = []
+        #SingleBatIDToAdd = [1, 2, 3, 5, 6] # for single
         Correct = 0
-        print "Loading..."
-        net = NetworkReader.readFrom(filename)
-        print "Loading... Finished!"
-        print "Loading database..."
-        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage, target, path = self.getDistrubedTestData(TraningDataAmount, SingleBatIDToAdd)
+        print "Loading Network.."
+        net = NetworkReader.readFrom("ThirdStageClassifier.xml")
+        print "Loading feature data with SSC = 1 (Single call type)"
+        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage, target, path = self.getDistrubedTestDataRUNVERSION()
         SAMPLE_SIZE = len(minFreq)
         for i in range(0, SAMPLE_SIZE):
             ClassifierOutput= net.activate([minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], pixelAverage[i]])
+
+            ClassifierOutputID = np.argmax(ClassifierOutput)
+            currentTarget = self.convertIDSingle(target[i])
+            out.append(ClassifierOutputID)
+            true.append(currentTarget)
+
             #MAPPING FROM BATID TO TSC value:
-            TSC_value = self.BatIDtoTSC(ClassifierOutput)
+            TSC_value = ClassifierOutputID
             # Metadata Setup, get path and write: TSC = value
             ds = self.HDFFile[path[i]]
             ds.attrs["TSC"] = TSC_value
-
+        self.HDFFile.flush()
+        self.HDFFile.close()
+        return self.CorrectRatio(out, true)
 
 
 
@@ -751,8 +792,8 @@ class Classifier():
         self.TrainingSetEventList[:] = []
         print "Iteration Count: " + str(iteration)
         #Set up Classicication Data, 4 input, output is a one dim. and 2 possible outcome or two possible classes
-        trndata = ClassificationDataSet(14, nb_classes=5)
-        tstdata = ClassificationDataSet(14, nb_classes=5)
+        trndata = ClassificationDataSet(14, nb_classes=7)
+        tstdata = ClassificationDataSet(14, nb_classes=7)
         SAMPLE_SIZE = 100
         AmountPerSpecies = 100
         SingleBatIDToAdd = [1, 2, 3, 5, 6] # for single
@@ -777,28 +818,29 @@ class Classifier():
         #    trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], pixelAverage[i] ], [2])
 
 
-        #print "Adding noise events"
-        #NoiseID = 8
-        #minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage = self.getDistributedData(AmountPerSpecies, NoiseID)
-        #SAMPLE_SIZE = len(minFreq)
-        #for i in range (0, SAMPLE_SIZE):
-        #    trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], pixelAverage[i] ], [self.convertIDSingle(NoiseID)]) #self.convertID(NoiseID)
+        print "Adding noise events"
+        NoiseID = 8
+        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage = self.getDistributedData(AmountPerSpecies, NoiseID)
+        SAMPLE_SIZE = len(minFreq)
+        for i in range (0, SAMPLE_SIZE):
+            trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], pixelAverage[i] ], [self.convertIDSingle(NoiseID)]) #self.convertID(NoiseID)
 
-        #print "Adding something else events"
-        #SomethingElseID = 9
-        #minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage = self.getDistributedData(AmountPerSpecies, SomethingElseID)
-        #SAMPLE_SIZE = len(minFreq)
-        #for i in range (0, SAMPLE_SIZE):
-        #    trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], pixelAverage[i] ], [self.convertIDSingle(SomethingElseID)])
+        print "Adding something else events"
+        SomethingElseID = 9
+        SEAmount = 20
+        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage = self.getDistributedData(SEAmount, SomethingElseID)
+        SAMPLE_SIZE = len(minFreq)
+        for i in range (0, SAMPLE_SIZE):
+            trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], pixelAverage[i] ], [self.convertIDSingle(SomethingElseID)])
 
         # Try to put all multievent in the something else event
-        #print "Adding something else events"
-        #SomethingElseID = 9
-        #BatIDToAdd2 = [10, 11, 12, 14]
-        #minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, target23 = self.getTrainingSpeciesDistributedData(BatIDToAdd2, AmountPerSpecies)
-        #SAMPLE_SIZE = len(minFreq)
-        #for i in range (0, SAMPLE_SIZE):
-        #    trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i] ], [self.convertID(SomethingElseID)])
+        print "Adding something else events"
+        SomethingElseID = 9
+        BatIDToAdd2 = [10, 11, 12, 14]
+        minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage, target = self.getTrainingSpeciesDistributedData(BatIDToAdd2, SEAmount)
+        SAMPLE_SIZE = len(minFreq)
+        for i in range (0, SAMPLE_SIZE):
+            trndata.addSample([ minFreq[i], maxFreq[i], Durantion[i], fl1[i], fl2[i], fl3[i], fl4[i], fl5[i], fl6[i], fl7[i], fl8[i], fl9[i], fl10[i], pixelAverage[i] ], [self.convertIDSingle(SomethingElseID)])
 
 
         print "Adding test data"
@@ -893,6 +935,11 @@ class Classifier():
             tstresult = percentError(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
 
             print("epoch: %4d" % trainer.totalepochs,"  train error: %5.2f%%" % trnresult,"  test error: %5.2f%%" % tstresult)
+
+            if tstresult < 27.0:
+                raw_input("Press Enter to continue...")
+                break
+
             if toFile:
                 dataString = str(trainer.totalepochs) + ", " + str(averageError) + ", " + str(trnresult) + ", " + str(tstresult) + "\n"
                 f.write(dataString)
@@ -918,11 +965,11 @@ class Classifier():
 
         import numpy as np
         #initilaze with zero
-        ConfusionMatrix = np.zeros((5,5))
+        ConfusionMatrix = np.zeros((7,7))
         #int64 datatype
         ConfusionMatrix = np.array(ConfusionMatrix, dtype=np.int64)
         TotalTest = len(out)
-        BatTarget = [0, 0, 0, 0, 0]
+        BatTarget = [0, 0, 0, 0, 0, 0, 0]
 
         for i in true:
             BatTarget[i] += 1
