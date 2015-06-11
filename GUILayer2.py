@@ -7,6 +7,7 @@ from BatWindow import Ui_BatWindow
 import EventExtraction, os, getFunctions, time
 import h5py, re
 import ClassifierThirdStage, ClassifierSecondStage, HDF5Handler, cv2, ClassifierFirstStage, ClassifierConnected
+import numpy as np
 
 def toTime(timePixel):
     imageLength = 5000.0
@@ -61,6 +62,8 @@ class StartQT4(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.button_classifierThirdStage_run, QtCore.SIGNAL("clicked()"), self.runThirdStageClassifier)
         QtCore.QObject.connect(self.ui.button_classiferConnected_run, QtCore.SIGNAL("clicked()"), self.runConnectedClassifiers)
 
+        QtCore.QObject.connect(self.ui.button_classifier_database, QtCore.SIGNAL("clicked()"), self.file_dialog_classifier)
+
         QtCore.QObject.connect(self.ui.button_loaddatabaseReconstruct, QtCore.SIGNAL("clicked()"), self.file_dialog2)
         QtCore.QObject.connect(self.ui.pushButton_SetOutputDirectory_Reconstruct, QtCore.SIGNAL("clicked()"), self.setOutputDirectory)
         QtCore.QObject.connect(self.ui.button_Recontructor, QtCore.SIGNAL("clicked()"), self.imageRecontructor)
@@ -81,6 +84,8 @@ class StartQT4(QtGui.QMainWindow):
         self.SoundFileList = []
         self.OutputDirectory = "/home/anoch/Documents/BatSamplesOutput"
         self.InputDirectory = "/home/anoch/Documents/BatSamplesInput"
+        self.DatabasePath = "/home/anoch/Documents/BatOutput/BatData.hdf5"
+        self.ui.label_classifier_databaseDirectory.setText(self.DatabasePath)
         self.ui.label_outputDirectory.setText(self.OutputDirectory)
         self.ui.label_inputDirectory.setText(self.InputDirectory)
         self.third_stage_classifier = ClassifierThirdStage.Classifier()
@@ -311,7 +316,7 @@ class StartQT4(QtGui.QMainWindow):
 
     def trainFirstStageClassifier(self):
         self.ui.textEdit_classifier_overview.setText("Initilazing database")
-        self.first_stage_classifier.initClasissifer()
+        self.first_stage_classifier.initClasissifer(self.DatabasePath)
         self.ui.textEdit_classifier_overview.setText("Training network...")
         self.first_stage_classifier.goClassifer(0, 0.001, 0.1, False)
         self.ui.textEdit_classifier_overview.setText("Training network... Done")
@@ -325,7 +330,7 @@ class StartQT4(QtGui.QMainWindow):
         """
     def trainSecondStageClassifier(self):
         self.ui.textEdit_classifier_overview.setText("Initilazing database")
-        self.second_stage_classifier.initClasissifer()
+        self.second_stage_classifier.initClasissifer(self.DatabasePath)
         self.ui.textEdit_classifier_overview.setText("Training network...")
         self.second_stage_classifier.goClassifer(0,0.001,0.001,False)
         self.ui.textEdit_classifier_overview.setText("Training network... Done")
@@ -339,7 +344,7 @@ class StartQT4(QtGui.QMainWindow):
 
     def trainThirdStageClassifier(self):
         self.ui.textEdit_classifier_overview.setText("Initilazing database")
-        self.third_stage_classifier.initClasissifer()
+        self.third_stage_classifier.initClasissifer(self.DatabasePath)
         self.ui.textEdit_classifier_overview.setText("Training network...")
         self.third_stage_classifier.goClassifer(0, 0.001, 0.010, False)
         self.ui.textEdit_classifier_overview.setText("Training network... Done")
@@ -353,11 +358,16 @@ class StartQT4(QtGui.QMainWindow):
 
     def runFirstStageClassifier(self):
         #self.ui.textEdit_classifier_overview.setText("Initilazing database")
-        self.first_stage_classifier_run.initClasissifer()
-        #self.ui.textEdit_classifier_overview.setText("Running network on data...")
+        self.first_stage_classifier_run.initClasissifer(self.DatabasePath)
         TruePostive, TrueNegative, FalsePostive, FalseNegative, CorrectRatio, TrueBats, TrueNonBats = self.first_stage_classifier_run.runClassifier()
         cursor = QtGui.QTextCursor(self.ui.textEdit_classifier_overview.document())
-
+        ConfusionMatrix = np.zeros((2,2))
+        ConfusionMatrix = np.array(ConfusionMatrix, dtype=np.int64)
+        ConfusionMatrix[0][0] = TruePostive
+        ConfusionMatrix[1][1] = TrueNegative
+        ConfusionMatrix[1][0] = FalsePostive
+        ConfusionMatrix[0][1] = FalseNegative
+        self.tableConfusionMatrixHandlerFSC(ConfusionMatrix)
         cursor.insertText("True Positive: " + str(TruePostive) + "\n")
         cursor.insertText("True Negative: " + str(TrueNegative) + "\n")
         cursor.insertText("False Positive: " + str(FalsePostive) + "\n")
@@ -367,25 +377,407 @@ class StartQT4(QtGui.QMainWindow):
         cursor.insertText("Correct Ratio: " + str(CorrectRatio)  + "\n")
 
     def runSecondStageClassifier(self):
-        self.second_stage_classifier_run.initClasissifer()
+        self.second_stage_classifier_run.initClasissifer(self.DatabasePath)
         ConfusionMatrix, BatTarget = self.second_stage_classifier_run.runClassifier()
         cursor = QtGui.QTextCursor(self.ui.textEdit_classifier_overview.document())
 
         cursor.insertText("Confusion Matrix\n" + str(ConfusionMatrix) + "\nTarget\n" + str(BatTarget))
-
+        self.tableConfusionMatrixHandlerSSC(ConfusionMatrix)
     def runThirdStageClassifier(self):
-        self.third_stage_classifier_run.initClasissifer()
+        self.third_stage_classifier_run.initClasissifer(self.DatabasePath)
         ConfusionMatrix, BatTarget = self.third_stage_classifier_run.runClassifier()
 
         cursor = QtGui.QTextCursor(self.ui.textEdit_classifier_overview.document())
 
         cursor.insertText("Confusion Matrix\n" + str(ConfusionMatrix) + "\nTarget\n" + str(BatTarget))
+        self.tableConfusionMatrixHandlerTSC(ConfusionMatrix)
 
     def runConnectedClassifiers(self):
-        self.connected_classifier_run.initClasissifer()
+        self.connected_classifier_run.initClasissifer(self.DatabasePath)
         ConfusionMatrix, BatTarget = self.connected_classifier_run.runClassifiers()
         cursor = QtGui.QTextCursor(self.ui.textEdit_classifier_overview.document())
         cursor.insertText("Confusion Matrix\n" + str(ConfusionMatrix) + "\nTarget\n" + str(BatTarget))
+
+        #ConfusionMatrix = np.zeros((7,7))
+        #ConfusionMatrix = np.array(ConfusionMatrix, dtype=np.int64)
+        #count = 0
+        #for row in range(0,7):
+        #    for colomn in range(0,7):
+        #        ConfusionMatrix[row][colomn] = count
+        #        count += 1
+        self.tableConfusionMatrixHandlerTSC(ConfusionMatrix)
+
+    def tableConfusionMatrixHandlerTSC(self, ConfusionMatrix):
+        # SET UP Labels for the table
+        self.ui.tableWidget_ConfusionMatrix.clear()
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setItalic(True)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("EpSe")
+        self.ui.tableWidget_ConfusionMatrix.setItem(2,1,data)
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("EpSe")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,2,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("PiPy")
+        self.ui.tableWidget_ConfusionMatrix.setItem(3,1,data)
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("PiPy")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,3,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("MyDau")
+        self.ui.tableWidget_ConfusionMatrix.setItem(4,1,data)
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("MyDau")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,4,data)
+
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("PiNa")
+        self.ui.tableWidget_ConfusionMatrix.setItem(5,1,data)
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("PiNa")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,5,data)
+
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("NyNo")
+        self.ui.tableWidget_ConfusionMatrix.setItem(6,1,data)
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("NyNo")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,6,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Noise")
+        self.ui.tableWidget_ConfusionMatrix.setItem(7,1,data)
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Noise")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,7,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("SeEl")
+        self.ui.tableWidget_ConfusionMatrix.setItem(8,1,data)
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("SeEl")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,8,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Target")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,9,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("BL [%]")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,10,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("CCR [%]")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,11,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Prec [%]")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,12,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Reca [%]")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,13,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Out")
+        self.ui.tableWidget_ConfusionMatrix.setItem(0,6,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("True")
+        self.ui.tableWidget_ConfusionMatrix.setItem(4,0,data)
+
+        target = [0,0,0,0,0,0,0]
+        for row in range(0,7):
+            for colomn in range(0,7):
+                target[row] += ConfusionMatrix[row][colomn]
+                data = QtGui.QTableWidgetItem(str(ConfusionMatrix[row][colomn]))
+                self.ui.tableWidget_ConfusionMatrix.setItem(row+2,colomn+2,data)
+            data = QtGui.QTableWidgetItem(str(target[row]))
+            self.ui.tableWidget_ConfusionMatrix.setItem(row+2,colomn+3,data)
+        largestIndex = np.argmax(target)
+        maxValue = target[largestIndex]
+        sumTarget = sum(target)
+        baseline =  (float(maxValue)/float(sumTarget))*100
+        data = QtGui.QTableWidgetItem(str("%.2f" % baseline))
+        self.ui.tableWidget_ConfusionMatrix.setItem(2,10,data)
+        diagonalSum = 0
+        for diag in range(0,7):
+            diagonalSum += ConfusionMatrix[diag][diag]
+        CCR = (float(diagonalSum)/float(sumTarget))*100
+        data = QtGui.QTableWidgetItem(str("%.2f" % CCR))
+        self.ui.tableWidget_ConfusionMatrix.setItem(2,11,data)
+
+        classifierTarget = [0,0,0,0,0,0,0]
+        precision = [0,0,0,0,0,0,0]
+        for colomn in range(0,7):
+            for row in range(0,7):
+                classifierTarget[colomn] += ConfusionMatrix[row][colomn]
+            precision = (float(ConfusionMatrix[colomn][colomn])/float(classifierTarget[colomn]))*100
+            data = QtGui.QTableWidgetItem(str("%.2f" % precision))
+            self.ui.tableWidget_ConfusionMatrix.setItem(colomn+2,12,data)
+
+        for diag in range(0,7):
+            recall = (float(ConfusionMatrix[diag][diag])/target[diag])*100
+            data = QtGui.QTableWidgetItem(str("%.2f" % recall))
+            self.ui.tableWidget_ConfusionMatrix.setItem(diag+2,13,data)
+
+    def tableConfusionMatrixHandlerSSC(self, ConfusionMatrix):
+        # SET UP Labels for the table
+        self.ui.tableWidget_ConfusionMatrix.clear()
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setItalic(True)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Noise")
+        self.ui.tableWidget_ConfusionMatrix.setItem(2,1,data)
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Noise")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,2,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Single")
+        self.ui.tableWidget_ConfusionMatrix.setItem(3,1,data)
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Single")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,3,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Multi")
+        self.ui.tableWidget_ConfusionMatrix.setItem(4,1,data)
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Multi")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,4,data)
+
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("SoEl")
+        self.ui.tableWidget_ConfusionMatrix.setItem(5,1,data)
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("SoEl")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,5,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Target")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,6,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("BL [%]")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,7,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("CCR [%]")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,8,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Prec [%]")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,9,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Reca [%]")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,10,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Out")
+        self.ui.tableWidget_ConfusionMatrix.setItem(0,6,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("True")
+        self.ui.tableWidget_ConfusionMatrix.setItem(4,0,data)
+
+        target = [0,0,0,0]
+        dimension = len(target)
+        for row in range(0,dimension):
+            for colomn in range(0,dimension):
+                target[row] += ConfusionMatrix[row][colomn]
+                data = QtGui.QTableWidgetItem(str(ConfusionMatrix[row][colomn]))
+                self.ui.tableWidget_ConfusionMatrix.setItem(row+2,colomn+2,data)
+            data = QtGui.QTableWidgetItem(str(target[row]))
+            self.ui.tableWidget_ConfusionMatrix.setItem(row+2,colomn+3,data)
+
+        # BASELINE
+        largestIndex = np.argmax(target)
+        maxValue = target[largestIndex]
+        sumTarget = sum(target)
+        baseline =  (float(maxValue)/float(sumTarget))*100
+        data = QtGui.QTableWidgetItem(str("%.2f" % baseline))
+        self.ui.tableWidget_ConfusionMatrix.setItem(2,7,data)
+
+        # CCR
+        diagonalSum = 0
+        for diag in range(0,dimension):
+            diagonalSum += ConfusionMatrix[diag][diag]
+        CCR = (float(diagonalSum)/float(sumTarget))*100
+        data = QtGui.QTableWidgetItem(str("%.2f" % CCR))
+        self.ui.tableWidget_ConfusionMatrix.setItem(2,8,data)
+
+        classifierTarget = [0,0,0,0]
+        for colomn in range(0,dimension):
+            for row in range(0,dimension):
+                classifierTarget[colomn] += ConfusionMatrix[row][colomn]
+            precision = (float(ConfusionMatrix[colomn][colomn])/float(classifierTarget[colomn]))*100
+            data = QtGui.QTableWidgetItem(str("%.2f" % precision))
+            self.ui.tableWidget_ConfusionMatrix.setItem(colomn+2,9,data)
+
+        for diag in range(0,dimension):
+            recall = (float(ConfusionMatrix[diag][diag])/target[diag])*100
+            data = QtGui.QTableWidgetItem(str("%.2f" % recall))
+            self.ui.tableWidget_ConfusionMatrix.setItem(diag+2,10,data)
+
+    def tableConfusionMatrixHandlerFSC(self, ConfusionMatrix):
+        # SET UP Labels for the table
+        self.ui.tableWidget_ConfusionMatrix.clear()
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setItalic(True)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Bat")
+        self.ui.tableWidget_ConfusionMatrix.setItem(2,1,data)
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Bat")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,2,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Noise")
+        self.ui.tableWidget_ConfusionMatrix.setItem(3,1,data)
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Noise")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,3,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Target")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,4,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("BL [%]")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,5,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("CCR [%]")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,6,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Prec [%]")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,7,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Reca [%]")
+        self.ui.tableWidget_ConfusionMatrix.setItem(1,8,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("Out")
+        self.ui.tableWidget_ConfusionMatrix.setItem(0,5,data)
+
+        data = QtGui.QTableWidgetItem()
+        data.setFont(font)
+        data.setText("True")
+        self.ui.tableWidget_ConfusionMatrix.setItem(2,0,data)
+
+        target = [0,0]
+        dimension = len(target)
+        for row in range(0,dimension):
+            for colomn in range(0,dimension):
+                target[row] += ConfusionMatrix[row][colomn]
+                data = QtGui.QTableWidgetItem(str(ConfusionMatrix[row][colomn]))
+                self.ui.tableWidget_ConfusionMatrix.setItem(row+2,colomn+2,data)
+            data = QtGui.QTableWidgetItem(str(target[row]))
+            self.ui.tableWidget_ConfusionMatrix.setItem(row+2,colomn+3,data)
+
+        # BASELINE
+        largestIndex = np.argmax(target)
+        maxValue = target[largestIndex]
+        sumTarget = sum(target)
+        baseline =  (float(maxValue)/float(sumTarget))*100
+        data = QtGui.QTableWidgetItem(str("%.2f" % baseline))
+        self.ui.tableWidget_ConfusionMatrix.setItem(2,5,data)
+
+        # CCR
+        diagonalSum = 0
+        for diag in range(0,dimension):
+            diagonalSum += ConfusionMatrix[diag][diag]
+        CCR = (float(diagonalSum)/float(sumTarget))*100
+        data = QtGui.QTableWidgetItem(str("%.2f" % CCR))
+        self.ui.tableWidget_ConfusionMatrix.setItem(2,6,data)
+
+        classifierTarget = [0,0]
+        for colomn in range(0,dimension):
+            for row in range(0,dimension):
+                classifierTarget[colomn] += ConfusionMatrix[row][colomn]
+            precision = (float(ConfusionMatrix[colomn][colomn])/float(classifierTarget[colomn]))*100
+            data = QtGui.QTableWidgetItem(str("%.2f" % precision))
+            self.ui.tableWidget_ConfusionMatrix.setItem(colomn+2,7,data)
+
+        for diag in range(0,dimension):
+            recall = (float(ConfusionMatrix[diag][diag])/target[diag])*100
+            data = QtGui.QTableWidgetItem(str("%.2f" % recall))
+            self.ui.tableWidget_ConfusionMatrix.setItem(diag+2,8,data)
+
+    def file_dialog_classifier(self):
+        filepath = QtGui.QFileDialog.getOpenFileName(self,"Open HDF5 File",'', "HDF5 Files (*.hdf5 *.h5)")
+
+        from os.path import isfile
+        if isfile(filepath):
+            filename = filepath
+            self.DatabasePath = filename
+            self.ui.label_classifier_databaseDirectory.setText(filename)
+            #self.HDFFile = h5py.File(str(filepath))
+            #self.HDFFile.visit(self.saveEventPath)
+        else:
+            self.ui.label_classifier_databaseDirectory.setText("None selected")
 
     def getHDFInformationRecontructImage(self, paths, imgType):
         day = []

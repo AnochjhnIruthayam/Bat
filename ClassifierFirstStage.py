@@ -38,9 +38,10 @@ class BinaryClassifier():
     def saveEventPath(self, name):
         self.pathEventList.append(name)
 
-    def initClasissifer(self):
+    def initClasissifer(self, filename):
         print "Initilazing HDF5 database"
-        self.HDFFile = h5py.File("/home/anoch/Documents/BatOutput/BatData.hdf5")
+        #self.HDFFile = h5py.File("/home/anoch/Documents/BatOutput/BatData.hdf5")
+        self.HDFFile = h5py.File(filename)
         self.HDFFile.visit(self.saveEventPath)
 
     def RemoveTrainingDataFromTestData(self, TrainingSetEventList, TestDataEventList):
@@ -585,7 +586,7 @@ class BinaryClassifier():
         #momentum = 0.1
         weightdecay = 0
         #net = buildNetwork(trndata.indim, HiddenNeurons, trndata.outdim, bias=True, outclass=SoftmaxLayer)
-        net = buildNetwork(trndata.indim, HiddenNeurons, trndata.outdim, bias=True, outclass=SigmoidLayer)
+        net = buildNetwork(trndata.indim, HiddenNeurons, trndata.outdim, bias=True, outclass=SoftmaxLayer)
         trainer = BackpropTrainer(net, dataset=trndata, momentum=momentum, learningrate=learningrate, verbose=False, weightdecay=weightdecay)
         print "Training data"
         root = "/home/anoch/Dropbox/SDU/10 Semester/MSc Project/Data Results/Master/BinarySpeciesTestMSECE/"
@@ -667,7 +668,9 @@ class BinaryClassifier():
             #self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
 
             print("epoch: %4d" % trainer.totalepochs,"  train error: %5.2f%%" % trnresult,"  test error: %5.2f%%" % tstresult)
-
+            if tstresult < 9.0:
+                raw_input("Press Enter to continue...")
+                break
             if toFile:
                 dataString = str(trainer.totalepochs) + ", " + str(averageErrorMSE) + ", " + str(trnresult) + ", " + str(tstresult) + "\n"
                 f.write(dataString)

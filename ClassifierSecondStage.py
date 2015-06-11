@@ -32,9 +32,9 @@ class Classifier():
     def saveEventPath(self, name):
         self.pathEventList.append(name)
 
-    def initClasissifer(self):
+    def initClasissifer(self, filename):
         print "Initilazing HDF5 database"
-        self.HDFFile = h5py.File("/home/anoch/Documents/BatOutput/BatData.hdf5")
+        self.HDFFile = h5py.File(filename)
         self.HDFFile.visit(self.saveEventPath)
 
     def RemoveTrainingDataFromTestData(self, TrainingSetEventList, TestDataEventList):
