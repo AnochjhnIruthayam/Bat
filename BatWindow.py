@@ -2,8 +2,7 @@
 
 # Form implementation generated from reading ui file 'BatWindow.ui'
 #
-# Created: Fri Jun 12 16:12:15 2015
-#      by: PyQt4 UI code generator 4.10.4
+# Created by: PyQt4 UI code generator 4.11.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -75,7 +74,7 @@ class Ui_BatWindow(object):
         self.label_inputDirectory.setGeometry(QtCore.QRect(10, 50, 531, 20))
         self.label_inputDirectory.setObjectName(_fromUtf8("label_inputDirectory"))
         self.line_17 = QtGui.QFrame(self.tab_analyze)
-        self.line_17.setGeometry(QtCore.QRect(10, 110, 531, 20))
+        self.line_17.setGeometry(QtCore.QRect(10, 70, 531, 20))
         self.line_17.setFrameShape(QtGui.QFrame.HLine)
         self.line_17.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_17.setObjectName(_fromUtf8("line_17"))
@@ -1292,7 +1291,7 @@ class Ui_BatWindow(object):
         self.button_classifier_database.setGeometry(QtCore.QRect(20, 20, 161, 41))
         self.button_classifier_database.setObjectName(_fromUtf8("button_classifier_database"))
         self.groupBox_IndClassifiers = QtGui.QGroupBox(self.tab)
-        self.groupBox_IndClassifiers.setGeometry(QtCore.QRect(800, 70, 671, 371))
+        self.groupBox_IndClassifiers.setGeometry(QtCore.QRect(780, 80, 671, 371))
         self.groupBox_IndClassifiers.setTitle(_fromUtf8(""))
         self.groupBox_IndClassifiers.setAlignment(QtCore.Qt.AlignCenter)
         self.groupBox_IndClassifiers.setObjectName(_fromUtf8("groupBox_IndClassifiers"))
@@ -1370,7 +1369,7 @@ class Ui_BatWindow(object):
         self.label_classifier_status.setGeometry(QtCore.QRect(30, 230, 66, 17))
         self.label_classifier_status.setObjectName(_fromUtf8("label_classifier_status"))
         self.line_61 = QtGui.QFrame(self.tab)
-        self.line_61.setGeometry(QtCore.QRect(20, 60, 1181, 20))
+        self.line_61.setGeometry(QtCore.QRect(20, 60, 1511, 20))
         self.line_61.setFrameShape(QtGui.QFrame.HLine)
         self.line_61.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_61.setObjectName(_fromUtf8("line_61"))
@@ -1544,7 +1543,7 @@ class Ui_BatWindow(object):
         self.tableWidget_ConfusionMatrix.verticalHeader().setVisible(False)
         self.tableWidget_ConfusionMatrix.verticalHeader().setDefaultSectionSize(33)
         self.label_classifier_confusionmatrix = QtGui.QLabel(self.tab)
-        self.label_classifier_confusionmatrix.setGeometry(QtCore.QRect(700, 510, 161, 17))
+        self.label_classifier_confusionmatrix.setGeometry(QtCore.QRect(700, 510, 171, 17))
         font = QtGui.QFont()
         font.setPointSize(14)
         font.setBold(True)
@@ -1555,7 +1554,7 @@ class Ui_BatWindow(object):
         BatWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(BatWindow)
-        self.tabWidget.setCurrentIndex(5)
+        self.tabWidget.setCurrentIndex(4)
         QtCore.QMetaObject.connectSlotsByName(BatWindow)
 
     def retranslateUi(self, BatWindow):

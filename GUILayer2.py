@@ -772,7 +772,7 @@ class StartQT4(QtGui.QMainWindow):
         from os.path import isfile
         if isfile(filepath):
             filename = filepath
-            self.DatabasePath = filename
+            self.DatabasePath = str(filename)
             self.ui.label_classifier_databaseDirectory.setText(filename)
             #self.HDFFile = h5py.File(str(filepath))
             #self.HDFFile.visit(self.saveEventPath)

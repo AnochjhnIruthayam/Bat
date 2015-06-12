@@ -41,7 +41,7 @@
      <enum>QTabWidget::Rounded</enum>
     </property>
     <property name="currentIndex">
-     <number>5</number>
+     <number>4</number>
     </property>
     <property name="elideMode">
      <enum>Qt::ElideNone</enum>
@@ -174,7 +174,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>110</y>
+        <y>70</y>
         <width>531</width>
         <height>20</height>
        </rect>
@@ -3981,8 +3981,8 @@
      <widget class="QGroupBox" name="groupBox_IndClassifiers">
       <property name="geometry">
        <rect>
-        <x>800</x>
-        <y>70</y>
+        <x>780</x>
+        <y>80</y>
         <width>671</width>
         <height>371</height>
        </rect>
@@ -4225,7 +4225,7 @@
        <rect>
         <x>20</x>
         <y>60</y>
-        <width>1181</width>
+        <width>1511</width>
         <height>20</height>
        </rect>
       </property>
@@ -4586,7 +4586,7 @@
        <rect>
         <x>700</x>
         <y>510</y>
-        <width>161</width>
+        <width>171</width>
         <height>17</height>
        </rect>
       </property>
