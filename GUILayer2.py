@@ -126,6 +126,7 @@ class StartQT4(QtGui.QMainWindow):
         self.ui.frame_BatButtons.hide()
         self.pathEventList = []
         self.threadPool = []
+        self.setFullScreen = 0
 
         ### FIXES WINDOWS TASKBAR HANDLER, WHICH SHOWS THE CORRECT ICON ###
         import ctypes
@@ -374,8 +375,15 @@ class StartQT4(QtGui.QMainWindow):
     def keyPressEvent(self, QKeyEvent):
         # if this batbuttons are visible, means we have loaded the data
         if type(QKeyEvent) == QtGui.QKeyEvent:
+            if QKeyEvent.key() == 16777216: # Esc button
+                if self.setFullScreen == 0:
+                    self.showFullScreen()
+                    self.setFullScreen = 1
+                else:
+                    self.showNormal()
+                    self.setFullScreen = 0
             if self.ui.tabWidget.currentIndex() == 1:
-                print QKeyEvent.key()
+                #print QKeyEvent.key()
                 #Check if the label species tab is open
                 if self.ui.frame_BatButtons.isVisible():
                     # following numbers are ASCII for 1, 2, 3, 4, 5, 6 and 7

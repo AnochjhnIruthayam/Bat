@@ -127,7 +127,7 @@ class ClassifierConnected():
         true = []
         BatIDToAdd = [1, 2, 3, 5, 6, 10, 11, 12, 14, 8, 9] #1-14 are bats; 8 is noise; 9 is something else
         print "Loading Network.."
-        net = NetworkReader.readFrom("FirstStageClassifier.xml")
+        net = NetworkReader.readFrom("C:\Users\Anoch\PycharmProjects\BatClassification\FirstStageClassifier.xml")
         print "Loading feature data..."
         minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage, target, path = self.getDistrubedTestDataRUNVERSIONFSC(BatIDToAdd)
         SAMPLE_SIZE = len(minFreq)
@@ -267,7 +267,7 @@ class ClassifierConnected():
         true = []
         #BatIDToAdd = [1, 2, 3, 5, 6, 10, 11, 12, 14, 8, 9] #1-14 are bats; 8 is noise; 9 is something else
         print "Loading Network.."
-        net = NetworkReader.readFrom("SecondStageClassifier.xml")
+        net = NetworkReader.readFrom("C:\Users\Anoch\PycharmProjects\BatClassification\SecondStageClassifier.xml")
         print "Loading feature data with FSC = 1 (Bat calls)"
         minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage, target, path = self.getDistrubedTestDataRUNVERSIONSSC()
         SAMPLE_SIZE = len(minFreq)
@@ -404,7 +404,7 @@ class ClassifierConnected():
         #SingleBatIDToAdd = [1, 2, 3, 5, 6] # for single
         Correct = 0
         print "Loading Network.."
-        net = NetworkReader.readFrom("ThirdStageClassifier.xml")
+        net = NetworkReader.readFrom("C:\Users\Anoch\PycharmProjects\BatClassification\ThirdStageClassifier.xml")
         print "Loading feature data with SSC = 1 (Single call type)"
         minFreq, maxFreq, Durantion, fl1, fl2, fl3, fl4, fl5, fl6, fl7, fl8, fl9, fl10, pixelAverage, target, path = self.getDistrubedTestDataRUNVERSIONTSC()
         SAMPLE_SIZE = len(minFreq)
@@ -434,7 +434,7 @@ class ClassifierConnected():
         #initilaze with zero
         ConfusionMatrix = np.zeros((7,7))
         #int64 datatype
-        ConfusionMatrix = np.ndarray(ConfusionMatrix, dtype=np.int64)
+        ConfusionMatrix = np.array(ConfusionMatrix, dtype=np.int64)
         TotalTest = len(out)
         BatTarget = [0, 0, 0, 0, 0, 0, 0]
 
