@@ -41,7 +41,7 @@
      <enum>QTabWidget::Rounded</enum>
     </property>
     <property name="currentIndex">
-     <number>5</number>
+     <number>0</number>
     </property>
     <property name="elideMode">
      <enum>Qt::ElideNone</enum>
@@ -174,7 +174,7 @@
       <property name="geometry">
        <rect>
         <x>10</x>
-        <y>110</y>
+        <y>70</y>
         <width>531</width>
         <height>20</height>
        </rect>
@@ -3981,8 +3981,8 @@
      <widget class="QGroupBox" name="groupBox_IndClassifiers">
       <property name="geometry">
        <rect>
-        <x>800</x>
-        <y>70</y>
+        <x>780</x>
+        <y>80</y>
         <width>671</width>
         <height>371</height>
        </rect>
@@ -3998,7 +3998,7 @@
         <rect>
          <x>250</x>
          <y>10</y>
-         <width>211</width>
+         <width>221</width>
          <height>31</height>
         </rect>
        </property>
@@ -4042,7 +4042,7 @@
       <widget class="QPushButton" name="button_classifierThirdStage_train">
        <property name="geometry">
         <rect>
-         <x>50</x>
+         <x>70</x>
          <y>300</y>
          <width>201</width>
          <height>51</height>
@@ -4083,7 +4083,7 @@
         <rect>
          <x>230</x>
          <y>150</y>
-         <width>241</width>
+         <width>251</width>
          <height>31</height>
         </rect>
        </property>
@@ -4147,7 +4147,7 @@
       <widget class="QPushButton" name="button_classifierSecondStage_train">
        <property name="geometry">
         <rect>
-         <x>60</x>
+         <x>70</x>
          <y>180</y>
          <width>201</width>
          <height>51</height>
@@ -4225,7 +4225,7 @@
        <rect>
         <x>20</x>
         <y>60</y>
-        <width>1181</width>
+        <width>1511</width>
         <height>20</height>
        </rect>
       </property>
@@ -4251,7 +4251,7 @@
        <rect>
         <x>240</x>
         <y>100</y>
-        <width>221</width>
+        <width>231</width>
         <height>31</height>
        </rect>
       </property>
@@ -4270,7 +4270,7 @@
       <property name="geometry">
        <rect>
         <x>170</x>
-        <y>540</y>
+        <y>530</y>
         <width>1241</width>
         <height>301</height>
        </rect>
@@ -4585,8 +4585,8 @@
       <property name="geometry">
        <rect>
         <x>700</x>
-        <y>510</y>
-        <width>161</width>
+        <y>500</y>
+        <width>171</width>
         <height>17</height>
        </rect>
       </property>
@@ -4599,6 +4599,22 @@
       </property>
       <property name="text">
        <string>Confusion Matrix</string>
+      </property>
+     </widget>
+     <widget class="QProgressBar" name="progressBar_classifier">
+      <property name="geometry">
+       <rect>
+        <x>200</x>
+        <y>470</y>
+        <width>1231</width>
+        <height>23</height>
+       </rect>
+      </property>
+      <property name="maximum">
+       <number>0</number>
+      </property>
+      <property name="value">
+       <number>-1</number>
       </property>
      </widget>
     </widget>

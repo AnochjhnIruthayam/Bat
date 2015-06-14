@@ -28,6 +28,7 @@ class Classifier():
         self.TrainingSetEventList = []
         self.HDFFile = h5py
         self.Bat = BS.BatSpecies()
+        self.ConfusionMatrix = 0
 
     def saveEventPath(self, name):
         self.pathEventList.append(name)
@@ -751,7 +752,8 @@ class Classifier():
         # Close HDF5 file to save to disk. This is also done to make sure the next stage classifier can open the file
         self.HDFFile.flush()
         self.HDFFile.close()
-        return self.CorrectRatio(out, true)
+        self.ConfusionMatrix = self.CorrectRatio(out, true)
+        return self.ConfusionMatrix
 
     def pixelFix(self):
         pathcorrImg = self.getHDFInformationToAddPixelInfo(self.pathEventList)
@@ -979,7 +981,7 @@ class Classifier():
         print BatTarget
         print "\n"
         print ConfusionMatrix
-        return ConfusionMatrix, BatTarget
+        return ConfusionMatrix
 
 
     def CrossEntropyErrorAveraged(self, net, dataset):

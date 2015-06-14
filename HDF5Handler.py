@@ -30,6 +30,19 @@ def imageRecontructFromHDF5(ArrayDataImg):
 
     return image_3d
 
+def pixelCount(img):
+        height, length = img.shape
+        pixelValue = 0
+        count = 0
+        for x in range(0, length):
+            for y in range(0, height):
+                if img[y][x] > 1:
+                    pixelValue += img[y][x]
+                    count += 1
+        averagePixel = float(pixelValue)/float(count)
+        return averagePixel
+
+
 def eventHDFLabel(eventName, minMiliSec_pixel, maxFreq_pixel, maxMiliSec_pixel, minFreq_pixel, savePath, eventNum, OutputDirectory, imgSpectrogram, imgMarkedSpectrogram, imgEvent, recordedAt, projectName, InputDirectory):
     SAVE_ITERATION = 10
     myHDFFile = OutputDirectory + "/BatData.hdf5"
@@ -143,6 +156,7 @@ def eventHDFLabel(eventName, minMiliSec_pixel, maxFreq_pixel, maxMiliSec_pixel, 
             EventGroup["ArrayImgEvent"].attrs["Interlace"] = 0
             EventGroup["ArrayImgEvent"].attrs["Grayscale"] = "TRUE"
             EventGroup["ArrayImgEvent"].attrs["Alpha"] = "FALSE"
+            EventGroup["ArrayImgEvent"].attrs["AveragePixelValue"] = pixelCount(ArrayImgEvent)
 
 
             dbName = "FeatureDataEvent"

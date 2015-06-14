@@ -34,6 +34,14 @@ class BinaryClassifier():
         self.TrainingSetEventList = []
         self.HDFFile = h5py
         self.Bat = BS.BatSpecies()
+        self.TruePostive = 0
+        self.TrueNegative = 0
+        self.FalsePostive = 0
+        self.FalseNegative = 0
+        self.TrueBats = 0
+        self.TrueNonBats = 0
+        self.ConfusionMatrix = 0
+
 
     def saveEventPath(self, name):
         self.pathEventList.append(name)
@@ -524,7 +532,14 @@ class BinaryClassifier():
             ds.attrs["TSC"] = -1
         # Close HDF5 file to save to disk. This is also done to make sure the next stage classifier can open the file
         self.HDFFile.close()
-        return self.CorrectRatio(out,true)
+        TruePostive, TrueNegative, FalsePostive, FalseNegative, CorrectRatio, TrueBats, TrueNonBats = self.CorrectRatio(out,true)
+        self.ConfusionMatrix = np.zeros((2,2))
+        self.ConfusionMatrix = np.array(self.ConfusionMatrix, dtype=np.int64)
+        self.ConfusionMatrix[0][0] = TruePostive
+        self.ConfusionMatrix[1][1] = TrueNegative
+        self.ConfusionMatrix[1][0] = FalsePostive
+        self.ConfusionMatrix[0][1] = FalseNegative
+        return self.ConfusionMatrix
 
 
 
@@ -674,7 +689,7 @@ class BinaryClassifier():
             if toFile:
                 dataString = str(trainer.totalepochs) + ", " + str(averageErrorMSE) + ", " + str(trnresult) + ", " + str(tstresult) + "\n"
                 f.write(dataString)
-        NetworkWriter.writeToFile(net, "FirstStageClassifier.xml")
+        #NetworkWriter.writeToFile(net, "FirstStageClassifier.xml")
         if toFile:
             results = self.CorrectRatio(trainer.testOnClassData(dataset=tstdata), tstdata['class'])
             filename = filename + "_CR"
@@ -730,7 +745,7 @@ class BinaryClassifier():
         CorrectRatio = float(TruePostive + TrueNegative) / float(TotalTest) * 100
         print "Correct Ratio: " + str(CorrectRatio)
         results = [TruePostive, TrueNegative, FalsePostive, FalseNegative, CorrectRatio, TrueBats, TrueNonBats]
-        return results
+        return TruePostive, TrueNegative, FalsePostive, FalseNegative, CorrectRatio, TrueBats, TrueNonBats
 
 
 
@@ -758,6 +773,3 @@ class BinaryClassifier():
                 error += float(targetList[i]) * math.log(float(outputList[i])/float(targetList[i])) + (1 - float(targetList[i])) * math.log((1-outputList[i])/(1-float(outputList[i])))
         #Return the averaged error
         return (error*-1)/len(outputList)
-
-
-
