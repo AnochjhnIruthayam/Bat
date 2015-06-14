@@ -2,8 +2,7 @@
 
 # Form implementation generated from reading ui file 'BatWindow.ui'
 #
-# Created: Fri Jun 12 16:12:15 2015
-#      by: PyQt4 UI code generator 4.10.4
+# Created by: PyQt4 UI code generator 4.11.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -75,7 +74,7 @@ class Ui_BatWindow(object):
         self.label_inputDirectory.setGeometry(QtCore.QRect(10, 50, 531, 20))
         self.label_inputDirectory.setObjectName(_fromUtf8("label_inputDirectory"))
         self.line_17 = QtGui.QFrame(self.tab_analyze)
-        self.line_17.setGeometry(QtCore.QRect(10, 110, 531, 20))
+        self.line_17.setGeometry(QtCore.QRect(10, 70, 531, 20))
         self.line_17.setFrameShape(QtGui.QFrame.HLine)
         self.line_17.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_17.setObjectName(_fromUtf8("line_17"))
@@ -1292,12 +1291,12 @@ class Ui_BatWindow(object):
         self.button_classifier_database.setGeometry(QtCore.QRect(20, 20, 161, 41))
         self.button_classifier_database.setObjectName(_fromUtf8("button_classifier_database"))
         self.groupBox_IndClassifiers = QtGui.QGroupBox(self.tab)
-        self.groupBox_IndClassifiers.setGeometry(QtCore.QRect(800, 70, 671, 371))
+        self.groupBox_IndClassifiers.setGeometry(QtCore.QRect(780, 80, 671, 371))
         self.groupBox_IndClassifiers.setTitle(_fromUtf8(""))
         self.groupBox_IndClassifiers.setAlignment(QtCore.Qt.AlignCenter)
         self.groupBox_IndClassifiers.setObjectName(_fromUtf8("groupBox_IndClassifiers"))
         self.label_classifier_binary = QtGui.QLabel(self.groupBox_IndClassifiers)
-        self.label_classifier_binary.setGeometry(QtCore.QRect(250, 10, 211, 31))
+        self.label_classifier_binary.setGeometry(QtCore.QRect(250, 10, 221, 31))
         font = QtGui.QFont()
         font.setPointSize(16)
         font.setBold(True)
@@ -1311,7 +1310,7 @@ class Ui_BatWindow(object):
         self.button_classifierFirstStage_train.setGeometry(QtCore.QRect(70, 50, 201, 51))
         self.button_classifierFirstStage_train.setObjectName(_fromUtf8("button_classifierFirstStage_train"))
         self.button_classifierThirdStage_train = QtGui.QPushButton(self.groupBox_IndClassifiers)
-        self.button_classifierThirdStage_train.setGeometry(QtCore.QRect(50, 300, 201, 51))
+        self.button_classifierThirdStage_train.setGeometry(QtCore.QRect(70, 300, 201, 51))
         self.button_classifierThirdStage_train.setObjectName(_fromUtf8("button_classifierThirdStage_train"))
         self.button_classifierThirdStage_run = QtGui.QPushButton(self.groupBox_IndClassifiers)
         self.button_classifierThirdStage_run.setGeometry(QtCore.QRect(440, 300, 201, 51))
@@ -1322,7 +1321,7 @@ class Ui_BatWindow(object):
         self.line_58.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_58.setObjectName(_fromUtf8("line_58"))
         self.label_classifier_binary_2 = QtGui.QLabel(self.groupBox_IndClassifiers)
-        self.label_classifier_binary_2.setGeometry(QtCore.QRect(230, 150, 241, 31))
+        self.label_classifier_binary_2.setGeometry(QtCore.QRect(230, 150, 251, 31))
         font = QtGui.QFont()
         font.setPointSize(16)
         font.setBold(True)
@@ -1346,7 +1345,7 @@ class Ui_BatWindow(object):
         self.button_classifierSecondStage_run.setGeometry(QtCore.QRect(440, 180, 201, 51))
         self.button_classifierSecondStage_run.setObjectName(_fromUtf8("button_classifierSecondStage_run"))
         self.button_classifierSecondStage_train = QtGui.QPushButton(self.groupBox_IndClassifiers)
-        self.button_classifierSecondStage_train.setGeometry(QtCore.QRect(60, 180, 201, 51))
+        self.button_classifierSecondStage_train.setGeometry(QtCore.QRect(70, 180, 201, 51))
         self.button_classifierSecondStage_train.setObjectName(_fromUtf8("button_classifierSecondStage_train"))
         self.label_classifier_databaseDirectory = QtGui.QLabel(self.tab)
         self.label_classifier_databaseDirectory.setGeometry(QtCore.QRect(190, 29, 1031, 31))
@@ -1370,7 +1369,7 @@ class Ui_BatWindow(object):
         self.label_classifier_status.setGeometry(QtCore.QRect(30, 230, 66, 17))
         self.label_classifier_status.setObjectName(_fromUtf8("label_classifier_status"))
         self.line_61 = QtGui.QFrame(self.tab)
-        self.line_61.setGeometry(QtCore.QRect(20, 60, 1181, 20))
+        self.line_61.setGeometry(QtCore.QRect(20, 60, 1511, 20))
         self.line_61.setFrameShape(QtGui.QFrame.HLine)
         self.line_61.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_61.setObjectName(_fromUtf8("line_61"))
@@ -1378,7 +1377,7 @@ class Ui_BatWindow(object):
         self.button_classiferConnected_run.setGeometry(QtCore.QRect(250, 180, 201, 51))
         self.button_classiferConnected_run.setObjectName(_fromUtf8("button_classiferConnected_run"))
         self.label_classifier_connected = QtGui.QLabel(self.tab)
-        self.label_classifier_connected.setGeometry(QtCore.QRect(240, 100, 221, 31))
+        self.label_classifier_connected.setGeometry(QtCore.QRect(240, 100, 231, 31))
         font = QtGui.QFont()
         font.setPointSize(16)
         font.setBold(True)
@@ -1386,7 +1385,7 @@ class Ui_BatWindow(object):
         self.label_classifier_connected.setFont(font)
         self.label_classifier_connected.setObjectName(_fromUtf8("label_classifier_connected"))
         self.tableWidget_ConfusionMatrix = QtGui.QTableWidget(self.tab)
-        self.tableWidget_ConfusionMatrix.setGeometry(QtCore.QRect(170, 540, 1241, 301))
+        self.tableWidget_ConfusionMatrix.setGeometry(QtCore.QRect(170, 530, 1241, 301))
         self.tableWidget_ConfusionMatrix.setShowGrid(True)
         self.tableWidget_ConfusionMatrix.setRowCount(9)
         self.tableWidget_ConfusionMatrix.setColumnCount(14)
@@ -1544,18 +1543,23 @@ class Ui_BatWindow(object):
         self.tableWidget_ConfusionMatrix.verticalHeader().setVisible(False)
         self.tableWidget_ConfusionMatrix.verticalHeader().setDefaultSectionSize(33)
         self.label_classifier_confusionmatrix = QtGui.QLabel(self.tab)
-        self.label_classifier_confusionmatrix.setGeometry(QtCore.QRect(700, 510, 161, 17))
+        self.label_classifier_confusionmatrix.setGeometry(QtCore.QRect(700, 500, 171, 17))
         font = QtGui.QFont()
         font.setPointSize(14)
         font.setBold(True)
         font.setWeight(75)
         self.label_classifier_confusionmatrix.setFont(font)
         self.label_classifier_confusionmatrix.setObjectName(_fromUtf8("label_classifier_confusionmatrix"))
+        self.progressBar_classifier = QtGui.QProgressBar(self.tab)
+        self.progressBar_classifier.setGeometry(QtCore.QRect(200, 470, 1231, 23))
+        self.progressBar_classifier.setMaximum(0)
+        self.progressBar_classifier.setProperty("value", -1)
+        self.progressBar_classifier.setObjectName(_fromUtf8("progressBar_classifier"))
         self.tabWidget.addTab(self.tab, _fromUtf8(""))
         BatWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(BatWindow)
-        self.tabWidget.setCurrentIndex(5)
+        self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(BatWindow)
 
     def retranslateUi(self, BatWindow):

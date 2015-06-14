@@ -24,8 +24,8 @@ def createSpectrogram(soundFile, SearchDirectory, SaveDirectory, Channel, Sample
     # outputFilename = os.path.splitext((soundFile))[0]
     outputFilename = "date_"+ day + "_" + month + "_" + year + "_" + "time_"  + hour + "_" + min + "_" + sec + "_" + "ch_" + str(Channel) + "_offset_" + offset
     #soxCommand = "sox -c 4 -r 500e3 " + soundFile + " -n remix " + str(Channel) + " trim 0s 500000s spectrogram -r -m -x 5000 -y 1025 -z 88 -o " + SaveDirectory + "/Spectrogram/" + outputFilename + ".png"
-    soxCommand = "sox -c 4 -r "+  str(SampleRate) + " " + soundFile + " -n remix " + str(Channel) + " trim 0s 500000s spectrogram -r -m -x 5000 -y 1025 -z 88 -o " + SaveDirectory + "/Spectrogram/" + outputFilename + ".png"
-
+    soxCommand = "sox -c 4 -r "+  str(SampleRate) + " " + soundFile + " -n remix " + str(Channel) + " trim 0s 500000s spectrogram -r -m -x 5000 -y 1025 -z 88 -o " + SaveDirectory + "Spectrogram\\" + outputFilename + ".png"
+    print soxCommand
     # soxCommand = "sox -c 4 -r 500e3 " + soundFile + " -n remix " + str(Channel) + " trim 0s 500000s spectrogram -r -m -x 5000 -y 1025 -z 88 -o " + SaveDirectory + "/Spectrogram/" + os.path.splitext((soundFile))[0] + ".png"
     os.system(soxCommand)
 

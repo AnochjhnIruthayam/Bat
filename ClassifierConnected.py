@@ -19,7 +19,7 @@ class ClassifierConnected():
         self.pathEventList = []
         self.TrainingSetEventList = []
         self.HDFFile = h5py
-
+        self.ConfusionMatrix = 0
     def saveEventPath(self, name):
         self.pathEventList.append(name)
 
@@ -422,7 +422,8 @@ class ClassifierConnected():
             ds = self.HDFFile[path[i]]
             ds.attrs["TSC"] = TSC_value
         self.HDFFile.flush()
-        return self.CorrectRatio(out, true)
+        self.ConfusionMatrix =  self.CorrectRatio(out, true)
+        return self.ConfusionMatrix
 
     #Input: A list of the classifier output and the true target
     #Method: calculates the correct ratio based on true and false negative and positive
@@ -433,7 +434,7 @@ class ClassifierConnected():
         #initilaze with zero
         ConfusionMatrix = np.zeros((7,7))
         #int64 datatype
-        ConfusionMatrix = np.array(ConfusionMatrix, dtype=np.int64)
+        ConfusionMatrix = np.ndarray(ConfusionMatrix, dtype=np.int64)
         TotalTest = len(out)
         BatTarget = [0, 0, 0, 0, 0, 0, 0]
 
@@ -450,7 +451,7 @@ class ClassifierConnected():
         print BatTarget
         print "\n"
         print ConfusionMatrix
-        return ConfusionMatrix, BatTarget
+        return ConfusionMatrix
 
 
 ################################################### CONNECT ############################################################

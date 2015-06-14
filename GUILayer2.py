@@ -17,6 +17,106 @@ def tokFreq(freqPixel):
     imageWidth = 1025.0
     return (250.0/imageWidth)*(imageWidth-freqPixel)
 
+class GenerateSpecThread(QtCore.QThread):
+    def __init__(self):
+        QtCore.QThread.__init__(self)
+
+    def setup(self,SoundFileList, SearchDirectory, SaveDirectory, channel, SampleRate):
+        self.SearchDirectory = SearchDirectory
+        self.SaveDirectory = SaveDirectory
+        self.channel = channel
+        self.SampleRate = SampleRate
+        self.SoundFileList = SoundFileList
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        for soundfile in self.SoundFileList:
+            EventExtraction.createSpectrogram(soundfile, self.SearchDirectory, self.SaveDirectory, self.channel, self.SampleRate)
+            self.emit(QtCore.SIGNAL("progGenSpec()"))
+
+class AnalyzeThread(QtCore.QThread):
+    def __init__(self):
+        QtCore.QThread.__init__(self)
+
+    def setup(self,OutputDirectory, sampleList, recordedAt, projectName, InputDirectory):
+        self.OutputDirectory = OutputDirectory
+        self.sampleList = sampleList
+        self.recordedAt = recordedAt
+        self.projectName = projectName
+        self.InputDirectory = InputDirectory
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        for eventFile in self.sampleList:
+            EventExtraction.findEvent(self.OutputDirectory, eventFile, self.recordedAt, self.projectName, self.InputDirectory)
+            self.emit(QtCore.SIGNAL("analyzeSpec()"))
+
+class ClassifierThread(QtCore.QThread):
+    def __init__(self):
+        QtCore.QThread.__init__(self)
+
+    def setup(self, classifier, databasePath, iteration, learningrate, momentum, toFile):
+        self.classifier = classifier
+        self.databasePath = databasePath
+        self.iteration = iteration
+        self.learningrate = learningrate
+        self.momentum = momentum
+        self.toFile = toFile
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        self.emit(QtCore.SIGNAL("clasProg()"))
+        self.classifier.initClasissifer(self.databasePath)
+        self.emit(QtCore.SIGNAL("train()"))
+        self.classifier.goClassifer(self.iteration, self.learningrate, self.momentum, self.toFile)
+
+class ClassifierRunThread(QtCore.QThread):
+    def __init__(self):
+        QtCore.QThread.__init__(self)
+
+    def setup(self, function, databasePath):
+        self.function = function
+        self.databasePath = databasePath
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        self.emit(QtCore.SIGNAL("clasProg()"))
+        self.function.initClasissifer(self.databasePath)
+        self.emit(QtCore.SIGNAL("classRun()"))
+        ConfusionMatrix = self.function.runClassifier()
+        #ConfusionMatrix = self.function.ConfusionMatrix
+        self.emit(QtCore.SIGNAL("output(PyQt_PyObject)"), ConfusionMatrix)
+
+class ClassifierConnectedRunThread(QtCore.QThread):
+    def __init__(self):
+        QtCore.QThread.__init__(self)
+
+    def setup(self, function, databasePath):
+        self.function = function
+        self.databasePath = databasePath
+
+    def __del__(self):
+        self.wait()
+
+    def run(self):
+        self.emit(QtCore.SIGNAL("clasProg()"))
+        self.function.initClasissifer(self.databasePath)
+        self.emit(QtCore.SIGNAL("classFirst()"))
+        self.function.runFirstStageClassifier()
+        self.emit(QtCore.SIGNAL("classSecond()"))
+        self.function.runSecondStageClassifier()
+        self.emit(QtCore.SIGNAL("classThird()"))
+        self.function.runThirdStageClassifier()
+        ConfusionMatrix = self.function.ConfusionMatrix
+        self.emit(QtCore.SIGNAL("output(PyQt_PyObject)"), np.array(ConfusionMatrix))
 
 class StartQT4(QtGui.QMainWindow):
     def __init__(self, parent = None):
@@ -25,6 +125,7 @@ class StartQT4(QtGui.QMainWindow):
         self.ui.setupUi(self)
         self.ui.frame_BatButtons.hide()
         self.pathEventList = []
+        self.threadPool = []
 
         ### FIXES WINDOWS TASKBAR HANDLER, WHICH SHOWS THE CORRECT ICON ###
         import ctypes
@@ -73,6 +174,58 @@ class StartQT4(QtGui.QMainWindow):
         QtCore.QObject.connect(self.ui.button_loaddatabaseReconstruct, QtCore.SIGNAL("clicked()"), self.file_dialog2)
         QtCore.QObject.connect(self.ui.pushButton_SetOutputDirectory_Reconstruct, QtCore.SIGNAL("clicked()"), self.setOutputDirectory)
         QtCore.QObject.connect(self.ui.button_Recontructor, QtCore.SIGNAL("clicked()"), self.imageRecontructor)
+        self.ui.progressBar_classifier.hide()
+        ### GENERATE SPECTROGRAM THREAD ###
+        self.specGenThread = GenerateSpecThread()
+        self.connect(self.specGenThread, QtCore.SIGNAL("started()"), self.update_SpecProgStarted)
+        self.connect(self.specGenThread, QtCore.SIGNAL("finished()"), self.update_SpecProgFinished)
+        self.connect(self.specGenThread, QtCore.SIGNAL("progGenSpec()"), self.update_SpecProg)
+
+        #### ANALYZE THREAD ###
+        self.analyzeThread = AnalyzeThread()
+        self.connect(self.analyzeThread, QtCore.SIGNAL("started()"), self.update_analyzeProgStarted)
+        self.connect(self.analyzeThread, QtCore.SIGNAL("finished()"), self.update_analyzeProgFinished)
+        self.connect(self.analyzeThread, QtCore.SIGNAL("analyzeSpec()"), self.update_analyzeProg)
+
+        ### CLASSIFIER THREAD ###
+        self.classifierThread = ClassifierThread()
+        self.connect(self.classifierThread, QtCore.SIGNAL("started()"), self.update_disableAllButtons)
+        self.connect(self.classifierThread, QtCore.SIGNAL("finished()"), self.update_classifierProgFinished)
+        self.connect(self.classifierThread, QtCore.SIGNAL("clasProg()"), self.update_classifierProgStarted)
+
+        self.connect(self.classifierThread, QtCore.SIGNAL("train()"), self.update_classfierInfo)
+
+        ### CLASSIFIER RUN THREAD ###
+        self.classifierRunThreadFSC = ClassifierRunThread()
+        self.connect(self.classifierRunThreadFSC, QtCore.SIGNAL("finished()"), self.update_classifierRunProg)
+        self.connect(self.classifierRunThreadFSC, QtCore.SIGNAL("started()"), self.update_disableAllButtons)
+        self.connect(self.classifierRunThreadFSC, QtCore.SIGNAL("clasProg()"), self.update_classifierProgStarted)
+        self.connect(self.classifierRunThreadFSC, QtCore.SIGNAL("classRun()"), self.update_classfierRunInfo)
+        self.connect(self.classifierRunThreadFSC, QtCore.SIGNAL("output(PyQt_PyObject)"), self.tableConfusionMatrixHandlerFSC)
+
+        self.classifierRunThreadSSC = ClassifierRunThread()
+        self.connect(self.classifierRunThreadSSC, QtCore.SIGNAL("finished()"), self.update_classifierRunProg)
+        self.connect(self.classifierRunThreadSSC, QtCore.SIGNAL("started()"), self.update_disableAllButtons)
+        self.connect(self.classifierRunThreadSSC, QtCore.SIGNAL("clasProg()"), self.update_classifierProgStarted)
+        self.connect(self.classifierRunThreadSSC, QtCore.SIGNAL("classRun()"), self.update_classfierRunInfo)
+        self.connect(self.classifierRunThreadSSC, QtCore.SIGNAL("output(PyQt_PyObject)"), self.tableConfusionMatrixHandlerSSC)
+
+        self.classifierRunThreadTSC = ClassifierRunThread()
+        self.connect(self.classifierRunThreadTSC, QtCore.SIGNAL("finished()"), self.update_classifierRunProg)
+        self.connect(self.classifierRunThreadTSC, QtCore.SIGNAL("started()"), self.update_disableAllButtons)
+        self.connect(self.classifierRunThreadTSC, QtCore.SIGNAL("clasProg()"), self.update_classifierProgStarted)
+        self.connect(self.classifierRunThreadTSC, QtCore.SIGNAL("classRun()"), self.update_classfierRunInfo)
+        self.connect(self.classifierRunThreadTSC, QtCore.SIGNAL("output(PyQt_PyObject)"), self.tableConfusionMatrixHandlerTSC)
+
+        self.classifierConnectedRunThread = ClassifierConnectedRunThread()
+        self.connect(self.classifierConnectedRunThread, QtCore.SIGNAL("finished()"), self.update_classifierRunProg)
+        self.connect(self.classifierConnectedRunThread, QtCore.SIGNAL("started()"), self.update_disableAllButtons)
+        self.connect(self.classifierConnectedRunThread, QtCore.SIGNAL("clasProg()"), self.update_classifierProgStarted)
+        self.connect(self.classifierConnectedRunThread, QtCore.SIGNAL("classFirst()"), self.update_first)
+        self.connect(self.classifierConnectedRunThread, QtCore.SIGNAL("classSecond()"), self.update_second)
+        self.connect(self.classifierConnectedRunThread, QtCore.SIGNAL("classThird()"), self.update_third)
+        self.connect(self.classifierConnectedRunThread, QtCore.SIGNAL("output(PyQt_PyObject)"), self.tableConfusionMatrixHandlerTSC)
+
 
         #QtCore.QObject.connect(self.ui.progressBar)
         self.HDFFile = h5py
@@ -81,6 +234,8 @@ class StartQT4(QtGui.QMainWindow):
         self.previousEvent = 0
         self.ProcessCount = 0
         self.MultiCount = 0
+        self.SpecProgressCount = 0
+        self.analyzeProgessCount = 0
         self.day = []
         self.month = []
         self.year = []
@@ -88,9 +243,9 @@ class StartQT4(QtGui.QMainWindow):
         self.pathcorr = []
         self.eventno = []
         self.SoundFileList = []
-        self.OutputDirectory = "/home/anoch/Documents/BatSamplesOutput"
-        self.InputDirectory = "/home/anoch/Documents/BatSamplesInput"
-        self.DatabasePath = "/home/anoch/Documents/BatOutput/BatData.hdf5"
+        self.OutputDirectory = "C:\Users\Anoch\Documents\PreOutput"#"/home/anoch/Documents/BatSamplesOutput"
+        self.InputDirectory = "C:\Users\Anoch\Documents\PreInput"#"/home/anoch/Documents/BatSamplesInput"
+        self.DatabasePath = "C:\Users\Anoch\Documents\BatOutput\BatData.hdf5"#"/home/anoch/Documents/BatOutput/BatData.hdf5"
         self.ui.label_classifier_databaseDirectory.setText(self.DatabasePath)
         self.ui.label_outputDirectory.setText(self.OutputDirectory)
         self.ui.label_inputDirectory.setText(self.InputDirectory)
@@ -298,8 +453,6 @@ class StartQT4(QtGui.QMainWindow):
                 if QKeyEvent.key() == 53:
                     self.getCallSomethingElse()
 
-
-
     # Overload function
     def keyReleaseEvent(self, QKeyEvent):
         if self.ui.tabWidget.currentIndex() == 1:
@@ -319,13 +472,59 @@ class StartQT4(QtGui.QMainWindow):
                 image = HDF5Handler.imageRecontructFromHDF5(Imgdata)
                 cv2.imwrite(self.OutputDirectory + "/Spectrogram/" + file[i] + ".png", image)
 
+    def update_classifierProgStarted(self):
+        self.ui.textEdit_classifier_overview.setText("Initilazing database")
+        self.ui.progressBar_classifier.show()
+    def update_classifierProgFinished(self):
+        self.ui.button_classifier_database.setEnabled(True)
+        self.ui.button_classiferConnected_run.setEnabled(True)
+        self.ui.button_classifierFirstStage_train.setEnabled(True)
+        self.ui.button_classifierFirstStage_run.setEnabled(True)
+        self.ui.button_classifierSecondStage_train.setEnabled(True)
+        self.ui.button_classifierSecondStage_run.setEnabled(True)
+        self.ui.button_classifierThirdStage_train.setEnabled(True)
+        self.ui.button_classifierThirdStage_run.setEnabled(True)
+        self.ui.textEdit_classifier_overview.setText("Training network... Done")
+        self.ui.progressBar_classifier.hide()
+    def update_classifierRunProg(self):
+        self.ui.button_classifier_database.setEnabled(True)
+        self.ui.button_classiferConnected_run.setEnabled(True)
+        self.ui.button_classifierFirstStage_train.setEnabled(True)
+        self.ui.button_classifierFirstStage_run.setEnabled(True)
+        self.ui.button_classifierSecondStage_train.setEnabled(True)
+        self.ui.button_classifierSecondStage_run.setEnabled(True)
+        self.ui.button_classifierThirdStage_train.setEnabled(True)
+        self.ui.button_classifierThirdStage_run.setEnabled(True)
+        self.ui.textEdit_classifier_overview.setText("Done!")
+        self.ui.progressBar_classifier.hide()
+    def update_classfierInfo(self):
+        self.ui.textEdit_classifier_overview.setText("Training network...")
+    def update_classfierRunInfo(self):
+        self.ui.textEdit_classifier_overview.setText("Running network...")
+    def update_first(self):
+        self.ui.textEdit_classifier_overview.setText("Running first stage network...")
+    def update_second(self):
+        self.ui.textEdit_classifier_overview.setText("Running second stage network...")
+    def update_third(self):
+        self.ui.textEdit_classifier_overview.setText("Running third stage network...")
+    def update_disableAllButtons(self):
+        self.ui.button_classifier_database.setEnabled(False)
+        self.ui.button_classiferConnected_run.setEnabled(False)
+        self.ui.button_classifierFirstStage_train.setEnabled(False)
+        self.ui.button_classifierFirstStage_run.setEnabled(False)
+        self.ui.button_classifierSecondStage_train.setEnabled(False)
+        self.ui.button_classifierSecondStage_run.setEnabled(False)
+        self.ui.button_classifierThirdStage_train.setEnabled(False)
+        self.ui.button_classifierThirdStage_run.setEnabled(False)
 
     def trainFirstStageClassifier(self):
-        self.ui.textEdit_classifier_overview.setText("Initilazing database")
-        self.first_stage_classifier.initClasissifer(self.DatabasePath)
-        self.ui.textEdit_classifier_overview.setText("Training network...")
-        self.first_stage_classifier.goClassifer(0, 0.001, 0.1, False)
-        self.ui.textEdit_classifier_overview.setText("Training network... Done")
+
+        self.classifierThread.setup(self.first_stage_classifier, self.DatabasePath, 0, 0.001,0.01, False)
+        self.classifierThread.start()
+        #self.first_stage_classifier.initClasissifer(self.DatabasePath)
+        #self.ui.textEdit_classifier_overview.setText("Training network...")
+        #self.first_stage_classifier.goClassifer(0, 0.001, 0.1, False)
+        #self.ui.textEdit_classifier_overview.setText("Training network... Done")
         ## Testing Purpose ##
         """
         learningRate    = [0.001, 0.001, 0.001, 0.01, 0.01, 0.01, 0.1, 0.1, 0.1]
@@ -335,11 +534,15 @@ class StartQT4(QtGui.QMainWindow):
                 self.first_stage_classifier.goClassifer(i, learningRate[setting], momentum[setting], True)
         """
     def trainSecondStageClassifier(self):
-        self.ui.textEdit_classifier_overview.setText("Initilazing database")
-        self.second_stage_classifier.initClasissifer(self.DatabasePath)
-        self.ui.textEdit_classifier_overview.setText("Training network...")
-        self.second_stage_classifier.goClassifer(0,0.001,0.001,False)
-        self.ui.textEdit_classifier_overview.setText("Training network... Done")
+        self.classifierThread.setup(self.second_stage_classifier, self.DatabasePath, 0,0.001,0.001,False)
+        self.classifierThread.start()
+
+
+        #self.ui.textEdit_classifier_overview.setText("Initilazing database")
+        #self.second_stage_classifier.initClasissifer(self.DatabasePath)
+        #self.ui.textEdit_classifier_overview.setText("Training network...")
+        #self.second_stage_classifier.goClassifer(0,0.001,0.001,False)
+        #self.ui.textEdit_classifier_overview.setText("Training network... Done")
         """
         learningRate    = [0.001, 0.001, 0.001, 0.01, 0.01, 0.01, 0.1, 0.1, 0.1]
         momentum        = [0.001, 0.01, 0.1, 0.001, 0.01, 0.1, 0.001, 0.01, 0.1]
@@ -349,11 +552,16 @@ class StartQT4(QtGui.QMainWindow):
         """
 
     def trainThirdStageClassifier(self):
-        self.ui.textEdit_classifier_overview.setText("Initilazing database")
-        self.third_stage_classifier.initClasissifer(self.DatabasePath)
-        self.ui.textEdit_classifier_overview.setText("Training network...")
-        self.third_stage_classifier.goClassifer(0, 0.001, 0.010, False)
-        self.ui.textEdit_classifier_overview.setText("Training network... Done")
+        self.classifierThread.setup(self.third_stage_classifier, self.DatabasePath, 0, 0.001, 0.010, False)
+        self.classifierThread.start()
+
+
+
+        #self.ui.textEdit_classifier_overview.setText("Initilazing database")
+        #self.third_stage_classifier.initClasissifer(self.DatabasePath)
+        #self.ui.textEdit_classifier_overview.setText("Training network...")
+        #self.third_stage_classifier.goClassifer(0, 0.001, 0.010, False)
+        #self.ui.textEdit_classifier_overview.setText("Training network... Done")
         """
         learningRate    = [0.001, 0.001, 0.001, 0.01, 0.01, 0.01, 0.1, 0.1, 0.1]
         momentum        = [0.001, 0.01, 0.1, 0.001, 0.01, 0.1, 0.001, 0.01, 0.1]
@@ -364,45 +572,37 @@ class StartQT4(QtGui.QMainWindow):
 
     def runFirstStageClassifier(self):
         #self.ui.textEdit_classifier_overview.setText("Initilazing database")
-        self.first_stage_classifier_run.initClasissifer(self.DatabasePath)
-        TruePostive, TrueNegative, FalsePostive, FalseNegative, CorrectRatio, TrueBats, TrueNonBats = self.first_stage_classifier_run.runClassifier()
-        cursor = QtGui.QTextCursor(self.ui.textEdit_classifier_overview.document())
-        ConfusionMatrix = np.zeros((2,2))
-        ConfusionMatrix = np.array(ConfusionMatrix, dtype=np.int64)
-        ConfusionMatrix[0][0] = TruePostive
-        ConfusionMatrix[1][1] = TrueNegative
-        ConfusionMatrix[1][0] = FalsePostive
-        ConfusionMatrix[0][1] = FalseNegative
-        self.tableConfusionMatrixHandlerFSC(ConfusionMatrix)
-        cursor.insertText("True Positive: " + str(TruePostive) + "\n")
-        cursor.insertText("True Negative: " + str(TrueNegative) + "\n")
-        cursor.insertText("False Positive: " + str(FalsePostive) + "\n")
-        cursor.insertText("False Negative: " + str(FalseNegative) + "\n")
-        cursor.insertText("True Bats: " + str(TrueBats) + "\n")
-        cursor.insertText("True Non Bats: " + str(TrueNonBats) + "\n")
-        cursor.insertText("Correct Ratio: " + str(CorrectRatio)  + "\n")
+        #self.first_stage_classifier_run.initClasissifer(self.DatabasePath)
+        self.classifierRunThreadFSC.setup(self.first_stage_classifier_run, self.DatabasePath)
+        self.classifierRunThreadFSC.start()
+        #self.classifierRunThread.wait()
+        #ConfusionMatrix = self.first_stage_classifier_run.runClassifier()
 
+        #self.tableConfusionMatrixHandlerFSC(ConfusionMatrix)
     def runSecondStageClassifier(self):
-        self.second_stage_classifier_run.initClasissifer(self.DatabasePath)
-        ConfusionMatrix, BatTarget = self.second_stage_classifier_run.runClassifier()
-        cursor = QtGui.QTextCursor(self.ui.textEdit_classifier_overview.document())
+        self.classifierRunThreadSSC.setup(self.second_stage_classifier_run, self.DatabasePath)
+        self.classifierRunThreadSSC.start()
+        #self.second_stage_classifier_run.initClasissifer(self.DatabasePath)
+        #ConfusionMatrix, BatTarget = self.second_stage_classifier_run.runClassifier()
+        #cursor = QtGui.QTextCursor(self.ui.textEdit_classifier_overview.document())
 
-        cursor.insertText("Confusion Matrix\n" + str(ConfusionMatrix) + "\nTarget\n" + str(BatTarget))
-        self.tableConfusionMatrixHandlerSSC(ConfusionMatrix)
+        #cursor.insertText("Confusion Matrix\n" + str(ConfusionMatrix) + "\nTarget\n" + str(BatTarget))
+        #self.tableConfusionMatrixHandlerSSC(ConfusionMatrix)
     def runThirdStageClassifier(self):
-        self.third_stage_classifier_run.initClasissifer(self.DatabasePath)
-        ConfusionMatrix, BatTarget = self.third_stage_classifier_run.runClassifier()
-
-        cursor = QtGui.QTextCursor(self.ui.textEdit_classifier_overview.document())
-
-        cursor.insertText("Confusion Matrix\n" + str(ConfusionMatrix) + "\nTarget\n" + str(BatTarget))
-        self.tableConfusionMatrixHandlerTSC(ConfusionMatrix)
+        self.classifierRunThreadTSC.setup(self.third_stage_classifier_run, self.DatabasePath)
+        self.classifierRunThreadTSC.start()
+        #ConfusionMatrix, BatTarget = self.third_stage_classifier_run.runClassifier()
+        #cursor = QtGui.QTextCursor(self.ui.textEdit_classifier_overview.document())
+        #cursor.insertText("Confusion Matrix\n" + str(ConfusionMatrix) + "\nTarget\n" + str(BatTarget))
+        #self.tableConfusionMatrixHandlerTSC(ConfusionMatrix)
 
     def runConnectedClassifiers(self):
-        self.connected_classifier_run.initClasissifer(self.DatabasePath)
-        ConfusionMatrix, BatTarget = self.connected_classifier_run.runClassifiers()
-        cursor = QtGui.QTextCursor(self.ui.textEdit_classifier_overview.document())
-        cursor.insertText("Confusion Matrix\n" + str(ConfusionMatrix) + "\nTarget\n" + str(BatTarget))
+        self.classifierConnectedRunThread.setup(self.connected_classifier_run, self.DatabasePath)
+        self.classifierConnectedRunThread.start()
+        #self.connected_classifier_run.initClasissifer(self.DatabasePath)
+        #ConfusionMatrix, BatTarget = self.connected_classifier_run.runClassifiers()
+        #cursor = QtGui.QTextCursor(self.ui.textEdit_classifier_overview.document())
+        #cursor.insertText("Confusion Matrix\n" + str(ConfusionMatrix) + "\nTarget\n" + str(BatTarget))
 
         #ConfusionMatrix = np.zeros((7,7))
         #ConfusionMatrix = np.array(ConfusionMatrix, dtype=np.int64)
@@ -411,7 +611,7 @@ class StartQT4(QtGui.QMainWindow):
         #    for colomn in range(0,7):
         #        ConfusionMatrix[row][colomn] = count
         #        count += 1
-        self.tableConfusionMatrixHandlerTSC(ConfusionMatrix)
+        #self.tableConfusionMatrixHandlerTSC(ConfusionMatrix)
 
     def tableConfusionMatrixHandlerTSC(self, ConfusionMatrix):
         # SET UP Labels for the table
@@ -519,10 +719,14 @@ class StartQT4(QtGui.QMainWindow):
         data.setFont(font)
         data.setText("True")
         self.ui.tableWidget_ConfusionMatrix.setItem(4,0,data)
-
+        stringMatrix = str(ConfusionMatrix)
+        print stringMatrix
         target = [0,0,0,0,0,0,0]
+        RowMatrix = [0]
         for row in range(0,7):
             for colomn in range(0,7):
+                ## WORK AROUND FOR BUG IN MILTIDIMENSION ARRAY
+                RowMatrix[0] = ConfusionMatrix[row]
                 target[row] += ConfusionMatrix[row][colomn]
                 data = QtGui.QTableWidgetItem(str(ConfusionMatrix[row][colomn]))
                 self.ui.tableWidget_ConfusionMatrix.setItem(row+2,colomn+2,data)
@@ -778,7 +982,7 @@ class StartQT4(QtGui.QMainWindow):
         from os.path import isfile
         if isfile(filepath):
             filename = filepath
-            self.DatabasePath = filename
+            self.DatabasePath = str(filename)
             self.ui.label_classifier_databaseDirectory.setText(filename)
             #self.HDFFile = h5py.File(str(filepath))
             #self.HDFFile.visit(self.saveEventPath)
@@ -1020,7 +1224,7 @@ class StartQT4(QtGui.QMainWindow):
 
     def lastEventHandler(self):
         #when we are finished with labelling, hide buttons for bats and show N/A on labels
-        self.ui.progressBar_eventLabel.setValue(self.currentEvent)
+        self.ui.progressBar_eventLabel.setValue(self.currentEvent+1)
         self.ui.frame_BatButtons.hide()
         self.ui.label_imageshow.setText("Labelling Done!")
         self.ui.label_Date.setText("N/A")
@@ -1043,9 +1247,6 @@ class StartQT4(QtGui.QMainWindow):
         self.ui.label_FrontLine_10.setText("N/A")
         self.ui.label_FrontLine_11.setText("N/A")
         self.HDFFile.close()
-
-
-
 
     def scanForNextEvent2(self):
         self.previousEvent = self.currentEvent
@@ -1293,7 +1494,8 @@ class StartQT4(QtGui.QMainWindow):
         else:
             self.ui.label_database_name.setText("None selected")
 
-    def create_spectrogram(self):
+
+    def create_spectrogramBACKUP(self):
         SampleRate = self.ui.spinBox_SampleRate.value()
         SearchDirectory = self.InputDirectory + "/"
         SaveDirectory = self.OutputDirectory + "/"
@@ -1313,41 +1515,114 @@ class StartQT4(QtGui.QMainWindow):
 
 
         Count = 0
+        first = True
         for soundfile in self.SoundFileList:
             self.ui.textEdit_overview.setText("Creating Spectrogram for " + soundfile + " at channel " + str(channel))
-            EventExtraction.createSpectrogram(soundfile, SearchDirectory, SaveDirectory, channel, SampleRate)
-            self.ui.progressBar_analyse.setValue(Count)
-            Count += 1
-        self.ui.progressBar_analyse.setValue(Count)
+            #self.threadPool.append(GenericThread(EventExtraction.createSpectrogram, soundfile, SearchDirectory, SaveDirectory, channel, SampleRate))
+            #worker = GenericThread(EventExtraction.createSpectrogram, soundfile, SearchDirectory, SaveDirectory, channel, SampleRate)
+            #worker.start()
+            print "Thread setup"
+
+            self.specGenThread.setup(EventExtraction.createSpectrogram, soundfile, SearchDirectory, SaveDirectory, channel, SampleRate)
+            print "Thread start"
+            self.specGenThread.start()
+            print "Thread wait"
+            self.specGenThread.wait()
+            print "Thread finished"
+            #worker.wait()
+            #worker.run(EventExtraction.createSpectrogram(soundfile, SearchDirectory, SaveDirectory, channel, SampleRate))
+            #self.threadPool[len(self.threadPool)-1].start()
+            #self.connect(worker, QtCore.SIGNAL("finished()"), self.update_SpecProg)
+            #if worker.isFinished():
+            #    worker.finished()
+            #    self.ui.progressBar_analyse.setValue(Count)
+            #    Count += 1
+        self.SpecProgressCount += 1
+        self.ui.progressBar_analyse.setValue(self.SpecProgressCount)
         self.ui.textEdit_overview.setText("Creating Spectrogram Done!")
+
+    def create_spectrogram(self):
+        self.ui.pushButton_createSpectrogram.setEnabled(False)
+        SampleRate = self.ui.spinBox_SampleRate.value()
+        SearchDirectory = self.InputDirectory + "/"
+        SaveDirectory = self.OutputDirectory + "/"
+        channel = 1 # default
+        #Check radioButton for which channel we should make spectrogram of
+        if self.ui.radioButton_channel_1.isChecked():
+            channel = 1
+        if self.ui.radioButton_channel_2.isChecked():
+            channel = 2
+        if self.ui.radioButton_channel_3.isChecked():
+            channel = 3
+        if self.ui.radioButton_channel_4.isChecked():
+            channel = 4
+        self.SoundFileList = getFunctions.getFileListDepthScan(SearchDirectory, ".s16")
+        self.ui.progressBar_analyse.setMinimum(0)
+        self.ui.progressBar_analyse.setMaximum(len(self.SoundFileList))
+        self.specGenThread.setup(self.SoundFileList, SearchDirectory, SaveDirectory, channel, SampleRate)
+        self.specGenThread.start()
+
+        Count = 0
+        first = True
+
+        #self.ui.progressBar_analyse.setValue(self.SpecProgressCount)
+        #self.ui.textEdit_overview.setText("Creating Spectrogram Done!")
+
+    def update_SpecProg(self):
+        #print "Im updating"
+        self.SpecProgressCount += 1
+        self.ui.progressBar_analyse.setValue(self.SpecProgressCount)
+
+    def update_SpecProgFinished(self):
+        self.ui.pushButton_createSpectrogram.setEnabled(True)
+        self.ui.textEdit_overview.setText("Creating Spectrogram Done!")
+    def update_SpecProgStarted(self):
+        self.ui.textEdit_overview.setText("Creating Spectrogram Started!")
 
 
     def run_analyser(self):
+        self.ui.button_start.setEnabled(False)
         rootpath = self.OutputDirectory
-
+        self.analyzeProgessCount
         recordedAt = str(self.ui.lineEdit_recordedAt.text())
         projectName = str(self.ui.lineEdit_projectName.text())
 
         SearchPath = rootpath + "/Spectrogram/"
         SavePath = rootpath + "/SpectrogramMarked/"
         try:
-            self.ui.textEdit_overview.setText("Loading Spectrogram Files...")
+            #self.ui.textEdit_overview.setText("Loading Spectrogram Files...")
             sampleList = getFunctions.getFileList(SearchPath,".png")
-            self.ui.textEdit_overview.setText("Loading Spectrogram Files... Done! Found " + str(len(sampleList)) + " files")
+            #self.ui.textEdit_overview.setText("Loading Spectrogram Files... Done! Found " + str(len(sampleList)) + " files")
             maxSize = len(sampleList)
             self.ui.progressBar_analyse.setMinimum(0)
             self.ui.progressBar_analyse.setMaximum(maxSize)
             progressCount = 0
+            self.analyzeThread.setup(self.OutputDirectory, sampleList, recordedAt, projectName, self.InputDirectory)
+            self.analyzeThread.start()
 
-            for eventFile in sampleList:
-                self.ui.textEdit_overview.setText("Analyzing " + os.path.splitext((eventFile))[0] + "\n")
-                self.ui.label_FilesFoundProgress.setText(str(progressCount) + " out of " + str(maxSize))
-                EventExtraction.findEvent(self.OutputDirectory, eventFile, recordedAt, projectName, self.InputDirectory)
-                progressCount += 1
-                self.ui.progressBar_analyse.setValue(progressCount)
-            self.ui.textEdit_overview.setText("Event extraction done!")
+            #for eventFile in sampleList:
+            #    self.ui.textEdit_overview.setText("Analyzing " + os.path.splitext((eventFile))[0] + "\n")
+            #    self.ui.label_FilesFoundProgress.setText(str(progressCount) + " out of " + str(maxSize))
+
+            #    EventExtraction.findEvent(self.OutputDirectory, eventFile, recordedAt, projectName, self.InputDirectory)
+            #    progressCount += 1
+            #    self.ui.progressBar_analyse.setValue(progressCount)
+            #self.ui.textEdit_overview.setText("Event extraction done!")
         except:
             self.ui.textEdit_overview.setText("Loading Failed! Make sure the Input / Output directory are set correct")
+
+    def update_analyzeProg(self):
+        self.analyzeProgessCount += 1
+        self.ui.progressBar_analyse.setValue(self.analyzeProgessCount)
+
+    def update_analyzeProgFinished(self):
+        self.ui.button_start.setEnabled(True)
+        self.analyzeProgessCount += 1
+        self.ui.progressBar_analyse.setValue(self.analyzeProgessCount)
+        self.ui.textEdit_overview.setText("Event extraction done!")
+
+    def update_analyzeProgStarted(self):
+        self.ui.textEdit_overview.setText("Event extraction Started!")
 
 
 
