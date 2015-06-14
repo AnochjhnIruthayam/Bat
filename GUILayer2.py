@@ -1323,7 +1323,7 @@ class StartQT4(QtGui.QMainWindow):
 
     def countSpecies(self):
         self.filepath = QtGui.QFileDialog.getOpenFileName(self, "Open HDF5 File",'', "HDF5 Files (*.hdf5 *.h5)")
-
+        ## Opens file
         self.HDFFile = h5py.File(str(self.filepath))
         self.HDFFile.visit(self.saveEventPath)
 
