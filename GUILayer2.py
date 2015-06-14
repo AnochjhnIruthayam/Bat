@@ -26,6 +26,12 @@ class StartQT4(QtGui.QMainWindow):
         self.ui.frame_BatButtons.hide()
         self.pathEventList = []
 
+        ### FIXES WINDOWS TASKBAR HANDLER, WHICH SHOWS THE CORRECT ICON ###
+        import ctypes
+        myappid = 'mycompany.myproduct.subproduct.version' # arbitrary string
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+
+
         QtCore.QObject.connect(self.ui.pushButton_SetInputDirectory, QtCore.SIGNAL("clicked()"), self.setInputDirectory)
         QtCore.QObject.connect(self.ui.pushButton_SetOutputDirectory, QtCore.SIGNAL("clicked()"), self.setOutputDirectory)
         QtCore.QObject.connect(self.ui.button_start, QtCore.SIGNAL("clicked()"), self.run_analyser)

@@ -10,6 +10,7 @@ This project is made as a part of our Master Thesis
 - h5py
 - pyqt4
 
+On Windows, Path enviroment must be set for Python and SoX
 
 **General:**
 
